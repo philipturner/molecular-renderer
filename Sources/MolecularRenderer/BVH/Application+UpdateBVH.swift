@@ -8,6 +8,10 @@ extension Application {
   
   public func updateBVH1(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
+    print()
+    print("removed:", transaction.removedIDs.count)
+    print("moved:", transaction.movedIDs.count)
+    print("added:", transaction.addedIDs.count)
     
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.

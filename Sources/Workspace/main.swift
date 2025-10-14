@@ -194,9 +194,12 @@ func inspectMemorySlots() {
     let listAddress = headerAddress + 2056 / 4
     for j in 0..<Int(atomCount) {
       let atomID = memorySlots[listAddress + j]
-      if j < 5 {
+      if j < 12 {
         print(pad(atomID), terminator: " ")
       }
+      
+      // 2200 3225 1050 3200 3208 1280 3216 3104 1288 2096 3112 2344 1440 2184 3120
+      // 2200 3225   39 4023 4031 4039 4047 4055 4021 2096 3112 2344 1440 2184 3120
       
       /*
        pad(atomCount)
