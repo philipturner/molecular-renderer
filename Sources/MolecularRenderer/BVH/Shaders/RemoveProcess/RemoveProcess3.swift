@@ -110,6 +110,12 @@ extension RemoveProcess {
         
         // Sanitize memory operations within the current block of 128.
         \(Reduction.groupGlobalBarrier())
+        
+        // WARNING: Sanitize local memory writes prior to this read.
+        uint countBitsResult = \(Reduction.waveActiveCountBits("shouldKeep"));
+        threadgroupMemory[localID / 32] = countBitsResult;
+        \(Reduction.groupLocalBarrier())
+        
       }
       
       if ((beforeAtomCount > 1000) && (localID == 0)) {
