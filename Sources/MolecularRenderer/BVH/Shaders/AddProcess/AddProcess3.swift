@@ -73,6 +73,23 @@ extension AddProcess {
       if (crashBuffer[0] != 1) {
         return;
       }
+      
+      uint removedCount = transactionArgs.removedCount;
+      uint movedCount = transactionArgs.movedCount;
+      uint addedCount = transactionArgs.addedCount;
+      if (globalID >= movedCount + addedCount) {
+        return;
+      }
+      
+      // Retrieve the atom.
+      uint atomID = transactionIDs[removedCount + globalID];
+      float4 atom = atoms[atomID];
+      
+      \(computeLoopBounds(worldDimension: worldDimension))
+      
+      // Read the offsets from device memory.
+      uint4 inputOffsets[2];
+      inputOffsets[0] = uint4(relativeOffsets1[atomID]);
     }
     """
   }

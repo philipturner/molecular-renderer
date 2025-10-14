@@ -165,7 +165,7 @@ extension AddProcess {
               \(atomicFetchAdd())
             }
             
-            // Store to the cache.
+            // Save the offset in the cache.
             {
               uint address = z * 4 + y * 2 + x;
               address = address * 128 + localID;
@@ -186,7 +186,7 @@ extension AddProcess {
         outputOffsets[i / 4][i % 4] = offset;
       }
       
-      // Write to device memory.
+      // Write the offsets to device memory.
       relativeOffsets1[atomID] = \(castUShort4("outputOffsets[0]"));
       if (loopEnd[2] == 2) {
         relativeOffsets2[atomID] = \(castUShort4("outputOffsets[1]"));
