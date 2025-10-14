@@ -79,12 +79,17 @@ struct AtomStyles {
   
   static var radii: [Float] {
     // Neutronium to argon: copied verbatim from NanoEngineer.
+    //
+    // Overwrote everything larger than 2.5 Å. This is because the kernel
+    // for rebuilding 2 nm voxels exploits the fixed upper limit to the atom's
+    // footprint (3x3x3) on a 0.25 nm grid. To guarantee correct results, we
+    // limit the atom's diameter to 0.499 nm.
     var radii: [Float] = [
       0.853, // 0
       0.930, // 1
       1.085, // 2
       
-      3.100, // 3
+      2.499, // 3
       2.325, // 4
       1.550, // 5
       1.426, // 6
@@ -93,7 +98,7 @@ struct AtomStyles {
       1.279, // 9
       1.411, // 10
       
-      3.100, // 11
+      2.499, // 11
       2.325, // 12
       1.938, // 13
       1.744, // 14
@@ -102,11 +107,11 @@ struct AtomStyles {
       1.573, // 17
       1.457, // 18
       
-      3.875, // 19
-      3.100, // 20
-      2.868, // 21
-      2.712, // 22
-      2.558, // 23
+      2.499, // 19
+      2.499, // 20
+      2.499, // 21
+      2.499, // 22
+      2.499, // 23
       2.403, // 24
       2.325, // 25
       2.325, // 26
@@ -144,6 +149,9 @@ struct AtomStyles {
     // https://periodictable.com/Properties/A/LatticeConstants.html
     // 3.6149 (Cu) -> 4.0782 (Au)
     // 2.325 (Cu) * 4.0782/3.6149 = 2.623 (Au)
+    //
+    // WARNING: Atomic radius of 2.6 Å would be invalid with the current
+    // version of the code base!
     //
     // ## Revised Parameter
     //
