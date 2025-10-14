@@ -130,17 +130,12 @@ extension RemoveProcess {
       memorySlots[headerAddress] = afterAtomCount;
       memorySlots[headerAddress + 1] = 0;
       
-      if ((beforeAtomCount > 1000) && (localID == 0)) {
-        bool acquiredLock = false;
-        \(CrashBuffer.acquireLock(errorCode: 3))
-        if (acquiredLock) {
-          crashBuffer[1] = voxelCoords.x;
-          crashBuffer[2] = voxelCoords.y;
-          crashBuffer[3] = voxelCoords.z;
-          crashBuffer[4] = assignedSlotID;
-          crashBuffer[5] = beforeAtomCount;
-          crashBuffer[6] = afterAtomCount;
-        }
+      // if atoms remain, write to dense.rebuiltMarks
+      if (afterAtomCount > 0) {
+        rebuiltMarks[voxelID] = 1;
+      } else {
+        assignedVoxelCoords[assignedSlotID] = \(UInt32.max);
+        assignedSlotIDs[voxelID] = \(UInt32.max);
       }
     }
     """

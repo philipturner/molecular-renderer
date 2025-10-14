@@ -10,16 +10,17 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Implement addProcess3, then the remove process. At the end of this, we
-//   will no longer have the GPU crash from too many atoms/voxel.
-// - Implement rebuildProcess1 before running the following analysis.
-//   - Rigorous test for correct functionality: experiment on atoms 0...99,
-//     4000...4049, and 4051...4099.
+// - Implement rebuildProcess1 before running the following analysis. This
+//   choice will save development time in the long run.
+// - Rigorous test for correct functionality: experiment on atoms 0...99,
+//   4000...4049, and 4051...4099.
 //   - First test: these atoms are not rewritten, the rest register as 'moved'.
 //   - Second test: these atoms are moved, the rest are either 'moved', 'added',
 //     or unchanged. Test each of the 3 cases.
 //   - Third test: these atoms are either 'moved' or unchanged. The rest are
 //     removed. Test each of the 2 cases.
+// - Archive the above testing code to a GitHub gist, along with its utilities
+//   in "Application+UpdateBVH.swift".
 
 // Helpful facts about the test setup:
 // atom count: 8631
@@ -77,7 +78,7 @@ func uploadDebugInput() {
 }
 uploadDebugInput()
 
-#if true
+#if false
 application.run {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
