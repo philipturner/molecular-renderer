@@ -145,7 +145,7 @@ extension RebuildProcess {
               float address = \(VoxelResources.generate("xyz", 8));
               
               uint offset;
-              
+              \(atomicFetchAdd())
             }
           }
         }
@@ -164,6 +164,25 @@ extension RebuildProcess {
             referenceCount += count;
           }
           
+          // if atomCount > 1000
+          // most often 8749, but sometimes 8650!!!!!
+          
+          // if atomCount == 1165
+          // always observed it being 8749
+          
+          // 8749 always:
+          // lower corner 2.0 2.0 2.0
+          // upper corner 4.0 4.0 4.0
+          
+          // 8650 first time:
+          // lower corner 2.0 2.0 2.0
+          // upper corner 4.0 4.0 4.0
+          
+          // 8650 second time:
+          // lower corner 0.0 2.0 2.0
+          // upper corner 2.0 4.0 4.0
+          
+          // Was not initializing this to false!
           bool acquiredLock;
           \(CrashBuffer.acquireLock(errorCode: 3))
           if (acquiredLock) {
