@@ -20,7 +20,9 @@ class RebuildProcess {
   }
   
   static func cubeSphereTest() -> String {
-    fatalError("Not implemented.")
+    """
+    
+    """
   }
   
   static func computeLoopBounds() -> String {

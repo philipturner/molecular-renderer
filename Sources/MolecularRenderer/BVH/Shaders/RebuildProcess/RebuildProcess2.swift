@@ -83,6 +83,20 @@ extension RebuildProcess {
       #endif
     }
     
+    func atomicFetchAdd() -> String {
+      #if os(macOS)
+      let buffer = "(threadgroup atomic_uint*)threadgroupMemory"
+      #else
+      let buffer = "threadgroupMemory"
+      #endif
+      
+      return Reduction.atomicFetchAdd(
+        buffer: buffer,
+        address: "uint(address)",
+        operand: "1",
+        output: "offset")
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
