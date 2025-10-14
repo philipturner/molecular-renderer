@@ -89,7 +89,7 @@ extension AddProcess {
       
       // Read the offsets from device memory.
       uint4 inputOffsets[2];
-      inputOffsets[0] = uint4(relativeOffsets1[atomID]);
+      inputOffsets[0] = uint4(relativeOffsets1[globalID]);
     }
     """
   }

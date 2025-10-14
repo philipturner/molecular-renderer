@@ -187,9 +187,9 @@ extension AddProcess {
       }
       
       // Write the offsets to device memory.
-      relativeOffsets1[atomID] = \(castUShort4("outputOffsets[0]"));
+      relativeOffsets1[globalID] = \(castUShort4("outputOffsets[0]"));
       if (loopEnd[2] == 2) {
-        relativeOffsets2[atomID] = \(castUShort4("outputOffsets[1]"));
+        relativeOffsets2[globalID] = \(castUShort4("outputOffsets[1]"));
       }
     }
     """

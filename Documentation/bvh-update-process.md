@@ -12,7 +12,7 @@ Simplest implementation:
 
 ![Acceleration Structure Layout (16-Bit)](./AccelerationStructureLayout_16Bit.png)
 
-Revision: the 16-bit offset is temporary and can be ignored after integrating the atom into the BVH. It will be inaccurate in future frames, as the 2 nm voxel's reference list rearranges to fill empty slots.
+Revision: the 16-bit offset is temporary and can be ignored after integrating the atom into the BVH. It will be inaccurate in future frames, as the 2 nm voxel's reference list rearranges to fill empty slots. This realization created an opportunity to reduce the memory footprint per address.
 
 ## Idle/Active Paradigm
 
