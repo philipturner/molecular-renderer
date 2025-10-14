@@ -97,6 +97,19 @@ extension RemoveProcess {
       uint loopBound = ((beforeAtomCount + 127) / 128) * 128;
       for (uint i = localID; i < loopBound; i += 128) {
         // WARNING: Mask out operations for indices out of bounds.
+        bool inLoopBounds = (i < beforeAtomCount);
+        
+        uint atomID = \(UInt32.max);
+        bool shouldKeep = false;
+        if (inLoopBounds) {
+          atomID = memorySlots[listAddress + i];
+          if (addressOccupiedMarks[atomID] == 1) {
+            shouldKeep = true;
+          }
+        }
+        
+        // Sanitize memory operations within the current block of 128.
+        \(Reduction.groupGlobalBarrier())
       }
       
       if ((beforeAtomCount > 1000) && (localID == 0)) {
