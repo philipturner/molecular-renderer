@@ -108,6 +108,7 @@ func inspectMemorySlots() {
   let assignedSlotIDs = application.downloadAssignedSlotIDs()
   let memorySlots = application.downloadMemorySlots()
   
+  var atomDuplicatedReferences = [Int](repeating: .zero, count: 8631)
   for i in assignedSlotIDs.indices {
     let assignedSlotID = assignedSlotIDs[i]
     guard assignedSlotID != UInt32.max else {
@@ -132,9 +133,39 @@ func inspectMemorySlots() {
       if j < 5 {
         print(pad(atomID), terminator: " ")
       }
+      
+      if atomID >= atomDuplicatedReferences.count {
+        fatalError("Invalid atom ID: \(atomID)")
+      }
+      atomDuplicatedReferences[Int(atomID)] += 1
     }
     print()
   }
+  
+  var summary = [Int](repeating: .zero, count: 17)
+  for atomID in atomDuplicatedReferences.indices {
+    let referenceCount = atomDuplicatedReferences[atomID]
+    if referenceCount > 16 {
+      fatalError("Invalid reference count: \(referenceCount)")
+    }
+    summary[referenceCount] += 1
+  }
+  
+  print()
+  for referenceCount in summary.indices {
+    func pad(_ integer: Int) -> String {
+      var output = "\(integer)"
+      while output.count < 4 {
+        output = " " + output
+      }
+      return output
+    }
+    
+    let atomCount = summary[referenceCount]
+    print("\(pad(referenceCount)): \(pad(atomCount))")
+  }
+  print("total atom count: \(summary.reduce(0, +))")
+  print("total reference count: \(atomDuplicatedReferences.reduce(0, +))")
 }
 
 for frameID in 0...1 {
