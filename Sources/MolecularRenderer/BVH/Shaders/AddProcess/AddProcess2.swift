@@ -104,14 +104,6 @@ extension AddProcess {
         output: "allocatedOffset")
     }
     
-    func deviceBarrier() -> String {
-      #if os(macOS)
-      "simdgroup_barrier(mem_flags::mem_device);"
-      #else
-      "DeviceMemoryBarrierWithGroupSync();"
-      #endif
-    }
-    
     return """
     \(Shader.importStandardLibrary)
     
@@ -194,7 +186,7 @@ extension AddProcess {
           memorySlots[headerAddress + 1] = 0;
         }
       }
-      \(deviceBarrier())
+      \(Reduction.waveGlobalBarrier())
       
       // add existing atom count to prefix-summed 8 counters
       if (assignedSlotID == \(UInt32.max)) {

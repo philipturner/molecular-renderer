@@ -1,23 +1,5 @@
 // Utility functions for reductions on the GPU.
 struct Reduction {
-  // WARNING: Avoid barriers in areas not accessed by every thread in the
-  // group. In this situation, behavior is nominally undefined.
-  static func groupLocalBarrier() -> String {
-    #if os(macOS)
-    "threadgroup_barrier(mem_flags::mem_threadgroup);"
-    #else
-    "GroupMemoryBarrierWithGroupSync();"
-    #endif
-  }
-  
-  static func waveLocalBarrier() -> String {
-    #if os(macOS)
-    "simdgroup_barrier(mem_flags::mem_threadgroup);"
-    #else
-    "GroupMemoryBarrierWithGroupSync();"
-    #endif
-  }
-  
   static func waveActiveCountBits(_ input: String) -> String {
     #if os(macOS)
     "popcount(uint(uint64_t(simd_ballot(\(input)))))"
@@ -95,6 +77,42 @@ struct Reduction {
       \(operand), // value
       \(output)); // original_value
     """
+    #endif
+  }
+}
+
+// WARNING: Avoid barriers in areas not accessed by every thread in the
+// group. In this situation, behavior is nominally undefined.
+extension Reduction {
+  static func groupLocalBarrier() -> String {
+    #if os(macOS)
+    "threadgroup_barrier(mem_flags::mem_threadgroup);"
+    #else
+    "GroupMemoryBarrierWithGroupSync();"
+    #endif
+  }
+  
+  static func waveLocalBarrier() -> String {
+    #if os(macOS)
+    "simdgroup_barrier(mem_flags::mem_threadgroup);"
+    #else
+    "GroupMemoryBarrierWithGroupSync();"
+    #endif
+  }
+  
+  static func groupGlobalBarrier() -> String {
+    #if os(macOS)
+    "threadgroup_barrier(mem_flags::mem_device);"
+    #else
+    "DeviceMemoryBarrierWithGroupSync();"
+    #endif
+  }
+  
+  static func waveGlobalBarrier() -> String {
+    #if os(macOS)
+    "simdgroup_barrier(mem_flags::mem_device);"
+    #else
+    "DeviceMemoryBarrierWithGroupSync();"
     #endif
   }
 }
