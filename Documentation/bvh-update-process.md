@@ -55,6 +55,8 @@ Rebuild Process
 
 ## Memory Allocation
 
+Source: [Atom Reference Duplication (Google Sheets)](https://docs.google.com/spreadsheets/d/1fxRzCieXW_vcBb1BZYGbM1HC4lEH1FEMcF28JEvGtn0/edit?usp=sharing)
+
 Currently using a simple design where every _occupied_ 2 nm voxel gets a fixed chunk of memory to store its data. This wastes a lot of memory. Future implementations could allocate smaller chunks for voxels with low atom density.
 
 | Material | Allocated Atoms | Allocated Refs | Bytes per Voxel |
@@ -63,8 +65,6 @@ Currently using a simple design where every _occupied_ 2 nm voxel gets a fixed c
 | SiC, Si  | 1536            | 10240          | 28680           |
 
 _Room for improvement if most rendered structures are silicon carbide._
-
-Source: [Atom Reference Duplication (Google Sheets)](https://docs.google.com/spreadsheets/d/1fxRzCieXW_vcBb1BZYGbM1HC4lEH1FEMcF28JEvGtn0/edit?usp=sharing)
 
 Partial filling of 2 nm voxels will be major problem when working with large static scenes. It will tank the practical atom count below 150M @ 16 GB stated in the Google Sheet. Therefore, another worthwhile optimization is using smaller chunks for partially filled voxels.
 
