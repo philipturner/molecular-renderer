@@ -145,7 +145,7 @@ extension RebuildProcess {
               float address = \(VoxelResources.generate("xyz", 8));
               
               uint offset;
-              \(atomicFetchAdd())
+              
             }
           }
         }
@@ -156,7 +156,26 @@ extension RebuildProcess {
       // ===                            Phase II                             ===
       // =======================================================================
       
-      // TODO: Test that we're getting results here through a crash.
+      if (atomCount > 1000) {
+        if (localID == 0) {
+          uint referenceCount = 0;
+          for (uint i = 0; i < 512; ++i) {
+            uint count = threadgroupMemory[i];
+            referenceCount += count;
+          }
+          
+          bool acquiredLock;
+          \(CrashBuffer.acquireLock(errorCode: 3))
+          if (acquiredLock) {
+            crashBuffer[1] = voxelCoords.x;
+            crashBuffer[2] = voxelCoords.y;
+            crashBuffer[3] = voxelCoords.z;
+            crashBuffer[4] = atomCount;
+            crashBuffer[5] = referenceCount;
+            crashBuffer[6] = 0;
+          }
+        }
+      }
       \(Reduction.groupLocalBarrier())
       
       // =======================================================================
@@ -183,7 +202,7 @@ extension RebuildProcess {
                 float address = \(VoxelResources.generate("xyz", 8));
                 
                 uint offset;
-                \(atomicFetchAdd())
+                
               }
             }
           }
