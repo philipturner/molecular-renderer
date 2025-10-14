@@ -10,9 +10,8 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Implement rebuildProcess2 before running the following analysis.
-// - Rigorous test for correct functionality: experiment on atoms 0...99,
-//   4000...4049, and 4051...4099.
+// - Rigorous test for correct functionality during add/remove: experiment on
+//   atoms 0...99, 4000...4049, and 4051...4099.
 //   - First test: these atoms are not rewritten, the rest register as 'moved'.
 //   - Second test: these atoms are moved, the rest are either 'moved', 'added',
 //     or unchanged. Test each of the 3 cases.
@@ -20,6 +19,11 @@ import MolecularRenderer
 //     removed. Test each of the 2 cases.
 // - Archive the above testing code to a GitHub gist, along with its utilities
 //   in "Application+UpdateBVH.swift".
+// - Rigorous test for correct functionality during rebuild
+//   - Probably less complex than the previous test.
+//   - Out of scope for the previous test, does not need to be cross-coupled
+//     with the various possibilities for behavior during add/remove.
+//   - Will still rely on the same silicon carbide lattice as the previous test.
 
 // Helpful facts about the test setup:
 // atom count: 8631
