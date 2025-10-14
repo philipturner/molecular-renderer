@@ -25,6 +25,8 @@
 // be needed to make professional YouTube videos from rendered animations.
 ```
 
+Perhaps it would be more appropriate to exit the `application.run()` paradigm entirely for offline rendering. `Display` and `Clock` are inappropriate because there is no notion of "frames per second" and "wall time" for real-time animations. However, the backend code can be applied to offline rendering with little effort. It is mostly a frontend (API) design problem.
+
 </details>
 
 ## Ambient Occlusion Sample Count
