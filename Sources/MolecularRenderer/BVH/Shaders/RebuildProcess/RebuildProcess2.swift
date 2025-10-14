@@ -123,8 +123,10 @@ extension RebuildProcess {
       listAddress += \(MemorySlot.offset(.referenceLarge) / 4);
       uint atomCount = memorySlots32[headerAddress];
       
-      for (uint i = localID; i < 512; i += 128) {
-        threadgroupMemory[i] = 0;
+      \(Shader.unroll)
+      for (uint i = 0; i < 4; ++i) {
+        uint address = i * 128 + localID;
+        threadgroupMemory[address] = 0;
       }
       \(Reduction.groupLocalBarrier())
       
@@ -155,6 +157,7 @@ extension RebuildProcess {
       // =======================================================================
       // ===                            Phase II                             ===
       // =======================================================================
+      
       
       \(Reduction.groupLocalBarrier())
       
