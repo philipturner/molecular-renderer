@@ -2,6 +2,11 @@ extension Application {
   // Will eventually remove the public modifier and automatically invoke this
   // inside 'application.render()'.
   public func updateBVH(inFlightFrameID: Int) {
+    updateBVH1(inFlightFrameID: inFlightFrameID)
+    updateBVH2(inFlightFrameID: inFlightFrameID)
+  }
+  
+  public func updateBVH1(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
     
     device.commandQueue.withCommandList { commandList in
@@ -19,7 +24,6 @@ extension Application {
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
       
-      if frameID <= 2 {
       // Encode the remove process.
       bvhBuilder.removeProcess1(
         commandList: commandList,
@@ -35,6 +39,16 @@ extension Application {
       bvhBuilder.addProcess1(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+    }
+  }
+  
+  public func updateBVH2(inFlightFrameID: Int) {
+    device.commandQueue.withCommandList { commandList in
+      // Bind the descriptor heap.
+      #if os(Windows)
+      commandList.setDescriptorHeap(descriptorHeap)
+      #endif
+      
       bvhBuilder.addProcess2(
         commandList: commandList)
       bvhBuilder.addProcess3(
@@ -46,7 +60,6 @@ extension Application {
         commandList: commandList)
       bvhBuilder.rebuildProcess2(
         commandList: commandList)
-      }
       
       bvhBuilder.counters.crashBuffer.download(
         commandList: commandList,
@@ -124,10 +137,10 @@ extension Application {
   }
   
   public func downloadDebugOutput(
-    _ outputData: inout [UInt32]
+    _ outputData: inout [SIMD8<UInt32>]
   ) {
     func copySourceBuffer() -> Buffer {
-      bvhBuilder.voxels.sparse.vacantSlotIDs
+      bvhBuilder.voxels.dense.atomicCounters
     }
     
     #if os(macOS)

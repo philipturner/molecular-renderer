@@ -101,22 +101,55 @@ func analyzeDebugOutput2() {
 
 @MainActor
 func analyzeDebugOutput() {
-  // var output = [UInt32](repeating: .zero, count: 3616)
-  // application.downloadDebugOutput(&output)
+  var output = [SIMD8<UInt32>](repeating: .zero, count: 4096)
+  application.downloadDebugOutput(&output)
   
-  // output.sort()
+  analyzeHash(output)
+}
+
+func analyzeHash(_ output: [SIMD8<UInt32>]) {
+  var xorHash: SIMD4<UInt32> = .zero
+  var rotateHash: SIMD4<UInt32> = .zero
+  var addressRotateHash: UInt32 = .zero
+  var referenceSum: UInt32 = .zero
+  var voxelSum: UInt32 = .zero
   
-  // let readSlotIDs: [Int] = [
-  //   0, 1, 2, 3, 4, 5, 6, 7,
-  //   117, 118, 120, 121, 122, 123,
-  //   179, 180, 181, 182, 183, 184,
-  //   3610, 3611, 3612, 3613, 3614, 3615,
-  // ]
+  for z in 0..<16 {
+    for y in 0..<16 {
+      for x in 0..<16 {
+        let address = z * 16 * 16 + y * 16 + x
+        let counters = output[address]
+        guard counters.wrappedSum() > 0 else {
+          continue
+        }
+        
+        let storage = SIMD8<UInt16>(truncatingIfNeeded: counters)
+        let storageCasted = unsafeBitCast(storage, to: SIMD4<UInt32>.self)
+        
+        xorHash ^= storageCasted
+        xorHash = (xorHash &<< 3) | (xorHash &>> (32 - 3))
+        
+        rotateHash &*= storageCasted
+        rotateHash &+= 1
+        rotateHash = (rotateHash &<< 9) | (rotateHash &>> (32 - 9))
+        
+        addressRotateHash &*= UInt32(address)
+        addressRotateHash &+= 1
+        addressRotateHash =
+        (addressRotateHash &<< 9) | (addressRotateHash &>> (32 - 9))
+        
+        referenceSum += counters.wrappedSum()
+        voxelSum += 1
+      }
+    }
+  }
   
-  // for slotID in readSlotIDs {
-  //   let outputValue = output[slotID]
-  //   print(slotID, outputValue)
-  // }
+  // Inspect the checksum.
+  print(xorHash)
+  print(rotateHash)
+  print(addressRotateHash)
+  print(referenceSum)
+  print(voxelSum)
 }
 
 for frameID in 0...1 {
@@ -124,14 +157,22 @@ for frameID in 0...1 {
     let atom = lattice.atoms[atomID]
     application.atoms[atomID] = atom
   }
-
-  application.updateBVH(inFlightFrameID: frameID)
-  application.forgetIdleState(inFlightFrameID: frameID)
-
+  
+  application.updateBVH1(inFlightFrameID: frameID)
+  
   print()
   analyzeDebugOutput2()
   print()
   analyzeDebugOutput()
+  
+  application.updateBVH2(inFlightFrameID: frameID)
+  
+  print()
+  analyzeDebugOutput2()
+  print()
+  analyzeDebugOutput()
+  
+  application.forgetIdleState(inFlightFrameID: frameID)
 }
 
 #endif
