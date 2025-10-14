@@ -94,3 +94,7 @@ Despite its downsides, FSR 3 makes it possible to bring Molecular Renderer to th
 It is possible to reduce the memory costs of the acceleration structure, by taking advantage of the small number of atoms per 2 nm voxel (less than 2<sup>16</sup>) and compressing atom positions to FP16. This optimization slightly speeds up the BVH update process and ray-sphere intersection tests.
 
 The current code partially implements this optimization. It uses two levels of indirection to fetch the atom position, which is just the FP32 source of truth. There are now 3 memory operations per ray-sphere test, instead of 2. However, the BVH memory footprint is now smaller than any alternative design.
+
+Improvement: 96264 B/voxel → 55304 B/voxel
+
+Alternative design: 79880 B/voxel
