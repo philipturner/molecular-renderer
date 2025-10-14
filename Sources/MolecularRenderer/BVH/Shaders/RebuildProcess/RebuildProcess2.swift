@@ -10,7 +10,10 @@ extension RebuildProcess {
   //
   // # Phase II
   //
-  // read 4 voxels in a single instruction, on 128 threads in parallel
+  // read 4 voxels per thread, on 128 threads in parallel
+  // - jumping 128 per iteration still has approximate memory locality in the
+  //   Z dimension, for ensuring the BVH hits the cache when ray tracing
+  // - we can always change this in the future
   // prefix sum over 512 small voxels (SIMD + group reduction)
   //   save the prefix sum result for Phase IV
   // if reference count is too large, crash w/ diagnostic info
@@ -158,7 +161,15 @@ extension RebuildProcess {
       // ===                            Phase II                             ===
       // =======================================================================
       
-      
+      uint countersSum = 0;
+      uint4 counters = 0;
+      \(Shader.unroll)
+      for (uint i = 0; i < 4; ++i) {
+        uint address = i * 128 + localID;
+        uint temp = threadgroupMemory[address];
+        counters[i] = countersSum;
+        countersSum += temp;
+      }
       \(Reduction.groupLocalBarrier())
       
       // =======================================================================
