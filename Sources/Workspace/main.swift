@@ -10,8 +10,7 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Implement rebuildProcess1 before running the following analysis. This
-//   choice will save development time in the long run.
+// - Implement rebuildProcess2 before running the following analysis.
 // - Rigorous test for correct functionality: experiment on atoms 0...99,
 //   4000...4049, and 4051...4099.
 //   - First test: these atoms are not rewritten, the rest register as 'moved'.
