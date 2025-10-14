@@ -175,13 +175,12 @@ extension AddProcess {
         }
       }
       
-      // Retrieve the cached offsets.
+      // Read the cached offsets.
       \(Reduction.waveLocalBarrier())
       uint4 outputOffsets[2];
       \(Shader.unroll)
       for (uint i = 0; i < 8; ++i) {
-        uint address = i;
-        address = address * 128 + localID;
+        uint address = i * 128 + localID;
         uint offset = cachedRelativeOffsets[address];
         outputOffsets[i / 4][i % 4] = offset;
       }

@@ -90,6 +90,18 @@ extension AddProcess {
       // Read the offsets from device memory.
       uint4 inputOffsets[2];
       inputOffsets[0] = uint4(relativeOffsets1[globalID]);
+      if (loopEnd[2] == 2) {
+        inputOffsets[1] = uint4(relativeOffsets2[globalID]);
+      }
+      
+      // Write the cached offsets.
+      \(Shader.unroll)
+      for (uint i = 0; i < 8; ++i) {
+        uint address = i * 128 + localID;
+        uint offset = inputOffsets[i / 4][i % 4];
+        cachedRelativeOffsets[address] = offset;
+      }
+      \(Reduction.waveLocalBarrier())
     }
     """
   }

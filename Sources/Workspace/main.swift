@@ -135,7 +135,7 @@ for frameID in 0...1 {
   analyzeGeneralCounters()
   print()
   let atomicCounters1 = application.downloadAtomicCounters()
-  inspectMemorySlots(atomicCounters1: atomicCounters1)
+  //inspectMemorySlots(atomicCounters1: atomicCounters1)
   
   application.updateBVH2(inFlightFrameID: frameID)
   
@@ -143,7 +143,7 @@ for frameID in 0...1 {
   analyzeGeneralCounters()
   print()
   let atomicCounters2 = application.downloadAtomicCounters()
-  inspectMemorySlots(atomicCounters1: atomicCounters1)
+  //inspectMemorySlots(atomicCounters1: atomicCounters1)
   
   application.forgetIdleState(inFlightFrameID: frameID)
 }
