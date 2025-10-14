@@ -27,7 +27,8 @@ extension RebuildProcess {
         device uint *voxelGroupRebuiltMarks [[buffer(2)]],
         device uint *voxelGroupOccupiedMarks [[buffer(3)]],
         device uint *assignedSlotIDs [[buffer(4)]],
-        device uint *rebuiltVoxelCoords [[buffer(5)]],
+        device uchar *rebuiltMarks [[buffer(5)]],
+        device uint *rebuiltVoxelCoords [[buffer(6)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
@@ -38,7 +39,8 @@ extension RebuildProcess {
       RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u2);
       RWStructuredBuffer<uint> voxelGroupOccupiedMarks : register(u3);
       RWStructuredBuffer<uint> assignedSlotIDs : register(u4);
-      RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u5);
+      RWBuffer<uint> rebuiltMarks : register(u5);
+      RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u6);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
@@ -47,7 +49,8 @@ extension RebuildProcess {
         "UAV(u2),"
         "UAV(u3),"
         "UAV(u4),"
-        "UAV(u5),"
+        "DescriptorTable(UAV(u5, numDescriptors = 1)),"
+        "UAV(u6),"
       )]
       void rebuildProcess1(
         uint3 globalID : SV_DispatchThreadID,
@@ -102,8 +105,16 @@ extension BVHBuilder {
         voxels.group.occupiedMarks, index: 3)
       commandList.setBuffer(
         voxels.dense.assignedSlotIDs, index: 4)
+      
+      #if os(macOS)
       commandList.setBuffer(
-        voxels.sparse.rebuiltVoxelCoords, index: 5)
+        voxels.dense.rebuiltMarks, index: 5)
+      #else
+      commandList.setDescriptor(
+        handleID: voxels.dense.rebuiltMarksHandleID, index: 5)
+      #endif
+      commandList.setBuffer(
+        voxels.sparse.rebuiltVoxelCoords, index: 6)
       
       let gridSize = Int(voxels.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(
