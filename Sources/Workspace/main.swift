@@ -105,50 +105,22 @@ func analyzeDebugOutput() -> [SIMD8<UInt32>] {
   application.downloadDebugOutput(&output)
   return output
 }
-
-func analyzeHash(_ output: [SIMD8<UInt32>]) {
-  var xorHash: SIMD4<UInt32> = .zero
-  var rotateHash: SIMD4<UInt32> = .zero
-  var addressRotateHash: UInt32 = .zero
-  var referenceSum: UInt32 = .zero
-  var voxelSum: UInt32 = .zero
-  
-  for z in 0..<16 {
-    for y in 0..<16 {
-      for x in 0..<16 {
-        let address = z * 16 * 16 + y * 16 + x
-        let counters = output[address]
-        guard counters.wrappedSum() > 0 else {
-          continue
-        }
-        
-        let storage = SIMD8<UInt16>(truncatingIfNeeded: counters)
-        let storageCasted = unsafeBitCast(storage, to: SIMD4<UInt32>.self)
-        
-        xorHash ^= storageCasted
-        xorHash = (xorHash &<< 3) | (xorHash &>> (32 - 3))
-        
-        rotateHash &*= storageCasted
-        rotateHash &+= 1
-        rotateHash = (rotateHash &<< 9) | (rotateHash &>> (32 - 9))
-        
-        addressRotateHash &*= UInt32(address)
-        addressRotateHash &+= 1
-        addressRotateHash =
-        (addressRotateHash &<< 9) | (addressRotateHash &>> (32 - 9))
-        
-        referenceSum += counters.wrappedSum()
-        voxelSum += 1
+func analyzeBeforeAfter(
+  _ before: [SIMD8<UInt32>],
+  _ after: [SIMD8<UInt32>]
+) {
+  for i in 0..<4096 {
+    let beforeValue = before[i]
+    let afterValue = after[i]
+    if all(beforeValue .== SIMD8.zero) {
+      if all(afterValue .== SIMD8.zero) {
+        continue
+      } else {
+        fatalError("This should never happen.")
       }
     }
+    print(i, beforeValue, afterValue)
   }
-  
-  // Inspect the checksum.
-  print(xorHash)
-  print(rotateHash)
-  print(addressRotateHash)
-  print(referenceSum)
-  print(voxelSum)
 }
 
 for frameID in 0...1 {
@@ -163,7 +135,6 @@ for frameID in 0...1 {
   analyzeDebugOutput2()
   print()
   let output1 = analyzeDebugOutput()
-  analyzeHash(output1)
   
   application.updateBVH2(inFlightFrameID: frameID)
   
@@ -171,6 +142,7 @@ for frameID in 0...1 {
   analyzeDebugOutput2()
   print()
   let output2 = analyzeDebugOutput()
+  analyzeBeforeAfter(output1, output2)
   
   application.forgetIdleState(inFlightFrameID: frameID)
 }
