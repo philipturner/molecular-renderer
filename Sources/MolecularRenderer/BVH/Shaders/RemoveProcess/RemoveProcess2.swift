@@ -60,6 +60,26 @@ extension RemoveProcess {
       if (crashBuffer[0] != 1) {
         return;
       }
+      
+      uint voxelGroupID =
+      \(VoxelResources.generate("groupID", worldDimension / 8));
+      uint voxelID =
+      \(VoxelResources.generate("globalID", worldDimension / 2));
+      
+      if (voxelGroupAtomsRemovedMarks[voxelGroupID] == 0) {
+        return;
+      }
+      voxelGroupRebuiltMarks[voxelGroupID] = 1;
+      
+      // scan for voxels with atoms removed
+      bool hasAtomsRemoved = atomsRemovedMarks[voxelID];
+      uint countBitsResult =
+      \(Reduction.waveActiveCountBits("hasAtomsRemoved"));
+      if (countBitsResult == 0) {
+        return;
+      }
+      
+      // create a compact list of these voxels
     }
     """
   }
