@@ -93,6 +93,11 @@ extension RemoveProcess {
       uint beforeAtomCount = memorySlots[headerAddress];
       
       // check the addressOccupiedMark of each atom in voxel
+      uint afterAtomCount = 0;
+      uint loopBound = ((beforeAtomCount + 127) / 128) * 128;
+      for (uint i = localID; i < loopBound; i += 128) {
+        // WARNING: Mask out operations for indices out of bounds.
+      }
       
       if ((beforeAtomCount > 1000) && (localID == 0)) {
         bool acquiredLock = false;
@@ -103,7 +108,7 @@ extension RemoveProcess {
           crashBuffer[3] = voxelCoords.z;
           crashBuffer[4] = assignedSlotID;
           crashBuffer[5] = beforeAtomCount;
-          crashBuffer[6] = 0;
+          crashBuffer[6] = loopBound;
         }
       }
     }
