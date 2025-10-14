@@ -89,9 +89,9 @@ extension RemoveProcess {
         isVacant = (voxelCoords == \(UInt32.max));
       }
       uint countBitsResult = \(Reduction.waveActiveCountBits("isVacant"));
+      
       threadgroupMemory[localID / 32] = countBitsResult;
       \(Reduction.groupLocalBarrier())
-      
       \(Reduction.threadgroupSumPrimitive(offset: 0))
       
       if (localID == 0) {

@@ -178,6 +178,24 @@ extension RebuildProcess {
         counters[i] = countersSum;
         countersSum += temp;
       }
+      
+      uint wavePrefixSum = \(Reduction.wavePrefixSum("countersSum"));
+      uint waveInclusiveSum = wavePrefixSum + countersSum;
+      uint waveTotalSum =
+      \(Reduction.waveReadLaneAt("waveInclusiveSum", laneID: 31));
+      
+      threadgroupMemory[512 + (localID / 32)] = waveTotalSum;
+      \(Reduction.groupLocalBarrier())
+      \(Reduction.threadgroupSumPrimitive(offset: 512))
+      
+      // Incorporate all contributions to the prefix sum.
+      counters += wavePrefixSum;
+      counters += threadgroupMemory[512 + (localID / 32)];
+      \(Shader.unroll)
+      for (uint i = 0; i < 4; ++i) {
+        uint address = \(threadgroupAddress("i"));
+        threadgroupMemory[address] = counters[i];
+      }
       \(Reduction.groupLocalBarrier())
       
       // =======================================================================
