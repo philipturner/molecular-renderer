@@ -134,6 +134,19 @@ extension RebuildProcess {
         uint atomID = memorySlots32[listAddress + i];
         float4 atom = atoms[atomID];
         \(computeLoopBounds())
+        
+        // Iterate over the footprint on the 3D grid.
+        for (float z = boxMin[2]; z < boxMax[2]; ++z) {
+          for (float y = boxMin[1]; y < boxMax[1]; ++y) {
+            for (float x = boxMin[0]; x < boxMax[0]; ++x) {
+              float3 xyz = float3(x, y, z);
+              float address = \(VoxelResources.generate("xyz", 8));
+              
+              uint offset;
+              \(atomicFetchAdd())
+            }
+          }
+        }
       }
       \(Reduction.groupLocalBarrier())
       
