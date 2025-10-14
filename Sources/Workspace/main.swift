@@ -100,11 +100,10 @@ func analyzeDebugOutput2() {
 }
 
 @MainActor
-func analyzeDebugOutput() {
+func analyzeDebugOutput() -> [SIMD8<UInt32>] {
   var output = [SIMD8<UInt32>](repeating: .zero, count: 4096)
   application.downloadDebugOutput(&output)
-  
-  analyzeHash(output)
+  return output
 }
 
 func analyzeHash(_ output: [SIMD8<UInt32>]) {
@@ -163,14 +162,15 @@ for frameID in 0...1 {
   print()
   analyzeDebugOutput2()
   print()
-  analyzeDebugOutput()
+  let output1 = analyzeDebugOutput()
+  analyzeHash(output1)
   
   application.updateBVH2(inFlightFrameID: frameID)
   
   print()
   analyzeDebugOutput2()
   print()
-  analyzeDebugOutput()
+  let output2 = analyzeDebugOutput()
   
   application.forgetIdleState(inFlightFrameID: frameID)
 }
