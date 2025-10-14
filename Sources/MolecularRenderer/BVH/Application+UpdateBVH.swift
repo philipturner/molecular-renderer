@@ -96,13 +96,11 @@ extension Application {
   // command list executes. Do not abuse this by calling any of the 'Debug'
   // functions more than once in a single program execution.
   nonisolated(unsafe)
-  private static var uploadBuffer: Buffer?
+  private static var uploadBuffers: [Buffer] = []
   nonisolated(unsafe)
-  private static var downloadBuffer: Buffer?
-  nonisolated(unsafe)
-  private static var downloadBuffer2: Buffer?
+  private static var downloadBuffers: [Buffer] = []
   
-  public func uploadDebugInput(
+  public func uploadAssignedVoxelCoords(
     _ inputData: [UInt32]
   ) {
     func copyDestinationBuffer() -> Buffer {
@@ -120,7 +118,7 @@ extension Application {
     bufferDesc.type = .input
     let inputBuffer = Buffer(descriptor: bufferDesc)
     #endif
-    Self.uploadBuffer = inputBuffer
+    Self.uploadBuffers.append(inputBuffer)
     
     device.commandQueue.flush()
     inputData.withUnsafeBytes { bufferPointer in
@@ -136,60 +134,45 @@ extension Application {
     #endif
   }
   
-  public func downloadDebugOutput(
-    _ outputData: inout [SIMD8<UInt32>]
-  ) {
-    func copySourceBuffer() -> Buffer {
-      bvhBuilder.voxels.dense.atomicCounters
-    }
-    
-    #if os(macOS)
-    let outputBuffer = copySourceBuffer()
-    #else
-    let nativeBuffer = copySourceBuffer()
-    
-    var bufferDesc = BufferDescriptor()
-    bufferDesc.device = device
-    bufferDesc.size = nativeBuffer.size
-    bufferDesc.type = .output
-    let outputBuffer = Buffer(descriptor: bufferDesc)
-    #endif
-    Self.downloadBuffer = outputBuffer
-    
-    #if os(Windows)
-    device.commandQueue.withCommandList { commandList in
-      commandList.download(
-        nativeBuffer: nativeBuffer,
-        outputBuffer: outputBuffer)
-    }
-    #endif
-    device.commandQueue.flush()
-    
-    outputData.withUnsafeMutableBytes { bufferPointer in
-      outputBuffer.read(output: bufferPointer)
-    }
-  }
-  
-  public func downloadDebugOutput2(
+  public func downloadGeneralCounters(
     _ outputData: inout [UInt32]
   ) {
     func copySourceBuffer() -> Buffer {
       bvhBuilder.counters.general
     }
     
-    #if os(macOS)
-    let outputBuffer = copySourceBuffer()
-    #else
-    let nativeBuffer = copySourceBuffer()
+    downloadDebugOutput(
+      &outputData, copySourceBuffer: copySourceBuffer())
+  }
+  
+  public func downloadAtomicCounters(
+    _ outputData: inout [SIMD8<UInt32>]
+  ) {
+    func copySourceBuffer() -> Buffer {
+      bvhBuilder.voxels.dense.atomicCounters
+    }
     
+    downloadDebugOutput(
+      &outputData, copySourceBuffer: copySourceBuffer())
+  }
+  
+  private func downloadDebugOutput<T>(
+    _ outputData: inout [T],
+    copySourceBuffer: Buffer
+  ) {
+    #if os(macOS)
+    let outputBuffer = copySourceBuffer
+    #else
+    let nativeBuffer = copySourceBuffer
+
     var bufferDesc = BufferDescriptor()
     bufferDesc.device = device
     bufferDesc.size = nativeBuffer.size
     bufferDesc.type = .output
     let outputBuffer = Buffer(descriptor: bufferDesc)
     #endif
-    Self.downloadBuffer2 = outputBuffer
-    
+    Self.downloadBuffers.append(outputBuffer)
+
     #if os(Windows)
     device.commandQueue.withCommandList { commandList in
       commandList.download(
@@ -198,7 +181,7 @@ extension Application {
     }
     #endif
     device.commandQueue.flush()
-    
+
     outputData.withUnsafeMutableBytes { bufferPointer in
       outputBuffer.read(output: bufferPointer)
     }

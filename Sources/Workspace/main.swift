@@ -64,7 +64,7 @@ func uploadDebugInput() {
   input[120] = 1
   input[121] = 2
   input[184] = 3
-  application.uploadDebugInput(input)
+  application.uploadAssignedVoxelCoords(input)
 }
 uploadDebugInput()
 
@@ -81,9 +81,9 @@ application.run {
 #else
 
 @MainActor
-func analyzeDebugOutput2() {
+func analyzeGeneralCounters() {
   var output = [UInt32](repeating: .zero, count: 10)
-  application.downloadDebugOutput2(&output)
+  application.downloadGeneralCounters(&output)
   
   print("atoms removed voxel count:", output[0])
   guard output[1] == 1,
@@ -100,9 +100,9 @@ func analyzeDebugOutput2() {
 }
 
 @MainActor
-func analyzeDebugOutput() -> [SIMD8<UInt32>] {
+func analyzeAtomicCounters() -> [SIMD8<UInt32>] {
   var output = [SIMD8<UInt32>](repeating: .zero, count: 4096)
-  application.downloadDebugOutput(&output)
+  application.downloadAtomicCounters(&output)
   return output
 }
 func analyzeBeforeAfter(
@@ -132,16 +132,16 @@ for frameID in 0...1 {
   application.updateBVH1(inFlightFrameID: frameID)
   
   print()
-  analyzeDebugOutput2()
+  analyzeGeneralCounters()
   print()
-  let output1 = analyzeDebugOutput()
+  let output1 = analyzeAtomicCounters()
   
   application.updateBVH2(inFlightFrameID: frameID)
   
   print()
-  analyzeDebugOutput2()
+  analyzeGeneralCounters()
   print()
-  let output2 = analyzeDebugOutput()
+  let output2 = analyzeAtomicCounters()
   analyzeBeforeAfter(output1, output2)
   
   application.forgetIdleState(inFlightFrameID: frameID)
