@@ -100,6 +100,8 @@ extension RebuildProcess {
     return """
     \(Shader.importStandardLibrary)
     
+    \(cubeSphereTest())
+    
     \(functionSignature())
     {
       \(allocateThreadgroupMemory())
@@ -154,6 +156,7 @@ extension RebuildProcess {
       // ===                            Phase II                             ===
       // =======================================================================
       
+      // TODO: Test that we're getting results here through a crash.
       \(Reduction.groupLocalBarrier())
       
       // =======================================================================
@@ -164,12 +167,36 @@ extension RebuildProcess {
         uint atomID = memorySlots32[listAddress + i];
         float4 atom = atoms[atomID];
         \(computeLoopBounds())
+        
+        // Iterate over the footprint on the 3D grid.
+        \(Shader.loop)
+        for (float z = 0; z < 3; ++z) {
+          \(Shader.unroll)
+          for (float y = 0; y < 3; ++y) {
+            \(Shader.unroll)
+            for (float x = 0; x < 3; ++x) {
+              float3 xyz = boxMin + float3(x, y, z);
+              
+              // Narrow down the cells with a cube-sphere intersection test.
+              bool intersected = cubeSphereTest(xyz, atom);
+              if (intersected && all(xyz < boxMax)) {
+                float address = \(VoxelResources.generate("xyz", 8));
+                
+                uint offset;
+                \(atomicFetchAdd())
+              }
+            }
+          }
+        }
       }
       \(Reduction.groupLocalBarrier())
       
       // =======================================================================
       // ===                            Phase IV                             ===
       // =======================================================================
+      
+      // TODO: Test that we're getting results here through a crash. Turn off
+      // the atomic memory operations from Phase I while testing this.
     }
     """
   }
