@@ -16,7 +16,7 @@ extension RebuildProcess {
     // voxels.group.rebuiltMarks
     // voxels.group.occupiedMarks
     // voxels.dense.assignedSlotIDs
-    // voxels.dense.rebuiltMarks // TODO
+    // voxels.dense.rebuiltMarks
     // voxels.sparse.rebuiltVoxelCoords
     func functionSignature() -> String {
       #if os(macOS)
@@ -59,6 +59,14 @@ extension RebuildProcess {
       #endif
     }
     
+    func atomicFetchAdd() -> String {
+      Reduction.atomicFetchAdd(
+        buffer: "rebuiltVoxelCount",
+        address: "0",
+        operand: "countBitsResult",
+        output: "allocatedOffset")
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -84,6 +92,26 @@ extension RebuildProcess {
       }
       
       // scan for rebuilt voxels
+      bool needsRebuild = rebuiltMarks[voxelID];
+      uint countBitsResult =
+      \(Reduction.waveActiveCountBits("needsRebuild"));
+      if (countBitsResult == 0) {
+        return;
+      }
+      
+      // create a compact list of these voxels
+      uint allocatedOffset = \(UInt32.max);
+      if (\(Reduction.waveIsFirstLane())) {
+        \(atomicFetchAdd())
+      }
+      allocatedOffset =
+      \(Reduction.waveReadLaneAt("allocatedOffset", laneID: 0));
+      
+      allocatedOffset += \(Reduction.wavePrefixSum("uint(needsRebuild)"));
+      if (needsRebuild) {
+        uint encoded = \(VoxelResources.encode("globalID"));
+        rebuiltVoxelCoords[allocatedOffset] = encoded;
+      }
     }
     """
   }
