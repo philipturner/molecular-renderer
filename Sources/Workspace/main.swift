@@ -99,21 +99,27 @@ func analyzeGeneralCounters() {
   }
 }
 
-func analyzeBeforeAfter(
-  _ before: [SIMD8<UInt32>],
-  _ after: [SIMD8<UInt32>]
-) {
-  for i in 0..<4096 {
-    let beforeValue = before[i]
-    let afterValue = after[i]
-    if all(beforeValue .== SIMD8.zero) {
-      if all(afterValue .== SIMD8.zero) {
-        continue
-      } else {
-        fatalError("This should never happen.")
-      }
+@MainActor
+func inspectMemorySlots(atomicCounters1: [SIMD8<UInt32>]) {
+  let assignedSlotIDs = application.downloadAssignedSlotIDs()
+  let memorySlots = application.downloadMemorySlots()
+  
+  for i in atomicCounters1.indices {
+    let counters = atomicCounters1[i]
+    let addedAtomCount = counters.wrappedSum()
+    guard addedAtomCount > 0 else {
+      continue
     }
-    print(i, beforeValue, afterValue)
+    
+    let assignedSlotID = assignedSlotIDs[i]
+    guard assignedSlotID != UInt32.max else {
+      print(i, assignedSlotID, addedAtomCount)
+      continue
+    }
+    
+    let headerAddress = assignedSlotID * 55304 / 4
+    let slotAtomCount = memorySlots[Int(headerAddress)]
+    print(i, assignedSlotID, addedAtomCount, slotAtomCount)
   }
 }
 
@@ -128,15 +134,16 @@ for frameID in 0...1 {
   print()
   analyzeGeneralCounters()
   print()
-  let output1 = application.downloadAtomicCounters()
+  let atomicCounters1 = application.downloadAtomicCounters()
+  inspectMemorySlots(atomicCounters1: atomicCounters1)
   
   application.updateBVH2(inFlightFrameID: frameID)
   
   print()
   analyzeGeneralCounters()
   print()
-  let output2 = application.downloadAtomicCounters()
-  analyzeBeforeAfter(output1, output2)
+  let atomicCounters2 = application.downloadAtomicCounters()
+  inspectMemorySlots(atomicCounters1: atomicCounters1)
   
   application.forgetIdleState(inFlightFrameID: frameID)
 }

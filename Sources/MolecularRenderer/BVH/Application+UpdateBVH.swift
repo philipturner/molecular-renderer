@@ -156,6 +156,32 @@ extension Application {
     return output
   }
   
+  public func downloadAssignedSlotIDs() -> [UInt32] {
+    func copySourceBuffer() -> Buffer {
+      bvhBuilder.voxels.dense.assignedSlotIDs
+    }
+    
+    var output = [UInt32](repeating: .zero, count: 4096)
+    downloadDebugOutput(
+      &output, copySourceBuffer: copySourceBuffer())
+    return output
+  }
+  
+  public func downloadMemorySlots() -> [UInt32] {
+    func copySourceBuffer() -> Buffer {
+      bvhBuilder.voxels.sparse.memorySlots
+    }
+    
+    var arraySize = bvhBuilder.voxels.memorySlotCount
+    arraySize *= MemorySlot.totalSize
+    arraySize /= 4
+    
+    var output = [UInt32](repeating: .zero, count: arraySize)
+    downloadDebugOutput(
+      &output, copySourceBuffer: copySourceBuffer())
+    return output
+  }
+  
   private func downloadDebugOutput<T>(
     _ outputData: inout [T],
     copySourceBuffer: Buffer
