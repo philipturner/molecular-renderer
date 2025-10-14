@@ -123,7 +123,12 @@ extension RemoveProcess {
         localOffset += threadgroupMemory[localID / 32];
         \(Reduction.groupLocalBarrier())
         
+        if (shouldKeep) {
+          memorySlots[listAddress + localOffset] = atomID;
+        }
       }
+      memorySlots[headerAddress] = afterAtomCount;
+      memorySlots[headerAddress + 1] = 0;
       
       if ((beforeAtomCount > 1000) && (localID == 0)) {
         bool acquiredLock = false;
