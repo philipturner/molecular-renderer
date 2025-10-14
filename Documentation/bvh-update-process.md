@@ -55,8 +55,19 @@ Rebuild Process
 
 ## Memory Allocation
 
-Currently using a simple design where every _occupied_ 2 nm voxel gets a fixed chunk of memory to store its data. This wastes a lot of memory. Future implementations could allocate smaller chunks for certain voxels.
+Currently using a simple design where every _occupied_ 2 nm voxel gets a fixed chunk of memory to store its data. This wastes a lot of memory. Future implementations could allocate smaller chunks for voxels with low atom density.
+
+| Material | Allocated Atoms | Allocated Refs | B/voxel |
+| -------- | --------------: | -------------: | ------: |
+| C, Au    | 3072            | 20480          |
+| SiC, Si  | 1536            |
+
+_Room for improvement if the most of the rendered structures are silicon carbide._
+
+Source: [Atom Reference Duplication (Google Sheets)](https://docs.google.com/spreadsheets/d/1fxRzCieXW_vcBb1BZYGbM1HC4lEH1FEMcF28JEvGtn0/edit?usp=sharing)
+
+Sparse (partial) filling of 2 nm voxels will be major problem when working with large static scenes. It will tank the practical atom count below 130M @ 16 GB stated in the Google Sheet. Therefore, another worthwhile optimization is using smaller chunks for half-filled and quarter-filled voxels. Adding multiple tiers of allocation size will add considerable complexity to the code, but it is probably doable. The frequent upgrading/downgrading between allocation tiers will slightly harm performance in dynamic scenes, so this will be an explicit opt-in option for the user.
 
 Every frame, garbage collect or scan the entire array of memory slots. Create a compacted list of available ones. Do this right after the "remove process", so the "add process" can read from the list.
 
-If all slots in the list of available ones are used up, the GPU writes to a crash flag. Every single GPU kernel in the entire Molecular Renderer library must read this crash flag. If set to an error value, the kernel returns early or produces a sensible default output.
+If all slots in the list of available ones are used up, the GPU writes to a crash buffer. Every single GPU kernel in the entire Molecular Renderer library must read this crash buffer. If set to an error value, the kernel returns early or produces a sensible default output.
