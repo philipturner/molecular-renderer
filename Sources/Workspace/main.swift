@@ -234,6 +234,23 @@ func inspectMemorySlots() {
 
 for frameID in 0...1 {
   for atomID in lattice.atoms.indices {
+    var isSelected = false
+    if atomID >= 0 && atomID <= 99 {
+      isSelected = true
+    }
+    if atomID >= 4000 && atomID <= 4049 {
+      isSelected = true
+    }
+    if atomID >= 4051 && atomID <= 4099 {
+      isSelected = true
+    }
+    
+    if frameID == 1 {
+      if isSelected {
+        continue
+      }
+    }
+    
     let atom = lattice.atoms[atomID]
     application.atoms[atomID] = atom
   }
