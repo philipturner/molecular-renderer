@@ -111,9 +111,16 @@ extension RemoveProcess {
         // Sanitize memory operations within the current block of 128.
         \(Reduction.groupGlobalBarrier())
         
-        // WARNING: Sanitize local memory writes prior to this read.
+        // WARNING: Sanitize local memory reads prior to this write.
         uint countBitsResult = \(Reduction.waveActiveCountBits("shouldKeep"));
         threadgroupMemory[localID / 32] = countBitsResult;
+        \(Reduction.groupLocalBarrier())
+        
+        \(Reduction.threadgroupSumPrimitive(offset: 0))
+        
+        afterAtomCount += threadgroupMemory[4];
+        uint localOffset = \(Reduction.wavePrefixSum("uint(shouldKeep)"));
+        localOffset += threadgroupMemory[localID / 32];
         \(Reduction.groupLocalBarrier())
         
       }
@@ -127,7 +134,7 @@ extension RemoveProcess {
           crashBuffer[3] = voxelCoords.z;
           crashBuffer[4] = assignedSlotID;
           crashBuffer[5] = beforeAtomCount;
-          crashBuffer[6] = loopBound;
+          crashBuffer[6] = afterAtomCount;
         }
       }
     }
