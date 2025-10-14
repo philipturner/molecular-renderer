@@ -145,7 +145,7 @@ extension RebuildProcess {
               float address = \(VoxelResources.generate("xyz", 8));
               
               uint offset;
-              \(atomicFetchAdd())
+              
             }
           }
         }
@@ -156,42 +156,22 @@ extension RebuildProcess {
       // ===                            Phase II                             ===
       // =======================================================================
       
-      if (all(lowerCorner == 0)) {
-        if (localID == 0) {
-          uint referenceCount = 0;
-          for (uint i = 0; i < 512; ++i) {
-            uint count = threadgroupMemory[i];
-            referenceCount += count;
-          }
-          
-          // lower corner: 0.0 0.0 0.0
-          // atom count: 1000
-          // reference count: 8630
-          
-          // lower corner: 0.0 0.0 2.0 (and permutations)
-          // atom count: 1050
-          // reference count: 8650
-          
-          // lower corner: 0.0 2.0 2.0 (and permutations)
-          // atom count: 1105
-          // reference count: 8690
-          
-          // lower corner: 2.0 2.0 2.0
-          // atom count: 1165
-          // reference count: 8749
-          
-          bool acquiredLock = false;
-          \(CrashBuffer.acquireLock(errorCode: 3))
-          if (acquiredLock) {
-            crashBuffer[1] = voxelCoords.x;
-            crashBuffer[2] = voxelCoords.y;
-            crashBuffer[3] = voxelCoords.z;
-            crashBuffer[4] = atomCount;
-            crashBuffer[5] = referenceCount;
-            crashBuffer[6] = 0;
-          }
-        }
-      }
+      // lower corner: 0.0 0.0 0.0
+      // atom count: 1000
+      // reference count: 8630
+      
+      // lower corner: 0.0 0.0 2.0 (and permutations)
+      // atom count: 1050
+      // reference count: 8650
+      
+      // lower corner: 0.0 2.0 2.0 (and permutations)
+      // atom count: 1105
+      // reference count: 8690
+      
+      // lower corner: 2.0 2.0 2.0
+      // atom count: 1165
+      // reference count: 8749
+      
       \(Reduction.groupLocalBarrier())
       
       // =======================================================================
@@ -218,7 +198,7 @@ extension RebuildProcess {
                 float address = \(VoxelResources.generate("xyz", 8));
                 
                 uint offset;
-                
+                \(atomicFetchAdd())
               }
             }
           }
@@ -230,8 +210,42 @@ extension RebuildProcess {
       // ===                            Phase IV                             ===
       // =======================================================================
       
-      // TODO: Test that we're getting results here through a crash. Turn off
-      // the atomic memory operations from Phase I while testing this.
+      if (atomCount == 1000) {
+        if (localID == 0) {
+          uint referenceCount = 0;
+          for (uint i = 0; i < 512; ++i) {
+            uint count = threadgroupMemory[i];
+            referenceCount += count;
+          }
+          
+          // lower corner: 0.0 0.0 0.0
+          // atom count: 1000
+          // reference count: 7146
+          
+          // lower corner: 0.0 0.0 2.0 (and permutations)
+          // atom count: 1050
+          // reference count: 7214
+          
+          // lower corner: 0.0 2.0 2.0 (and permutations)
+          // atom count: 1105
+          // reference count: 7303
+          
+          // lower corner: 2.0 2.0 2.0
+          // atom count: 1165
+          // reference count: 7407
+          
+          bool acquiredLock = false;
+          \(CrashBuffer.acquireLock(errorCode: 3))
+          if (acquiredLock) {
+            crashBuffer[1] = voxelCoords.x;
+            crashBuffer[2] = voxelCoords.y;
+            crashBuffer[3] = voxelCoords.z;
+            crashBuffer[4] = atomCount;
+            crashBuffer[5] = referenceCount;
+            crashBuffer[6] = 0;
+          }
+        }
+      }
     }
     """
   }
