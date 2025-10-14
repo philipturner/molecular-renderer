@@ -16,6 +16,7 @@ extension RebuildProcess {
     // voxels.group.rebuiltMarks
     // voxels.group.occupiedMarks
     // voxels.dense.assignedSlotIDs
+    // voxels.dense.rebuiltMarks // TODO
     // voxels.sparse.rebuiltVoxelCoords
     func functionSignature() -> String {
       #if os(macOS)
@@ -63,6 +64,23 @@ extension RebuildProcess {
       if (crashBuffer[0] != 1) {
         return;
       }
+      
+      uint voxelGroupID =
+      \(VoxelResources.generate("groupID", worldDimension / 8));
+      uint voxelID =
+      \(VoxelResources.generate("globalID", worldDimension / 2));
+      
+      // read from dense.assignedSlotIDs
+      uint assignedSlotID = assignedSlotIDs[voxelID];
+      if (assignedSlotID != \(UInt32.max)) {
+        voxelGroupOccupiedMarks[voxelGroupID] = 1;
+      }
+      
+      if (voxelGroupRebuiltMarks[voxelGroupID] == 0) {
+        return;
+      }
+      
+      // scan for rebuilt voxels
     }
     """
   }
