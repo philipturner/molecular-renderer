@@ -60,13 +60,24 @@ Currently using a simple design where every _occupied_ 2 nm voxel gets a fixed c
 | Material | Allocated Atoms | Allocated Refs | B/voxel |
 | -------- | --------------: | -------------: | ------: |
 | C, Au    | 3072            | 20480          |
-| SiC, Si  | 1536            |
+| SiC, Si  | 1536            | 10240          |
 
-_Room for improvement if the most of the rendered structures are silicon carbide._
+_Room for improvement if most rendered structures are silicon carbide._
 
 Source: [Atom Reference Duplication (Google Sheets)](https://docs.google.com/spreadsheets/d/1fxRzCieXW_vcBb1BZYGbM1HC4lEH1FEMcF28JEvGtn0/edit?usp=sharing)
 
-Sparse (partial) filling of 2 nm voxels will be major problem when working with large static scenes. It will tank the practical atom count below 130M @ 16 GB stated in the Google Sheet. Therefore, another worthwhile optimization is using smaller chunks for half-filled and quarter-filled voxels. Adding multiple tiers of allocation size will add considerable complexity to the code, but it is probably doable. The frequent upgrading/downgrading between allocation tiers will slightly harm performance in dynamic scenes, so this will be an explicit opt-in option for the user.
+Partial filling of 2 nm voxels will be major problem when working with large static scenes. It will tank the practical atom count below 150M @ 16 GB stated in the Google Sheet. Therefore, another worthwhile optimization is using smaller chunks for partially filled voxels.
+
+| Filling Ratio | Allocated Atoms | Allocated Refs | B/voxel |
+| ------------: | --------------: | -------------: | ------: |
+| 50%    | 3072            | 20480          |
+| 25%    | 1536            | 10240          |
+
+_Room for improvement if most voxels partially intersect a nanomachine._
+
+Multiple tiers of allocation size will add considerable complexity to the memory management scheme, requiring a careful design that avoids fragmentation. The frequent upgrading/downgrading between allocation tiers will slightly harm performance in dynamic scenes, so this will be an explicit opt-in mode. Perhaps we can auto-detect which voxels are moving and leave them at a large size, migrating to a smaller allocation after a small time delay. This migration will not incur the compute cost of rebuilding a voxel.
+
+### Algorithm for Current Design
 
 Every frame, garbage collect or scan the entire array of memory slots. Create a compacted list of available ones. Do this right after the "remove process", so the "add process" can read from the list.
 
