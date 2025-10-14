@@ -85,9 +85,7 @@ extension RebuildProcess {
     
     // Better memory locality in the Z axis for ray tracing.
     func threadgroupAddress(_ i: String) -> String {
-      let threadgroupBase = "(localID / 64)"
-      let threadgroupIndex = "(localID % 64)"
-      return "\(threadgroupBase) + \(i) * 64 + \(threadgroupIndex)"
+      "256 * (localID / 64) + (\(i) * 64) + (localID % 64)"
     }
     
     func atomicFetchAdd() -> String {
@@ -178,6 +176,7 @@ extension RebuildProcess {
         counters[i] = countersSum;
         countersSum += temp;
       }
+      \(Reduction.groupLocalBarrier())
       
       uint wavePrefixSum = \(Reduction.wavePrefixSum("countersSum"));
       uint waveInclusiveSum = wavePrefixSum + countersSum;
@@ -197,6 +196,48 @@ extension RebuildProcess {
         threadgroupMemory[address] = counters[i];
       }
       \(Reduction.groupLocalBarrier())
+      
+      uint referenceCount = threadgroupMemory[516];
+      if (referenceCount > 8000) {
+        if (localID == 0) {
+          bool acquiredLock = false;
+          \(CrashBuffer.acquireLock(errorCode: 4))
+          if (acquiredLock) {
+            crashBuffer[1] = voxelCoords.x;
+            crashBuffer[2] = voxelCoords.y;
+            crashBuffer[3] = voxelCoords.z;
+            crashBuffer[4] = referenceCount;
+          }
+        }
+        return;
+      }
+      if (localID == 0) {
+        memorySlots32[headerAddress + 1] = referenceCount;
+      }
+      
+      /*
+      if (atomCount > 1000) {
+        if (localID == 0) {
+          uint referenceCount = 0;
+          for (uint i = 0; i < 512; ++i) {
+            uint count = threadgroupMemory[i];
+            referenceCount += count;
+          }
+          
+          bool acquiredLock = false;
+          \(CrashBuffer.acquireLock(errorCode: 3))
+          if (acquiredLock) {
+            crashBuffer[1] = voxelCoords.x;
+            crashBuffer[2] = voxelCoords.y;
+            crashBuffer[3] = voxelCoords.z;
+            crashBuffer[4] = atomCount;
+            crashBuffer[5] = referenceCount;
+            crashBuffer[6] = 0;
+          }
+        }
+      }
+      \(Reduction.groupLocalBarrier())
+      */
       
       // =======================================================================
       // ===                            Phase III                            ===
@@ -222,7 +263,7 @@ extension RebuildProcess {
                 float address = \(VoxelResources.generate("xyz", 8));
                 
                 uint offset;
-                \(atomicFetchAdd())
+                
                 
                 // TODO: Write the 16-bit reference.
               }
