@@ -86,15 +86,23 @@ extension RemoveProcess {
       uint voxelID =
       \(VoxelResources.generate("voxelCoords", worldDimension / 2));
       
-      if (localID == 0) {
+      uint assignedSlotID = assignedSlotIDs[voxelID];
+      uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
+      uint listAddress = headerAddress;
+      listAddress += \(MemorySlot.offset(.referenceLarge) / 4);
+      uint beforeAtomCount = memorySlots[headerAddress];
+      
+      // check the addressOccupiedMark of each atom in voxel
+      
+      if ((beforeAtomCount > 1000) && (localID == 0)) {
         bool acquiredLock = false;
         \(CrashBuffer.acquireLock(errorCode: 3))
         if (acquiredLock) {
           crashBuffer[1] = voxelCoords.x;
           crashBuffer[2] = voxelCoords.y;
           crashBuffer[3] = voxelCoords.z;
-          crashBuffer[4] = 0;
-          crashBuffer[5] = 0;
+          crashBuffer[4] = assignedSlotID;
+          crashBuffer[5] = beforeAtomCount;
           crashBuffer[6] = 0;
         }
       }
