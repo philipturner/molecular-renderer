@@ -25,7 +25,7 @@
 // be needed to make professional YouTube videos from rendered animations.
 ```
 
-Perhaps it would be more appropriate to exit the `application.run()` paradigm entirely for offline rendering. `Display` and `Clock` are inappropriate because there is no notion of "frames per second" and "wall time" for real-time animations. However, the backend code can be applied to offline rendering with little effort. It is mostly a frontend (API) design problem.
+Perhaps it would be more appropriate to exit the `application.run()` paradigm entirely for offline rendering. `Display` and `Clock` are inappropriate because there is no notion of "frames per second", no need to accurately track wall time for real-time animations. However, the backend code can be applied to offline rendering with little effort. It is mostly a frontend (API) design problem.
 
 </details>
 
@@ -97,6 +97,6 @@ It is possible to reduce the memory costs of the acceleration structure, by taki
 
 The current code partially implements this optimization. It uses two levels of indirection to fetch the atom position, which is just the FP32 source of truth. There are now 3 memory operations per ray-sphere test, instead of 2. However, the BVH memory footprint is now smaller than any alternative design.
 
-Improvement: 96264 B/voxel → 55304 B/voxel
+Improvement: 96264 bytes/voxel → 55304 bytes/voxel
 
-Alternative design: 79880 B/voxel
+Alternative design: 79880 bytes/voxel

@@ -14,7 +14,7 @@ Simplest implementation:
 
 Revision: the 16-bit offset is temporary and can be ignored after integrating the atom into the BVH. It will be inaccurate in future frames, as the 2 nm voxel's reference list rearranges to fill empty slots. This realization created an opportunity to reduce the memory footprint per address.
 
-Improvement: 41 B/address → 25 B/address
+Improvement: 41 bytes/address → 25 bytes/address
 
 ## Idle/Active Paradigm
 
@@ -57,10 +57,10 @@ Rebuild Process
 
 Currently using a simple design where every _occupied_ 2 nm voxel gets a fixed chunk of memory to store its data. This wastes a lot of memory. Future implementations could allocate smaller chunks for voxels with low atom density.
 
-| Material | Allocated Atoms | Allocated Refs | B/voxel |
-| -------- | --------------: | -------------: | ------: |
-| C, Au    | 3072            | 20480          |
-| SiC, Si  | 1536            | 10240          |
+| Material | Allocated Atoms | Allocated Refs | Bytes per Voxel |
+| -------- | --------------: | -------------: | --------------: |
+| C, Au    | 3072            | 20480          | 55304           |
+| SiC, Si  | 1536            | 10240          | 28680           |
 
 _Room for improvement if most rendered structures are silicon carbide._
 
@@ -68,14 +68,16 @@ Source: [Atom Reference Duplication (Google Sheets)](https://docs.google.com/spr
 
 Partial filling of 2 nm voxels will be major problem when working with large static scenes. It will tank the practical atom count below 150M @ 16 GB stated in the Google Sheet. Therefore, another worthwhile optimization is using smaller chunks for partially filled voxels.
 
-| Filling Ratio | Allocated Atoms | Allocated Refs | B/voxel |
-| ------------: | --------------: | -------------: | ------: |
-| 50%    | 3072            | 20480          |
-| 25%    | 1536            | 10240          |
+| Filling Ratio | Allocated Atoms | Allocated Refs | Bytes per Voxel |
+| ------------: | --------------: | -------------: | --------------: |
+| 50%           | 768             | 5120           | 15368           |
+| 25%           | 384             | 2560           | 8712            |
 
 _Room for improvement if most voxels partially intersect a nanomachine._
 
 Multiple tiers of allocation size will add considerable complexity to the memory management scheme, requiring a careful design that avoids fragmentation. The frequent upgrading/downgrading between allocation tiers will slightly harm performance in dynamic scenes, so this will be an explicit opt-in mode. Perhaps we can auto-detect which voxels are moving and leave them at a large size, migrating to a smaller allocation after a small time delay. This migration will not incur the compute cost of rebuilding a voxel.
+
+The delayed migration design also seems like the most sensible way to program the allocator. When allocations are acquired, only the atom count is known. The reference count is not known until the voxel gets rebuilt. It could be that the atom count for a specific tier is met, but the reference count is exceed. It would be overcomplicated to migrate to a new memory slot _during_ the kernel that rebuilds voxels. It would be much easier to migrate during a following frame.
 
 ### Algorithm for Current Design
 
