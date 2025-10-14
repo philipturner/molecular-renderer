@@ -198,6 +198,30 @@ func inspectMemorySlots() {
         print(pad(atomID), terminator: " ")
       }
       
+      /*
+       pad(atomCount)
+       
+       2184 1161   58 3464 3472 3480 2720  184 3712 1176 3720 1024 1792 1800 1952 3728 1032 1960 1184 1040 2856 3616  928  936 2696 3624 2864  944 1192 2704 3632 2712 1696 3640 2872  952 3648  960 1120 1704 2880 2784 1200 3536 2792 1936 2888  192 1712  200 2800 1944 3544
+       2185 1162   42 1080 3584 2072  288 2816 2824 3592 2736  296 3600 2832 2744 2840  912 3488 3736 3496 1808 3504 1816 1968 1048 3512  304 2080 1976 3744 1824  224  232 3752 2088
+       2186 1163   10 1000 1248 2008 3600
+       2199 1183    4
+       2200 1164   39 3104 3112 1424 2344 2432 1432 2352 3120 3128 2440 2096 3872 2448 3880  584 1584 2944 3200  592 2104 3968  600 2952  608 1440 2184 1256 2112 1448 2360 1264 2960 3976
+       2201 1165   58 3248 1304  544  648  552 1568  560 1312  568 1320 3072  616 3080 1456 3088 3984 1464  624  632 3896 1472 3168 3992 3840 1480 1544 1376 2136 1384 1552 2976 3224 1488 2304 3848 1560 1392 1400 2984 2312 1632 1640 1648 2992 2296 2320
+       2202 1166   18 1248  648  568 1488 3088 2328 2168
+       */
+      
+      /*
+       pad(UInt32(j))
+       
+       2184 289   58    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36   37   38   39   40   41   42   43   44   45   46   47   48   49   50   51   52   53   54   55   56   57
+       2185 290   42   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36   37   38   39   40   41
+       2186 291   10    6    7    8    9
+       2199 281    4
+       2200 292   39    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36   37   38
+       2201 293   58    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36   37   38   39   40   41   42   43   44   45   46   47   48   49   50   51   52   54   55   56   57
+       2202 294   18   10   11   12   13   14   15   16   17
+       */
+      
       if atomID >= atomDuplicatedReferences.count {
         fatalError("Invalid atom ID: \(atomID)")
       }
@@ -213,6 +237,16 @@ func inspectMemorySlots() {
       fatalError("Invalid reference count: \(referenceCount)")
     }
     summary[referenceCount] += 1
+  }
+  
+  if summary[1] < 500 {
+    print()
+    for atomID in atomDuplicatedReferences.indices {
+      let referenceCount = atomDuplicatedReferences[atomID]
+      if referenceCount > 0 {
+        print(atomID)
+      }
+    }
   }
   
   print()
@@ -260,16 +294,16 @@ for frameID in 0...1 {
   print()
   analyzeGeneralCounters()
   print()
-  inspectAtomsRemovedVoxels()
-  //inspectMemorySlots()
+  //inspectAtomsRemovedVoxels()
+  inspectMemorySlots()
   
   application.updateBVH2(inFlightFrameID: frameID)
   
   print()
   analyzeGeneralCounters()
   print()
-  inspectRebuiltVoxels()
-  //inspectMemorySlots()
+  //inspectRebuiltVoxels()
+  inspectMemorySlots()
   
   application.forgetIdleState(inFlightFrameID: frameID)
 }
