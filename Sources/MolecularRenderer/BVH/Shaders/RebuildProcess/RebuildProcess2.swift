@@ -104,6 +104,15 @@ extension RebuildProcess {
       uint listAddress = headerAddress;
       listAddress += \(MemorySlot.offset(.referenceLarge) / 4);
       uint atomCount = memorySlots32[headerAddress];
+      
+      float3 lowerCorner = float3(voxelCoords) * 2;
+      lowerCorner -= float(\(worldDimension / 2));
+      
+      // TODO: Crash w/ atom count to indicate the 3 coordinates of the
+      // lower corner.
+      
+      // TODO: Draft the cube-sphere test in tandem with materializing
+      // the atom's relative offset.
     }
     """
   }
