@@ -102,6 +102,40 @@ extension AddProcess {
         cachedRelativeOffsets[address] = offset;
       }
       \(Reduction.waveLocalBarrier())
+      
+      // Iterate over the footprint on the 3D grid.
+      for (uint z = 0; z < loopEnd[2]; ++z) {
+        for (uint y = 0; y < loopEnd[1]; ++y) {
+          for (uint x = 0; x < loopEnd[0]; ++x) {
+            uint3 actualXYZ = uint3(x, y, z);
+            actualXYZ = reorderBackward(actualXYZ, permutationID);
+            
+            uint3 voxelCoordinates = largeVoxelMin + actualXYZ;
+            uint voxelID =
+            \(VoxelResources.generate("voxelCoordinates", worldDimension / 2));
+            
+            // Restore the offset from the cache.
+            uint offset;
+            {
+              uint address = z * 4 + y * 2 + x;
+              address = address * 128 + localID;
+              offset = cachedRelativeOffsets[address];
+            }
+            
+            // Include the prefix sum offset from the atomic counter.
+            {
+              uint address = voxelID;
+              address = (address * 8) + (atomID % 8);
+              offset += atomicCounters[address];
+            }
+            
+            uint assignedSlotID = assignedSlotIDs[voxelID];
+            uint listAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
+            listAddress += \(MemorySlot.offset(.referenceLarge) / 4);
+            memorySlots[listAddress + offset] = atomID;
+          }
+        }
+      }
     }
     """
   }
