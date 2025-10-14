@@ -77,7 +77,7 @@ func uploadDebugInput() {
 }
 uploadDebugInput()
 
-#if false
+#if true
 application.run {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
@@ -211,7 +211,7 @@ for frameID in 0...1 {
   print()
   analyzeGeneralCounters()
   print()
-  inspectAtomsRemovedVoxels()
+  //inspectAtomsRemovedVoxels()
   //inspectMemorySlots()
   
   application.updateBVH2(inFlightFrameID: frameID)

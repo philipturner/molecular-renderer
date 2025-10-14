@@ -80,6 +80,24 @@ extension RemoveProcess {
       if (crashBuffer[0] != 1) {
         return;
       }
+      
+      uint encodedVoxelCoords = atomsRemovedVoxelCoords[groupID];
+      uint3 voxelCoords = \(VoxelResources.decode("encodedVoxelCoords"));
+      uint voxelID =
+      \(VoxelResources.generate("voxelCoords", worldDimension / 2));
+      
+      if (localID == 0) {
+        bool acquiredLock = false;
+        \(CrashBuffer.acquireLock(errorCode: 3))
+        if (acquiredLock) {
+          crashBuffer[1] = voxelCoords.x;
+          crashBuffer[2] = voxelCoords.y;
+          crashBuffer[3] = voxelCoords.z;
+          crashBuffer[4] = 0;
+          crashBuffer[5] = 0;
+          crashBuffer[6] = 0;
+        }
+      }
     }
     """
   }
