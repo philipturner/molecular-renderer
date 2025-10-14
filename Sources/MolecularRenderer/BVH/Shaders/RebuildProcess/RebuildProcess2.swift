@@ -102,6 +102,14 @@ extension RebuildProcess {
         output: "offset")
     }
     
+    func castUShort(_ input: String) -> String {
+      #if os(macOS)
+      "ushort(\(input))"
+      #else
+      input
+      #endif
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -219,6 +227,9 @@ extension RebuildProcess {
       // ===                            Phase III                            ===
       // =======================================================================
       
+      uint listAddress16 = headerAddress * 2;
+      listAddress16 += \(MemorySlot.offset(.referenceSmall) / 2);
+      
       for (uint i = localID; i < atomCount; i += 128) {
         uint atomID = memorySlots32[listAddress + i];
         float4 atom = atoms[atomID];
@@ -239,9 +250,9 @@ extension RebuildProcess {
                 float address = \(VoxelResources.generate("xyz", 8));
                 
                 uint offset;
+                \(atomicFetchAdd())
                 
-                
-                // TODO: Write the 16-bit reference.
+                memorySlots16[listAddress16 + offset] = \(castUShort("i"));
               }
             }
           }
@@ -253,7 +264,21 @@ extension RebuildProcess {
       // ===                            Phase IV                             ===
       // =======================================================================
       
+      uint smallHeaderBase = headerAddress;
+      smallHeaderBase += \(MemorySlot.offset(.headerSmall) / 4);
       
+      \(Shader.unroll)
+      for (uint i = 0; i < 4; ++i) {
+        uint address = \(threadgroupAddress("i"));
+        uint counterAfter = threadgroupMemory[address];
+        uint counterBefore = counters[i];
+        
+        uint headerValue = 0;
+        if (counterAfter > counterBefore) {
+          headerValue = counterBefore | (counterAfter << 16);
+        }
+        memorySlots32[smallHeaderBase + address] = headerValue;
+      }
     }
     """
   }
