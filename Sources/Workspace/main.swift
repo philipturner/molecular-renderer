@@ -12,6 +12,11 @@ import MolecularRenderer
 // Current task:
 // - Implement addProcess3, then the remove process. At the end of this, we
 //   will no longer have the GPU crash from too many atoms/voxel.
+//   - Simple test for correct remove functionality: experiment on the first
+//     100 atoms.
+//   - First test: these atoms are not rewritten, the rest register as 'moved'.
+//   - Second test: these atoms are moved, the rest are either 'moved', 'added',
+//     or unchanged. Test each of the 3 cases.
 // - Inspect contents of buffers only when it feels appropriate.
 // - Debug all the steps toward the minimum viable product of rendering, one at
 //   a time. The rotating rod test might be a helpful tool to facilitate
@@ -179,14 +184,14 @@ for frameID in 0...1 {
   print()
   analyzeGeneralCounters()
   print()
-  inspectMemorySlots()
+  //inspectMemorySlots()
   
   application.updateBVH2(inFlightFrameID: frameID)
   
   print()
   analyzeGeneralCounters()
   print()
-  inspectMemorySlots()
+  //inspectMemorySlots()
   
   application.forgetIdleState(inFlightFrameID: frameID)
 }
