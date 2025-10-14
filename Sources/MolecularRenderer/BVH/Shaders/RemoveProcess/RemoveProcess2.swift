@@ -52,6 +52,14 @@ extension RemoveProcess {
       #endif
     }
     
+    func atomicFetchAdd() -> String {
+      Reduction.atomicFetchAdd(
+        buffer: "atomsRemovedVoxelCount",
+        address: "0",
+        operand: "countBitsResult",
+        output: "allocatedOffset")
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -80,6 +88,12 @@ extension RemoveProcess {
       }
       
       // create a compact list of these voxels
+      uint allocatedOffset = \(UInt32.max);
+      if (\(Reduction.waveIsFirstLane())) {
+        \(atomicFetchAdd())
+      }
+      allocatedOffset =
+      \(Reduction.waveReadLaneAt("allocatedOffset", laneID: 0));
     }
     """
   }
