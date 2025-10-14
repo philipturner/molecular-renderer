@@ -94,6 +94,12 @@ extension RemoveProcess {
       }
       allocatedOffset =
       \(Reduction.waveReadLaneAt("allocatedOffset", laneID: 0));
+      
+      allocatedOffset += \(Reduction.wavePrefixSum("uint(hasAtomsRemoved)"));
+      if (hasAtomsRemoved) {
+        uint encoded = \(VoxelResources.encode("globalID"));
+        atomsRemovedVoxelCoords[allocatedOffset] = encoded;
+      }
     }
     """
   }
