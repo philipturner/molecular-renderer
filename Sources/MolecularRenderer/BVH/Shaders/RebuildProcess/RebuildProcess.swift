@@ -21,7 +21,24 @@ class RebuildProcess {
   
   static func cubeSphereTest() -> String {
     """
-    
+    bool cubeSphereTest(float3 lowerCorner, float4 atom) {
+      float3 c1 = lowerCorner;
+      float3 c2 = c1 + 1;
+      float3 delta_c1 = atom.xyz - c1;
+      float3 delta_c2 = atom.xyz - c2;
+      
+      float dist_squared = atom.w;
+      \(Shader.unroll)
+      for (uint dim = 0; dim < 3; ++dim) {
+        if (atom[dim] < c1[dim]) {
+          dist_squared -= delta_c1[dim] * delta_c1[dim];
+        } else if (atom[dim] > c2[dim]) {
+          dist_squared -= delta_c2[dim] * delta_c2[dim];
+        }
+      }
+      
+      return dist_squared > 0;
+    }
     """
   }
   
