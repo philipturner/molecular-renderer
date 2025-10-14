@@ -116,13 +116,29 @@ extension RebuildProcess {
       // ===                            Phase I                              ===
       // =======================================================================
       
+      for (uint i = localID; i < atomCount; i += 128) {
+        uint atomID = memorySlots32[listAddress + i];
+        float4 atom = atoms[atomID];
+        \(computeLoopBounds())
+      }
+      \(Reduction.groupLocalBarrier())
+      
       // =======================================================================
       // ===                            Phase II                             ===
       // =======================================================================
       
+      \(Reduction.groupLocalBarrier())
+      
       // =======================================================================
       // ===                            Phase III                            ===
       // =======================================================================
+      
+      for (uint i = localID; i < atomCount; i += 128) {
+        uint atomID = memorySlots32[listAddress + i];
+        float4 atom = atoms[atomID];
+        \(computeLoopBounds())
+      }
+      \(Reduction.groupLocalBarrier())
       
       // =======================================================================
       // ===                            Phase IV                             ===
