@@ -152,5 +152,9 @@ extension BVHBuilder {
       }
       commandList.dispatch(groups: createGroupCount32())
     }
+    
+    #if os(Windows)
+    computeUAVBarrier(commandList: commandList)
+    #endif
   }
 }

@@ -180,5 +180,9 @@ extension BVHBuilder {
         buffer: counters.general,
         offset: offset)
     }
+    
+    #if os(Windows)
+    computeUAVBarrier(commandList: commandList)
+    #endif
   }
 }
