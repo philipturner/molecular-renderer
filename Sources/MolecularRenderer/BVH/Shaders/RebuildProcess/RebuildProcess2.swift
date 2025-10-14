@@ -94,8 +94,16 @@ extension RebuildProcess {
         return;
       }
       
-      // Use arithmetic utility function to encode/decode RGB10 instead of
-      // relying on hardware data unpacking.
+      uint encodedVoxelCoords = rebuiltVoxelCoords[groupID];
+      uint3 voxelCoords = \(VoxelResources.decode("encodedVoxelCoords"));
+      uint voxelID =
+      \(VoxelResources.generate("voxelCoords", worldDimension / 2));
+      
+      uint assignedSlotID = assignedSlotIDs[voxelID];
+      uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
+      uint listAddress = headerAddress;
+      listAddress += \(MemorySlot.offset(.referenceLarge) / 4);
+      uint atomCount = memorySlots32[headerAddress];
     }
     """
   }
