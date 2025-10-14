@@ -81,7 +81,7 @@ func uploadDebugInput() {
 }
 uploadDebugInput()
 
-#if true
+#if false
 application.run {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
@@ -114,6 +114,34 @@ func analyzeGeneralCounters() {
 @MainActor
 func inspectAtomsRemovedVoxels() {
   let voxelCoords = application.downloadAtomsRemovedVoxelCoords()
+  
+  for i in voxelCoords.indices {
+    func pad(_ integer: Int) -> String {
+      var output = "\(integer)"
+      while output.count < 3 {
+        output = " " + output
+      }
+      return output
+    }
+    
+    let encoded = voxelCoords[i]
+    guard encoded != UInt32.max else {
+      continue
+    }
+    
+    let decoded = SIMD3<UInt32>(
+      encoded & 1023,
+      (encoded >> 10) & 1023,
+      encoded >> 20
+    )
+    let lowerCorner = SIMD3<Float>(decoded) * 2 - (Float(32) / 2)
+    print(pad(i), lowerCorner)
+  }
+}
+
+@MainActor
+func inspectRebuiltVoxels() {
+  let voxelCoords = application.downloadRebuiltVoxelCoords()
   
   for i in voxelCoords.indices {
     func pad(_ integer: Int) -> String {
@@ -215,7 +243,7 @@ for frameID in 0...1 {
   print()
   analyzeGeneralCounters()
   print()
-  //inspectAtomsRemovedVoxels()
+  inspectAtomsRemovedVoxels()
   //inspectMemorySlots()
   
   application.updateBVH2(inFlightFrameID: frameID)
@@ -223,6 +251,7 @@ for frameID in 0...1 {
   print()
   analyzeGeneralCounters()
   print()
+  inspectRebuiltVoxels()
   //inspectMemorySlots()
   
   application.forgetIdleState(inFlightFrameID: frameID)
