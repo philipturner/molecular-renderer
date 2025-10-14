@@ -21,6 +21,10 @@ import MolecularRenderer
 // atom count: 8631
 // memory slot count: 3616
 // memory slot size: 55304 B
+//   .headerLarge = 0 B
+//   .headerSmall = 8 B
+//   .referenceLarge = 2056 B
+//   .referenceSmall = 14344 B
 // voxel group count: 64
 // voxel count: 4096
 
@@ -100,26 +104,36 @@ func analyzeGeneralCounters() {
 }
 
 @MainActor
-func inspectMemorySlots(atomicCounters1: [SIMD8<UInt32>]) {
+func inspectMemorySlots() {
   let assignedSlotIDs = application.downloadAssignedSlotIDs()
   let memorySlots = application.downloadMemorySlots()
   
-  for i in atomicCounters1.indices {
-    let counters = atomicCounters1[i]
-    let addedAtomCount = counters.wrappedSum()
-    guard addedAtomCount > 0 else {
-      continue
-    }
-    
+  for i in assignedSlotIDs.indices {
     let assignedSlotID = assignedSlotIDs[i]
     guard assignedSlotID != UInt32.max else {
-      print(i, assignedSlotID, addedAtomCount)
       continue
     }
     
-    let headerAddress = assignedSlotID * 55304 / 4
-    let slotAtomCount = memorySlots[Int(headerAddress)]
-    print(i, assignedSlotID, addedAtomCount, slotAtomCount)
+    func pad(_ integer: UInt32) -> String {
+      var output = "\(integer)"
+      while output.count < 4 {
+        output = " " + output
+      }
+      return output
+    }
+    
+    let headerAddress = Int(assignedSlotID) * 55304 / 4
+    let atomCount = memorySlots[headerAddress]
+    print(i, assignedSlotID, pad(atomCount), terminator: " ")
+    
+    let listAddress = headerAddress + 2056 / 4
+    for j in 0..<Int(atomCount) {
+      let atomID = memorySlots[listAddress + j]
+      if j < 5 {
+        print(pad(atomID), terminator: " ")
+      }
+    }
+    print()
   }
 }
 
@@ -134,16 +148,14 @@ for frameID in 0...1 {
   print()
   analyzeGeneralCounters()
   print()
-  let atomicCounters1 = application.downloadAtomicCounters()
-  //inspectMemorySlots(atomicCounters1: atomicCounters1)
+  inspectMemorySlots()
   
   application.updateBVH2(inFlightFrameID: frameID)
   
   print()
   analyzeGeneralCounters()
   print()
-  let atomicCounters2 = application.downloadAtomicCounters()
-  //inspectMemorySlots(atomicCounters1: atomicCounters1)
+  inspectMemorySlots()
   
   application.forgetIdleState(inFlightFrameID: frameID)
 }
