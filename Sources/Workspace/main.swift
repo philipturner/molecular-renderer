@@ -111,19 +111,6 @@ func analyzeGeneralCounters() {
 func inspectAtomsRemovedVoxels() {
   let voxelCoords = application.downloadAtomsRemovedVoxelCoords()
   
-  /*
-   // Shader code to read voxel coords from RAM.
-   static func decode(_ input: String) -> String {
-     "uint3(\(input) & 1023, (\(input) >> 10) & 1023, \(input) >> 20)"
-   }
-   
-   let voxelCoords = SIMD3<UInt32>(
-     bufferContents[1],
-     bufferContents[2],
-     bufferContents[3])
-   self.lowerCorner = SIMD3<Float>(voxelCoords) * 2 - (worldDimension / 2)
-   */
-  
   for i in voxelCoords.indices {
     func pad(_ integer: Int) -> String {
       var output = "\(integer)"
@@ -138,7 +125,13 @@ func inspectAtomsRemovedVoxels() {
       continue
     }
     
-    print(pad(i), encoded)
+    let decoded = SIMD3<UInt32>(
+      encoded & 1023,
+      (encoded >> 10) & 1023,
+      encoded >> 20
+    )
+    let lowerCorner = SIMD3<Float>(decoded) * 2 - (Float(32) / 2)
+    print(pad(i), lowerCorner)
   }
 }
 
