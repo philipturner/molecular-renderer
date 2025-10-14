@@ -118,9 +118,10 @@ extension RemoveProcess {
         
         \(Reduction.threadgroupSumPrimitive(offset: 0))
         
-        afterAtomCount += threadgroupMemory[4];
         uint localOffset = \(Reduction.wavePrefixSum("uint(shouldKeep)"));
         localOffset += threadgroupMemory[localID / 32];
+        localOffset += afterAtomCount;
+        afterAtomCount += threadgroupMemory[4];
         \(Reduction.groupLocalBarrier())
         
         if (shouldKeep) {
