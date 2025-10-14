@@ -19,6 +19,8 @@ import MolecularRenderer
 //     or unchanged. Test each of the 3 cases.
 //   - Third test: these atoms are either 'moved' or unchanged. The rest are
 //     removed. Test each of the 2 cases.
+//   - Preserve these tests in a GitHub gist for smoke testing the rebuild
+//     process. Alternatively, implement rebuildProcess1 before testing.
 // - Inspect contents of buffers only when it feels appropriate.
 // - Debug all the steps toward the minimum viable product of rendering, one at
 //   a time. The rotating rod test might be a helpful tool to facilitate
@@ -111,6 +113,41 @@ func analyzeGeneralCounters() {
 }
 
 @MainActor
+func inspectAtomsRemovedVoxels() {
+  let voxelCoords = application.downloadAtomsRemovedVoxelCoords()
+  
+  /*
+   // Shader code to read voxel coords from RAM.
+   static func decode(_ input: String) -> String {
+     "uint3(\(input) & 1023, (\(input) >> 10) & 1023, \(input) >> 20)"
+   }
+   
+   let voxelCoords = SIMD3<UInt32>(
+     bufferContents[1],
+     bufferContents[2],
+     bufferContents[3])
+   self.lowerCorner = SIMD3<Float>(voxelCoords) * 2 - (worldDimension / 2)
+   */
+  
+  for i in voxelCoords.indices {
+    func pad(_ integer: Int) -> String {
+      var output = "\(integer)"
+      while output.count < 3 {
+        output = " " + output
+      }
+      return output
+    }
+    
+    let encoded = voxelCoords[i]
+    guard encoded != UInt32.max else {
+      continue
+    }
+    
+    print(pad(i), encoded)
+  }
+}
+
+@MainActor
 func inspectMemorySlots() {
   let assignedSlotIDs = application.downloadAssignedSlotIDs()
   let memorySlots = application.downloadMemorySlots()
@@ -186,6 +223,7 @@ for frameID in 0...1 {
   print()
   analyzeGeneralCounters()
   print()
+  inspectAtomsRemovedVoxels()
   //inspectMemorySlots()
   
   application.updateBVH2(inFlightFrameID: frameID)

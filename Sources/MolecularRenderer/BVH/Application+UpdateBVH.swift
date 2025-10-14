@@ -182,6 +182,19 @@ extension Application {
     return output
   }
   
+  public func downloadAtomsRemovedVoxelCoords() -> [UInt32] {
+    func copySourceBuffer() -> Buffer {
+      bvhBuilder.voxels.sparse.atomsRemovedVoxelCoords
+    }
+    
+    let arraySize = bvhBuilder.voxels.memorySlotCount
+    
+    var output = [UInt32](repeating: .zero, count: arraySize)
+    downloadDebugOutput(
+      &output, copySourceBuffer: copySourceBuffer())
+    return output
+  }
+  
   private func downloadDebugOutput<T>(
     _ outputData: inout [T],
     copySourceBuffer: Buffer
