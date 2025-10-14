@@ -20,6 +20,7 @@ import MolecularRenderer
 // Helpful facts about the test setup:
 // atom count: 8631
 // memory slot count: 3616
+// memory slot size: 55304 B
 // voxel group count: 64
 // voxel count: 4096
 
@@ -82,8 +83,7 @@ application.run {
 
 @MainActor
 func analyzeGeneralCounters() {
-  var output = [UInt32](repeating: .zero, count: 10)
-  application.downloadGeneralCounters(&output)
+  let output = application.downloadGeneralCounters()
   
   print("atoms removed voxel count:", output[0])
   guard output[1] == 1,
@@ -99,12 +99,6 @@ func analyzeGeneralCounters() {
   }
 }
 
-@MainActor
-func analyzeAtomicCounters() -> [SIMD8<UInt32>] {
-  var output = [SIMD8<UInt32>](repeating: .zero, count: 4096)
-  application.downloadAtomicCounters(&output)
-  return output
-}
 func analyzeBeforeAfter(
   _ before: [SIMD8<UInt32>],
   _ after: [SIMD8<UInt32>]
@@ -134,14 +128,14 @@ for frameID in 0...1 {
   print()
   analyzeGeneralCounters()
   print()
-  let output1 = analyzeAtomicCounters()
+  let output1 = application.downloadAtomicCounters()
   
   application.updateBVH2(inFlightFrameID: frameID)
   
   print()
   analyzeGeneralCounters()
   print()
-  let output2 = analyzeAtomicCounters()
+  let output2 = application.downloadAtomicCounters()
   analyzeBeforeAfter(output1, output2)
   
   application.forgetIdleState(inFlightFrameID: frameID)

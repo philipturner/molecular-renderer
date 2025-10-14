@@ -134,26 +134,26 @@ extension Application {
     #endif
   }
   
-  public func downloadGeneralCounters(
-    _ outputData: inout [UInt32]
-  ) {
+  public func downloadGeneralCounters() -> [UInt32] {
     func copySourceBuffer() -> Buffer {
       bvhBuilder.counters.general
     }
     
+    var output = [UInt32](repeating: .zero, count: 10)
     downloadDebugOutput(
-      &outputData, copySourceBuffer: copySourceBuffer())
+      &output, copySourceBuffer: copySourceBuffer())
+    return output
   }
   
-  public func downloadAtomicCounters(
-    _ outputData: inout [SIMD8<UInt32>]
-  ) {
+  public func downloadAtomicCounters() -> [SIMD8<UInt32>] {
     func copySourceBuffer() -> Buffer {
       bvhBuilder.voxels.dense.atomicCounters
     }
     
+    var output = [SIMD8<UInt32>](repeating: .zero, count: 4096)
     downloadDebugOutput(
-      &outputData, copySourceBuffer: copySourceBuffer())
+      &output, copySourceBuffer: copySourceBuffer())
+    return output
   }
   
   private func downloadDebugOutput<T>(
