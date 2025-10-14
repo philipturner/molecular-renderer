@@ -90,7 +90,7 @@ extension RemoveProcess {
       }
       uint countBitsResult = \(Reduction.waveActiveCountBits("isVacant"));
       threadgroupMemory[localID / 32] = countBitsResult;
-      \(Reduction.barrier())
+      \(Reduction.groupLocalBarrier())
       
       \(Reduction.threadgroupSumPrimitive(offset: 0))
       
@@ -100,7 +100,7 @@ extension RemoveProcess {
         \(atomicFetchAdd())
         threadgroupMemory[5] = output;
       }
-      \(Reduction.barrier())
+      \(Reduction.groupLocalBarrier())
       
       uint address = \(Reduction.wavePrefixSum("uint(isVacant)"));
       address += threadgroupMemory[localID / 32];

@@ -176,7 +176,7 @@ extension AddProcess {
       }
       
       // Retrieve the cached offsets.
-      \(Reduction.barrier())
+      \(Reduction.waveLocalBarrier())
       uint4 outputOffsets[2];
       \(Shader.unroll)
       for (uint i = 0; i < 8; ++i) {

@@ -2,9 +2,17 @@
 struct Reduction {
   // WARNING: Avoid barriers in areas not accessed by every thread in the
   // group. In this situation, behavior is nominally undefined.
-  static func barrier() -> String {
+  static func groupLocalBarrier() -> String {
     #if os(macOS)
     "threadgroup_barrier(mem_flags::mem_threadgroup);"
+    #else
+    "GroupMemoryBarrierWithGroupSync();"
+    #endif
+  }
+  
+  static func waveLocalBarrier() -> String {
+    #if os(macOS)
+    "simdgroup_barrier(mem_flags::mem_threadgroup);"
     #else
     "GroupMemoryBarrierWithGroupSync();"
     #endif
@@ -49,7 +57,7 @@ struct Reduction {
       if (localID < 4) {
         input = threadgroupMemory[\(offset) + localID];
       }
-      \(Reduction.barrier())
+      \(Reduction.groupLocalBarrier())
       
       if (localID < 32) {
         uint prefixSum = \(Reduction.wavePrefixSum("input"));
@@ -62,7 +70,7 @@ struct Reduction {
         }
         threadgroupMemory[\(offset) + 4] = totalSum;
       }
-      \(Reduction.barrier())
+      \(Reduction.groupLocalBarrier())
     }
     """
   }
