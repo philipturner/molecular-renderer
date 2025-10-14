@@ -198,7 +198,7 @@ extension RebuildProcess {
       \(Reduction.groupLocalBarrier())
       
       uint referenceCount = threadgroupMemory[516];
-      if (referenceCount > 8000) {
+      if (referenceCount > 20480) {
         if (localID == 0) {
           bool acquiredLock = false;
           \(CrashBuffer.acquireLock(errorCode: 4))
@@ -214,30 +214,6 @@ extension RebuildProcess {
       if (localID == 0) {
         memorySlots32[headerAddress + 1] = referenceCount;
       }
-      
-      /*
-      if (atomCount > 1000) {
-        if (localID == 0) {
-          uint referenceCount = 0;
-          for (uint i = 0; i < 512; ++i) {
-            uint count = threadgroupMemory[i];
-            referenceCount += count;
-          }
-          
-          bool acquiredLock = false;
-          \(CrashBuffer.acquireLock(errorCode: 3))
-          if (acquiredLock) {
-            crashBuffer[1] = voxelCoords.x;
-            crashBuffer[2] = voxelCoords.y;
-            crashBuffer[3] = voxelCoords.z;
-            crashBuffer[4] = atomCount;
-            crashBuffer[5] = referenceCount;
-            crashBuffer[6] = 0;
-          }
-        }
-      }
-      \(Reduction.groupLocalBarrier())
-      */
       
       // =======================================================================
       // ===                            Phase III                            ===

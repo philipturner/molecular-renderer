@@ -127,8 +127,10 @@ extension RemoveProcess {
           memorySlots[listAddress + localOffset] = atomID;
         }
       }
-      memorySlots[headerAddress] = afterAtomCount;
-      memorySlots[headerAddress + 1] = 0;
+      if (localID == 0) {
+        memorySlots[headerAddress] = afterAtomCount;
+        memorySlots[headerAddress + 1] = 0;
+      }
       
       // if atoms remain, write to dense.rebuiltMarks
       if (afterAtomCount > 0) {
