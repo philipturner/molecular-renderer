@@ -2,25 +2,23 @@ extension Application {
   // TODO: Before finishing the acceleration structure PR, remove the public
   // modifier for this.
   public func checkCrashBuffer() {
-    if frameID >= 3 {
-      let elementCount = CounterResources.crashBufferSize / 4
-      var output = [UInt32](repeating: .zero, count: elementCount)
-      bvhBuilder.counters.crashBuffer.read(
-        data: &output,
-        inFlightFrameID: frameID % 3)
+    let elementCount = CounterResources.crashBufferSize / 4
+    var output = [UInt32](repeating: .zero, count: elementCount)
+    bvhBuilder.counters.crashBuffer.read(
+      data: &output,
+      inFlightFrameID: frameID % 3)
+    
+    if output[0] != 1 {
+      var crashInfoDesc = CrashInfoDescriptor()
+      crashInfoDesc.bufferContents = output
+      crashInfoDesc.clockFrames = clock.frames
+      crashInfoDesc.displayFrameRate = display.frameRate
+      crashInfoDesc.frameID = frameID
+      crashInfoDesc.memorySlotCount = bvhBuilder.voxels.memorySlotCount
+      crashInfoDesc.worldDimension = bvhBuilder.voxels.worldDimension
+      let crashInfo = CrashInfo(descriptor: crashInfoDesc)
       
-      if output[0] != 1 {
-        var crashInfoDesc = CrashInfoDescriptor()
-        crashInfoDesc.bufferContents = output
-        crashInfoDesc.clockFrames = clock.frames
-        crashInfoDesc.displayFrameRate = display.frameRate
-        crashInfoDesc.frameID = frameID
-        crashInfoDesc.memorySlotCount = bvhBuilder.voxels.memorySlotCount
-        crashInfoDesc.worldDimension = bvhBuilder.voxels.worldDimension
-        let crashInfo = CrashInfo(descriptor: crashInfoDesc)
-        
-        fatalError(crashInfo.message)
-      }
+      fatalError(crashInfo.message)
     }
   }
   
@@ -28,6 +26,10 @@ extension Application {
   // modifier for this.
   public func updateBVH(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
+    print()
+    print("removed:", transaction.removedIDs.count)
+    print("moved:", transaction.movedIDs.count)
+    print("added:", transaction.addedIDs.count)
     
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.

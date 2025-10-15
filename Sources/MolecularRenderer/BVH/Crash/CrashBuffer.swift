@@ -136,11 +136,11 @@ class CrashBuffer {
     data: inout [T],
     inFlightFrameID: Int
   ) {
-    #if os(macOS)
-    if let commandBuffer = commandBufferList[inFlightFrameID] {
-      commandBuffer.waitUntilCompleted()
-    }
-    #endif
+//    #if os(macOS)
+//    if let commandBuffer = commandBufferList[inFlightFrameID] {
+//      commandBuffer.waitUntilCompleted()
+//    }
+//    #endif
     
     data.withUnsafeMutableBytes { bufferPointer in
       let buffer = outputBuffers[inFlightFrameID]

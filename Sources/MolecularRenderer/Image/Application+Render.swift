@@ -38,7 +38,9 @@ extension Application {
   }
   
   public func render() -> Image {
-    checkCrashBuffer()
+    if frameID >= 3 {
+      checkCrashBuffer()
+    }
     updateBVH(inFlightFrameID: frameID % 3)
     writeCameraArgs()
     

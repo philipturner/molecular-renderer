@@ -253,53 +253,59 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-//#if true
-//application.run {
-//  for atomID in lattice.atoms.indices {
-//    let atom = lattice.atoms[atomID]
+#if false
+application.run {
+  for atomID in lattice.atoms.indices {
+    let atom = lattice.atoms[atomID]
+    application.atoms[atomID] = atom
+  }
+  
+  let image = application.render()
+  application.present(image: image)
+}
+#else
+
+@MainActor
+func analyzeGeneralCounters() {
+  let output = application.downloadGeneralCounters()
+  
+  print("atoms removed voxel count:", output[0])
+  guard output[1] == 1,
+        output[2] == 1 else {
+    fatalError("Indirect dispatch arguments were malformatted.")
+  }
+  print("vacant slot count:", output[4])
+  print("allocated slot count:", output[5])
+  print("rebuilt voxel count:", output[6])
+  guard output[7] == 1,
+        output[8] == 1 else {
+    fatalError("Indirect dispatch arguments were malformatted.")
+  }
+}
+
+for frameID in 0..<1 {
+  print()
+  print("===============")
+  print("=== frame \(frameID) ===")
+  print("===============")
+  
+//  let rotatedBeam = createRotatedBeam(frameID: frameID)
+//  for atomID in cross.atoms.indices {
+//    let atom = cross.atoms[atomID]
 //    application.atoms[atomID] = atom
 //  }
-//  
-//  let image = application.render()
-//  application.present(image: image)
-//}
-//#else
-//
-//@MainActor
-//func analyzeGeneralCounters() {
-//  let output = application.downloadGeneralCounters()
-//  
-//  print("atoms removed voxel count:", output[0])
-//  guard output[1] == 1,
-//        output[2] == 1 else {
-//    fatalError("Indirect dispatch arguments were malformatted.")
+//  for atomID in rotatedBeam.atoms.indices {
+//    let atom = rotatedBeam.atoms[atomID]
+//    let offset = cross.atoms.count
+//    application.atoms[offset + atomID] = atom
 //  }
-//  print("vacant slot count:", output[4])
-//  print("allocated slot count:", output[5])
-//  print("rebuilt voxel count:", output[6])
-//  guard output[7] == 1,
-//        output[8] == 1 else {
-//    fatalError("Indirect dispatch arguments were malformatted.")
-//  }
-//}
-//
-//for frameID in 0..<6 {
-//  for atomID in lattice.atoms.indices {
-//    let atom = lattice.atoms[atomID]
-//    application.atoms[atomID] = atom
-//  }
-//  
-//  application.checkCrashBuffer()
-//  application.updateBVH(inFlightFrameID: frameID % 3)
-//  application.forgetIdleState(inFlightFrameID: frameID % 3)
-//  
-//  print()
-//  print("===============")
-//  print("=== frame \(frameID) ===")
-//  print("===============")
-//  
-//  print()
-//  analyzeGeneralCounters()
-//}
-//
-//#endif
+  
+  application.checkCrashBuffer()
+  application.updateBVH(inFlightFrameID: frameID % 3)
+  application.forgetIdleState(inFlightFrameID: frameID % 3)
+  
+  print()
+  analyzeGeneralCounters()
+}
+
+#endif
