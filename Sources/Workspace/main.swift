@@ -198,9 +198,20 @@ analyze(topology: beam)
 
 // MARK: - Debugging the Rotation Animation
 
-// Determine the rotation rate in degrees/frame, given a rate specified in Hz.
 // Apply the rotation to a dummy topology. Watch the XYZ bounding box change
 // as it rotates a pre-determined angle.
+
+// 0.5 Hz -> 3 degrees/frame @ 60 Hz
+//
+// WARNING: Systems with different display refresh rates may have different
+// benchmark results. The benchmark should be robust to this variation in
+// degrees/frame.
+let rotationRateHz: Float = 0.5
+let rotationAngleRadians = rotationRateHz * (2 * Float.pi) * Float(1.0 / 60)
+let rotationAngleDegrees = 180 / Float.pi * rotationAngleRadians
+print()
+print(rotationAngleRadians)
+print(rotationAngleDegrees)
 
 // MARK: - Launch Application
 
