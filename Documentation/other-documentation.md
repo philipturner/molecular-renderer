@@ -68,9 +68,9 @@ These combinations of settings are known to run smoothly (or predicted to).
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 15        | 15        | 15        |
 
-The benchmarked systems are a few atoms very close to the user, consuming all of the FOV. Divergence is negligible and the critical distance heuristic does not kick in. The source code is found in [Tests](./Tests).
+The benchmarked systems are a few atoms very close to the user, consuming all of the FOV. Divergence is negligible and the critical distance heuristic does not kick in. The test does not face the cost of primary rays traveling large distances; AO cost dominates.
 
-TODO: Implement the test after getting the acceleration structure working.
+TODO: Test performance after getting the acceleration structure working.
 
 ## Ambient Occlusion Sample Count
 
@@ -83,6 +83,10 @@ A default of 7 or 15 secondary rays results in sufficient quality for any genera
 A highly tuned heuristic reduces the number of secondary rays, at a certain distance from the user. This particular case can afford lower rendering quality anyway.
 
 TODO: Implement and document the heuristic.
+- Measure the number of rays deemed "good enough" at both 60 Hz and 120 Hz. It is probably subjective, with no clear cutoff.
+- Next, see how this number changes with distance of a test structure. Use an arbitrarily large cubic SiC(111) surface, silicons on top, H-passivated. Find a quick way to determine the best number of rays.
+- Validate the process for normalizing for FOV.
+- Implement everything in a Google Sheet and hyperlink the results in this document.
 
 ## MetalFX Latency Issues
 
