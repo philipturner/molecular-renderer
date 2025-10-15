@@ -201,10 +201,40 @@ func inspectSmallReferences() {
     let smallRefAddress = headerAddress + 14344 / 4
     var smallReferences: [UInt16] = []
     for i in 0..<((smallRefCount + 1) / 2) {
-      let value32 = memorySlots[smallRefAddress]
+      let value32 = memorySlots[smallRefAddress + Int(i)]
       let casted = unsafeBitCast(value32, to: SIMD2<UInt16>.self)
       smallReferences.append(casted[0])
       smallReferences.append(casted[1])
+    }
+    
+    var atomDuplicatedReferences = [Int](
+      repeating: .zero, count: Int(atomCount))
+    let smallHeaderBase = headerAddress + 8 / 4
+    for voxelID in 0..<512 {
+      let header = memorySlots[smallHeaderBase + voxelID]
+      guard header != UInt32.zero else {
+        continue
+      }
+      let headerCasted = unsafeBitCast(header, to: SIMD2<UInt16>.self)
+      let offsetStart = headerCasted[0]
+      let offsetEnd = headerCasted[1]
+      let refCount = offsetEnd - offsetStart
+      print(pad(voxelID), pad(offsetStart), pad(refCount), terminator: " ")
+      
+      let listAddress = headerAddress + 2056 / 4
+      for referenceID in offsetStart..<offsetEnd {
+        let smallAtomID = smallReferences[Int(referenceID)]
+        let largeAtomID = memorySlots[listAddress + Int(smallAtomID)]
+        if referenceID < offsetStart + 12 {
+          print(pad(smallAtomID), terminator: " ")
+        }
+        
+        if smallAtomID >= atomCount {
+          fatalError("Invalid small atom ID: \(smallAtomID)")
+        }
+        atomDuplicatedReferences[Int(smallAtomID)] += 1
+      }
+      print()
     }
   }
 }
