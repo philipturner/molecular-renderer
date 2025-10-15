@@ -280,13 +280,16 @@ for atomID in cross.atoms.indices {
   application.atoms[atomID] = atom
 }
 
-for frameID in 0..<6 {
+for frameID in 0..<16 {
   print()
   print("===============")
   print("=== frame \(frameID) ===")
   print("===============")
   
-  let rotatedBeam = beam
+  print()
+  print("rotation: \(frameID * 3) degrees")
+  
+  let rotatedBeam = createRotatedBeam(frameID: frameID)
   for atomID in rotatedBeam.atoms.indices {
     let atom = rotatedBeam.atoms[atomID]
     let offset = cross.atoms.count
