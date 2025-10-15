@@ -207,6 +207,22 @@ let rotationRateHz: Float = 0.5
 
 // Apply the rotation to a dummy topology. Watch the XYZ bounding box change
 // as it rotates a pre-determined angle.
+do {
+  let angleDegrees: Float = 75
+  let rotation = Quaternion<Float>(
+    angle: angleDegrees * Float.pi / 180,
+    axis: SIMD3(0, 0, 1))
+  
+  var topology = beam
+  for atomID in topology.atoms.indices {
+    var atom = topology.atoms[atomID]
+    
+    atom.position = rotation.act(on: atom.position)
+    
+    topology.atoms[atomID] = atom
+  }
+  analyze(topology: topology)
+}
 
 // MARK: - Launch Application
 
