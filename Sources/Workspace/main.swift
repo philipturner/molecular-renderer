@@ -165,11 +165,13 @@ func inspectMemorySlots() {
   let memorySlots = application.downloadMemorySlots()
   
   var atomDuplicatedReferences = [Int](repeating: .zero, count: 8631)
+  var outputArray: [Int] = []
   for i in assignedSlotIDs.indices {
     let assignedSlotID = assignedSlotIDs[i]
     guard assignedSlotID != UInt32.max else {
       continue
     }
+    outputArray.append(i)
     
     let headerAddress = Int(assignedSlotID) * 55304 / 4
     let atomCount = memorySlots[headerAddress]
@@ -206,6 +208,10 @@ func inspectMemorySlots() {
   }
   print("total atom count: \(summary[1...].reduce(0, +))")
   print("total reference count: \(atomDuplicatedReferences.reduce(0, +))")
+  
+  print()
+  print(outputArray.count)
+  print(outputArray)
 }
 
 for frameID in 0...1 {
@@ -265,6 +271,9 @@ for frameID in 0...1 {
    total atom count: 8432
    total reference count: 14715
    
+   62
+   [1911, 1912, 1927, 1928, 1929, 1930, 1943, 1944, 1945, 1946, 1959, 1960, 1961, 1962, 2167, 2168, 2169, 2170, 2183, 2184, 2185, 2186, 2199, 2200, 2201, 2202, 2215, 2216, 2217, 2218, 2423, 2424, 2425, 2426, 2439, 2440, 2441, 2442, 2455, 2456, 2457, 2458, 2471, 2472, 2473, 2474, 2679, 2680, 2681, 2682, 2695, 2696, 2697, 2698, 2711, 2712, 2713, 2714, 2727, 2728, 2729, 2730]
+   
    // 199 never added
    
    0:  199
@@ -287,6 +296,9 @@ for frameID in 0...1 {
    
    total atom count: 8432
    total reference count: 13468
+   
+   60
+   [1927, 1928, 1929, 1930, 1943, 1944, 1945, 1946, 1959, 1960, 1961, 1962, 2167, 2168, 2169, 2170, 2183, 2184, 2185, 2186, 2199, 2200, 2201, 2202, 2215, 2216, 2217, 2218, 2423, 2424, 2425, 2426, 2439, 2440, 2441, 2442, 2455, 2456, 2457, 2458, 2471, 2472, 2473, 2474, 2679, 2680, 2681, 2682, 2695, 2696, 2697, 2698, 2711, 2712, 2713, 2714, 2727, 2728, 2729, 2730]
    */
   
   print()
