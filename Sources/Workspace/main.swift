@@ -199,6 +199,13 @@ func inspectSmallReferences() {
     
     let largeRefAddress = headerAddress + 2056 / 4
     let smallRefAddress = headerAddress + 14344 / 4
+    var smallReferences: [UInt16] = []
+    for i in 0..<((smallRefCount + 1) / 2) {
+      let value32 = memorySlots[smallRefAddress]
+      let casted = unsafeBitCast(value32, to: SIMD2<UInt16>.self)
+      smallReferences.append(casted[0])
+      smallReferences.append(casted[1])
+    }
   }
 }
 
