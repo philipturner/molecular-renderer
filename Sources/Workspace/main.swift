@@ -54,9 +54,10 @@ func passivate(topology: inout Topology) {
   topology.bonds += insertedBonds
 }
 
+
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 10
+let beamDepth: Int = 2
 let worldDimension: Float = 96
 
 func createCross() -> Topology {
@@ -143,6 +144,33 @@ func createBeam() -> Topology {
   var topology = reconstruction.compile()
   passivate(topology: &topology)
   
+  for atomID in topology.atoms.indices {
+    var atom = topology.atoms[atomID]
+    
+    // Capture just one Si and one C for each unit cell. This time, capturing
+    // happens if atom.position.z < 0.
+    atom.position += SIMD3(0, 0, -0.090)
+    
+    // Shift so both captured surfaces fall in the [0, 2] nm range for sharing
+    // a voxel.
+    atom.position.z += 2
+    
+    // Shift the origin to allow larger beam depth, with fixed world dimension.
+    atom.position.z -= worldDimension / 2
+    atom.position.z += 8
+    
+    // Shift so the structure is centered in X and Y.
+    let latticeConstant = Constant(.square) {
+      .checkerboard(.silicon, .carbon)
+    }
+    let halfThickness = Float(crossThickness) / 2
+    let halfSize = Float(crossSize) / 2
+    atom.position.x -= halfThickness * latticeConstant
+    atom.position.y -= halfSize * latticeConstant
+    
+    topology.atoms[atomID] = atom
+  }
+  
   return topology
 }
 
@@ -165,7 +193,7 @@ func analyze(topology: Topology) {
 let cross = createCross()
 let beam = createBeam()
 analyze(topology: cross)
-//analyze(topology: beam)
+analyze(topology: beam)
 
 // MARK: - Launch Application
 
