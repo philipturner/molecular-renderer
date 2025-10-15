@@ -55,8 +55,9 @@ func passivate(topology: inout Topology) {
 }
 
 let crossThickness: Int = 16
-let crossSize: Int = 150
-let beamDepth: Int = 2
+let crossSize: Int = 120
+let beamDepth: Int = 10
+let worldDimension: Float = 96
 
 func createCross() -> Topology {
   let lattice = Lattice<Cubic> { h, k, l in
@@ -70,17 +71,18 @@ func createCross() -> Topology {
     for isPositiveX in [false, true] {
       for isPositiveY in [false, true] {
         let center = 75 * h + 75 * k
-        let deltaX = Float(isPositiveX ? 8 : -8) * h
-        let deltaY = Float(isPositiveY ? 8 : -8) * k
+        let directionX = isPositiveX ? h : -h
+        let directionY = isPositiveY ? k : -k
+        let deltaMagnitude = Float(crossThickness) / 2
         
         Volume {
           Concave {
             Convex {
-              Origin { center + deltaX }
+              Origin { center + deltaMagnitude * directionX }
               Plane { isPositiveX ? h : -h }
             }
             Convex {
-              Origin { center + deltaY }
+              Origin { center + deltaMagnitude * directionY }
               Plane { isPositiveY ? k : -k }
             }
           }
@@ -163,7 +165,7 @@ func createApplication() -> Application {
   
   applicationDesc.addressSpaceSize = 2_000_000
   applicationDesc.voxelAllocationSize = 200_000_000
-  applicationDesc.worldDimension = 96
+  applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
   
   return application
