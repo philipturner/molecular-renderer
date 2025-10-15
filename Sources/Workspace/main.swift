@@ -54,16 +54,24 @@ func passivate(topology: inout Topology) {
   topology.bonds += insertedBonds
 }
 
+let crossThickness: Int = 16
+let crossSize: Int = 150
+let beamDepth: Int = 2
+
 func createCross() -> Topology {
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 100 * h + 100 * k + 5 * l }
+    Bounds {
+      Float(crossSize) * h +
+      Float(crossSize) * k +
+      Float(2) * l
+    }
     Material { .checkerboard(.silicon, .carbon) }
     
     for isPositiveX in [false, true] {
       for isPositiveY in [false, true] {
-        let center = 50 * h + 50 * k
-        let deltaX = Float(isPositiveX ? 5 : -5) * h
-        let deltaY = Float(isPositiveY ? 5 : -5) * k
+        let center = 75 * h + 75 * k
+        let deltaX = Float(isPositiveX ? 8 : -8) * h
+        let deltaY = Float(isPositiveY ? 8 : -8) * k
         
         Volume {
           Concave {
@@ -80,6 +88,25 @@ func createCross() -> Topology {
         }
       }
     }
+  }
+  
+  var reconstruction = Reconstruction()
+  reconstruction.atoms = lattice.atoms
+  reconstruction.material = .checkerboard(.silicon, .carbon)
+  var topology = reconstruction.compile()
+  passivate(topology: &topology)
+  
+  return topology
+}
+
+func createBeam() -> Topology {
+  let lattice = Lattice<Cubic> { h, k, l in
+    Bounds {
+      Float(crossThickness) * h +
+      Float(crossSize) * k +
+      Float(beamDepth) * l
+    }
+    Material { .checkerboard(.silicon, .carbon) }
   }
   
   var reconstruction = Reconstruction()
@@ -108,7 +135,9 @@ func analyze(topology: Topology) {
 }
 
 let cross = createCross()
+let beam = createBeam()
 analyze(topology: cross)
+analyze(topology: beam)
 
 // MARK: - Launch Application
 
@@ -134,7 +163,7 @@ func createApplication() -> Application {
   
   applicationDesc.addressSpaceSize = 2_000_000
   applicationDesc.voxelAllocationSize = 200_000_000
-  applicationDesc.worldDimension = 192
+  applicationDesc.worldDimension = 96
   let application = Application(descriptor: applicationDesc)
   
   return application
