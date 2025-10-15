@@ -4,14 +4,11 @@ import QuaternionModule
 
 // Components of this PR:
 // - Tasks on "BVH Update Process". Estimated completion: Oct 16 2025
-// - Jump straight to a kernel that intersects primary rays with atoms, with
-//   no fear of infinite loops crashing the Mac.
-//   - Will have validated that corrupted BVH is not a likely culprit of bugs.
+// - Jump straight to a kernel that intersects primary rays with atoms.
+// - Before implementing AO, implement a scheme where the atom's pixel count is
+//   diagnosed in the on-screen texture. Confirm that upscale factors don't
+//   change this (backend code has properly corrected for the upscale factor).
 // - Implement fully optimized primary ray intersector from main-branch-backup.
-// - Critical distance heuristic is mandatory. Unacceptable to have a warped
-//   data distribution where atoms far from the user suffer two-fold: more cost
-//   for the primary ray, more divergence for the secondary rays. Another
-//   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
 // - Take a first pass at the rotating beam benchmark.
