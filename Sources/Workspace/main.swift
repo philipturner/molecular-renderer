@@ -241,19 +241,67 @@ for frameID in 0...1 {
   
   application.updateBVH1(inFlightFrameID: frameID)
   
+  /*
+   // 199 added, then removed
+   
+   0:  199
+   1: 4765
+   2: 2841
+   3:    0
+   4:  585
+   5:    0
+   6:    0
+   7:    0
+   8:  241
+   9:    0
+  10:    0
+  11:    0
+  12:    0
+  13:    0
+  14:    0
+  15:    0
+  16:    0
+   
+   total atom count: 8432
+   total reference count: 14715
+   
+   // 199 never added
+   
+   0:  199
+   1: 4850
+   2: 2939
+   3:    0
+   4:  601
+   5:    0
+   6:    0
+   7:    0
+   8:   42
+   9:    0
+  10:    0
+  11:    0
+  12:    0
+  13:    0
+  14:    0
+  15:    0
+  16:    0
+   
+   total atom count: 8432
+   total reference count: 13468
+   */
+  
   print()
   analyzeGeneralCounters()
   print()
-  inspectAtomsRemovedVoxels()
-  //inspectMemorySlots()
+  //inspectAtomsRemovedVoxels()
+  inspectMemorySlots()
   
   application.updateBVH2(inFlightFrameID: frameID)
   
   print()
   analyzeGeneralCounters()
   print()
-  inspectRebuiltVoxels()
-  //inspectMemorySlots()
+  //inspectRebuiltVoxels()
+  inspectMemorySlots()
   
   application.forgetIdleState(inFlightFrameID: frameID)
 }
