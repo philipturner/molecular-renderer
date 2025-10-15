@@ -1,5 +1,6 @@
 import HDL
 import MolecularRenderer
+import QuaternionModule
 
 // Components of this PR:
 // - Tasks on "BVH Update Process". Estimated completion: Oct 16 2025
@@ -194,6 +195,12 @@ let cross = createCross()
 let beam = createBeam()
 analyze(topology: cross)
 analyze(topology: beam)
+
+// MARK: - Debugging the Rotation Animation
+
+// Determine the rotation rate in degrees/frame, given a rate specified in Hz.
+// Apply the rotation to a dummy topology. Watch the XYZ bounding box change
+// as it rotates a pre-determined angle.
 
 // MARK: - Launch Application
 
