@@ -212,6 +212,8 @@ func inspectMemorySlots() {
 
 for frameID in 0...1 {
   for atomID in lattice.atoms.indices {
+    let atom = lattice.atoms[atomID]
+    
     // voxels spanned: 24
     //
     //    0: 8432
@@ -293,15 +295,22 @@ for frameID in 0...1 {
     // total reference count: 12867
     let isSelected3 = !(isSelected1 || isSelected2)
     
-    if frameID == 0 {
-      if isSelected3 {
-        let atom = lattice.atoms[atomID]
-        application.atoms[atomID] = atom
-      }
-    } else if frameID == 1 {
-      if isSelected3 {
-        application.atoms[atomID] = nil
-      }
+    enum TransactionType {
+      case remove
+      case move
+      case add
+    }
+    
+    var transactionType: TransactionType?
+    if isSelected1 {
+      
+    } else if isSelected2 {
+      
+    } else if isSelected3 {
+      
+    }
+    guard let transactionType else {
+      fatalError("Could not get transaction type.")
     }
   }
   
@@ -310,16 +319,16 @@ for frameID in 0...1 {
   print()
   analyzeGeneralCounters()
   print()
-//  inspectAtomsRemovedVoxels()
-  inspectMemorySlots()
+  inspectAtomsRemovedVoxels()
+//  inspectMemorySlots()
   
   application.updateBVH2(inFlightFrameID: frameID)
   
   print()
   analyzeGeneralCounters()
   print()
-//  inspectRebuiltVoxels()
-  inspectMemorySlots()
+  inspectRebuiltVoxels()
+//  inspectMemorySlots()
   
   application.forgetIdleState(inFlightFrameID: frameID)
 }
