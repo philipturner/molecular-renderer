@@ -98,55 +98,6 @@ private func createFFXDimensions(
 #endif
 
 extension Application {
-  // TODO: Migrate fallbackUpscale and UpscaleShader to a GitHub gist, remove
-  // them from the code base.
-  
-  // Fallback for debugging if the upscaler goes wrong, or for easily
-  // visualizing the 3 inputs to the upscaler.
-  private func fallbackUpscale() {
-    device.commandQueue.withCommandList { commandList in
-      // Bind the descriptor heap.
-      #if os(Windows)
-      commandList.setDescriptorHeap(descriptorHeap)
-      #endif
-      
-      // Encode the compute command.
-      commandList.withPipelineState(imageResources.upscaleShader) {
-        // Bind the textures.
-        #if os(macOS)
-        let colorTexture = imageResources.renderTarget
-          .colorTextures[frameID % 2]
-        let upscaledTexture = imageResources.renderTarget
-          .upscaledTextures[frameID % 2]
-        commandList.mtlCommandEncoder
-          .setTexture(colorTexture, index: 0)
-        commandList.mtlCommandEncoder
-          .setTexture(upscaledTexture, index: 1)
-        #else
-        commandList.setDescriptor(
-          handleID: frameID % 2, index: 0)
-        commandList.setDescriptor(
-          handleID: 6 + frameID % 2, index: 1)
-        #endif
-        
-        // Determine the dispatch grid size.
-        func createGroupCount32() -> SIMD3<UInt32> {
-          var groupCount = display.frameBufferSize
-          
-          let groupSize = SIMD2<Int>(8, 8)
-          groupCount &+= groupSize &- 1
-          groupCount /= groupSize
-          
-          return SIMD3<UInt32>(
-            UInt32(groupCount[0]),
-            UInt32(groupCount[1]),
-            UInt32(1))
-        }
-        commandList.dispatch(groups: createGroupCount32())
-      }
-    }
-  }
-  
   private func createJitterOffset() -> SIMD2<Float> {
     var jitterOffsetDesc = JitterOffsetDescriptor()
     jitterOffsetDesc.index = frameID

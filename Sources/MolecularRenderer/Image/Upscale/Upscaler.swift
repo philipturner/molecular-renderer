@@ -71,5 +71,5 @@ class Upscaler {
   //
   // This may have some relation to the reactive mask texture, where the
   // accumulation history for certain pixels should reset after certain abrupt
-  // changes. Can this solve the ghosting problem with FidelityFX?
+  // changes.
 }

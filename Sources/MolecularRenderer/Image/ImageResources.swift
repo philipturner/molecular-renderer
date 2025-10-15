@@ -6,15 +6,12 @@ struct ImageResourcesDescriptor {
 }
 
 class ImageResources {
-  // Shaders
   let renderShader: Shader
-  let upscaleShader: Shader
+  let renderTarget: RenderTarget
+  let upscaler: Upscaler?
   
-  // Memory allocations
   var cameraArgsBuffer: RingBuffer
   var previousCameraArgs: CameraArgs?
-  var renderTarget: RenderTarget
-  var upscaler: Upscaler?
   
   init(descriptor: ImageResourcesDescriptor) {
     guard let device = descriptor.device,
@@ -24,10 +21,8 @@ class ImageResources {
       fatalError("Descriptor was incomplete.")
     }
     
-    // Create the shaders.
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
-    
     shaderDesc.name = "render"
     #if os(macOS)
     shaderDesc.maxTotalThreadsPerThreadgroup = 1024
@@ -37,19 +32,6 @@ class ImageResources {
       upscaleFactor: upscaleFactor,
       worldDimension: worldDimension)
     self.renderShader = Shader(descriptor: shaderDesc)
-    
-    shaderDesc.name = "upscale"
-    #if os(macOS)
-    shaderDesc.maxTotalThreadsPerThreadgroup = nil
-    #endif
-    shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
-    shaderDesc.source = UpscaleShader.createSource(
-      upscaleFactor: upscaleFactor)
-    self.upscaleShader = Shader(descriptor: shaderDesc)
-    
-    // Create the memory allocations.
-    self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
-    self.previousCameraArgs = nil
     
     var renderTargetDesc = RenderTargetDescriptor()
     renderTargetDesc.device = device
@@ -66,6 +48,9 @@ class ImageResources {
     } else {
       self.upscaler = nil
     }
+    
+    self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
+    self.previousCameraArgs = nil
   }
   
   private static func createCameraArgsBuffer(

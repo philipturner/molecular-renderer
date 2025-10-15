@@ -13,10 +13,6 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Clean up the code base after the previous test.
-//   - Retain the functionality for reading buffers from the public API.
-//   - Remove the intersection of 4 custom occupied slots prior to frame 0.
-//   - Merge the two parts of updateBVH back into a single command buffer.
 // - Test for correct functionality during rebuild.
 //   - Less complex than the previous test; quite easy and quick.
 //   - Out of scope for the previous test, does not need to be cross-coupled
@@ -186,6 +182,7 @@ for frameID in 0...0 {
   }
   
   application.updateBVH(inFlightFrameID: frameID % 3)
+  application.forgetIdleState(inFlightFrameID: frameID % 3)
   
   print()
   print("===============")
@@ -195,10 +192,7 @@ for frameID in 0...0 {
   print()
   analyzeGeneralCounters()
   print()
-  inspectRebuiltVoxels()
   inspectMemorySlots()
-  
-  application.forgetIdleState(inFlightFrameID: frameID % 3)
 }
 
 #endif
