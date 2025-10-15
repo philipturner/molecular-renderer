@@ -196,19 +196,19 @@ let beam = createBeam()
 analyze(topology: cross)
 analyze(topology: beam)
 
-// MARK: - Debugging the Rotation Animation
+// MARK: - Rotation Animation
 
-// 0.5 Hz -> 3 degrees/frame @ 60 Hz
-//
-// WARNING: Systems with different display refresh rates may have different
-// benchmark results. The benchmark should be robust to this variation in
-// degrees/frame.
-let rotationRateHz: Float = 0.5
-
-// Apply the rotation to a dummy topology. Watch the XYZ bounding box change
-// as it rotates a pre-determined angle.
-do {
-  let angleDegrees: Float = rotationRateHz * 360 * Float(22.0 / 60)
+@MainActor
+func createRotatedBeam(frameID: Int) -> Topology {
+  // 0.5 Hz -> 3 degrees/frame @ 60 Hz
+  //
+  // WARNING: Systems with different display refresh rates may have different
+  // benchmark results. The benchmark should be robust to this variation in
+  // degrees/frame.
+  //
+  // Solution: animate by clock.frames instead of the actual time. On 120 Hz
+  // systems, the benchmark will rotate 2x faster than on 60 Hz systems.
+  let angleDegrees: Float = 3 * Float(frameID)
   let rotation = Quaternion<Float>(
     angle: angleDegrees * Float.pi / 180,
     axis: SIMD3(0, 0, 1))
@@ -216,12 +216,10 @@ do {
   var topology = beam
   for atomID in topology.atoms.indices {
     var atom = topology.atoms[atomID]
-    
     atom.position = rotation.act(on: atom.position)
-    
     topology.atoms[atomID] = atom
   }
-  analyze(topology: topology)
+  return topology
 }
 
 // MARK: - Launch Application
