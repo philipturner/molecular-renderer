@@ -7,8 +7,6 @@ import WinSDK
 extension Application {
   // TODO: Before finishing the acceleration structure PR, remove the public
   // modifier for this.
-  //
-  // TODO: Remove the frameID argument after done debugging.
   public func checkCrashBuffer(frameID: Int) {
     if frameID >= 3 {
       let elementCount = CounterResources.crashBufferSize / 4
@@ -34,10 +32,32 @@ extension Application {
   
   // Only implemented on Windows at the moment. Metal should use an asynchronous
   // command buffer handler indexing into an array with atomics or serial
-  // queues. Or we could make do with times appearing randomly in the console
-  // output. Just suppress all output when porting the benchmark to macOS.
+  // queues.
   public func checkExecutionTime(frameID: Int) {
-    
+    if frameID >= 3 {
+      #if os(Windows)
+      let destinationBuffer = bvhBuilder.counters
+        .queryDestinationBuffers[frameID % 3]
+      var output = [UInt64](repeating: .zero, count: 4)
+      output.withUnsafeMutableBytes { bufferPointer in
+        destinationBuffer.read(output: bufferPointer)
+      }
+      
+      let timestampFrequency = try! device.commandQueue.d3d12CommandQueue
+        .GetTimestampFrequency()
+      func latencyMicroseconds(startIndex: Int) -> Int {
+        let startCounter = output[startIndex]
+        let endCounter = output[startIndex + 1]
+        var elapsedTime = Double(endCounter - startCounter)
+        elapsedTime /= Double(timestampFrequency)
+        
+        return Int(elapsedTime * 1e6)
+      }
+      print()
+      print("update BVH:", latencyMicroseconds(startIndex: 0), "μs")
+      print("render:", latencyMicroseconds(startIndex: 2), "μs")
+      #endif
+    }
   }
   
   // TODO: Before finishing the acceleration structure PR, remove the public
@@ -50,16 +70,14 @@ extension Application {
     print("added:", transaction.addedIDs.count)
     
     device.commandQueue.withCommandList { commandList in
-      // Bind the descriptor heap.
-      #if os(Windows)
-      commandList.setDescriptorHeap(descriptorHeap)
-      #endif
-      
       #if os(Windows)
       try! commandList.d3d12CommandList.EndQuery(
         bvhBuilder.counters.queryHeap,
         D3D12_QUERY_TYPE_TIMESTAMP,
         0)
+      
+      // Bind the descriptor heap.
+      commandList.setDescriptorHeap(descriptorHeap)
       #endif
       
       bvhBuilder.purgeResources(

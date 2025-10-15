@@ -297,6 +297,7 @@ for frameID in 0..<16 {
   }
   
   application.checkCrashBuffer(frameID: frameID)
+  application.checkExecutionTime(frameID: frameID)
   application.updateBVH(inFlightFrameID: frameID % 3)
   application.forgetIdleState(inFlightFrameID: frameID % 3)
   
