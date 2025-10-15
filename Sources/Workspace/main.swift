@@ -221,14 +221,17 @@ for frameID in 0...1 {
       isSelected = true
     }
     
+    // After this, switch the order of which ones were added, which removed.
+    // Then, test a scenario with removed, moved and added simultaneously.
     if frameID == 0 {
       if isSelected {
         let atom = lattice.atoms[atomID]
         application.atoms[atomID] = atom
       }
     } else if frameID == 1 {
-      // After this, test adding the remaining atoms while removing the
-      // selected 199 during this frame.
+      if isSelected {
+        application.atoms[atomID] = nil
+      }
       if !isSelected {
         let atom = lattice.atoms[atomID]
         application.atoms[atomID] = atom
