@@ -13,13 +13,7 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Test for correct functionality during rebuild.
-//   - Less complex than the previous test; quite easy and quick.
-//   - Out of scope for the previous test, does not need to be cross-coupled
-//     with the various possibilities for behavior during add/remove.
-//   - Will still rely on the same silicon carbide lattice as the previous test.
-// - Archive the above testing code to a GitHub gist, along with its utilities
-//   in "Application+UpdateBVH.swift".
+// - Take a first pass at the rotating rod benchmark.
 
 // Helpful facts about the test setup:
 // atom count: 8631
@@ -78,14 +72,6 @@ application.run {
 }
 #else
 
-func pad<T: BinaryInteger>(_ integer: T) -> String {
-  var output = "\(integer)"
-  while output.count < 4 {
-    output = " " + output
-  }
-  return output
-}
-
 @MainActor
 func analyzeGeneralCounters() {
   let output = application.downloadGeneralCounters()
@@ -104,164 +90,13 @@ func analyzeGeneralCounters() {
   }
 }
 
-@MainActor
-func inspectRebuiltVoxels() {
-  let voxelCoords = application.downloadRebuiltVoxelCoords()
-  
-  for i in voxelCoords.indices {
-    let encoded = voxelCoords[i]
-    guard encoded != UInt32.max else {
-      continue
-    }
-    
-    let decoded = SIMD3<UInt32>(
-      encoded & 1023,
-      (encoded >> 10) & 1023,
-      encoded >> 20
-    )
-    let lowerCorner = SIMD3<Float>(decoded) * 2 - (Float(32) / 2)
-    print(pad(i), lowerCorner)
-  }
-}
-
-@MainActor
-func inspectMemorySlots() {
-  let assignedSlotIDs = application.downloadAssignedSlotIDs()
-  let memorySlots = application.downloadMemorySlots()
-  
-  var atomDuplicatedReferences = [Int](repeating: .zero, count: 8631)
-  for i in assignedSlotIDs.indices {
-    let assignedSlotID = assignedSlotIDs[i]
-    guard assignedSlotID != UInt32.max else {
-      continue
-    }
-    
-    let headerAddress = Int(assignedSlotID) * 55304 / 4
-    let atomCount = memorySlots[headerAddress]
-    print(pad(i), pad(assignedSlotID), pad(atomCount), terminator: " ")
-    
-    let listAddress = headerAddress + 2056 / 4
-    for j in 0..<Int(atomCount) {
-      let atomID = memorySlots[listAddress + j]
-      if j < 12 {
-        print(pad(atomID), terminator: " ")
-      }
-      
-      if atomID >= atomDuplicatedReferences.count {
-        fatalError("Invalid atom ID: \(atomID)")
-      }
-      atomDuplicatedReferences[Int(atomID)] += 1
-    }
-    print()
-  }
-  
-  var summary = [Int](repeating: .zero, count: 9)
-  for atomID in atomDuplicatedReferences.indices {
-    let referenceCount = atomDuplicatedReferences[atomID]
-    if referenceCount > 8 {
-      fatalError("Invalid reference count: \(referenceCount)")
-    }
-    summary[referenceCount] += 1
-  }
-  
-  print()
-  for referenceCount in summary.indices {
-    let atomCount = summary[referenceCount]
-    print("\(pad(referenceCount)): \(pad(atomCount))")
-  }
-  print("total atom count: \(summary[1...].reduce(0, +))")
-  print("total reference count: \(atomDuplicatedReferences.reduce(0, +))")
-}
-
-@MainActor
-func inspectSmallReferences() {
-  let assignedSlotIDs = application.downloadAssignedSlotIDs()
-  let memorySlots = application.downloadMemorySlots()
-  
-  for i in assignedSlotIDs.indices {
-    let assignedSlotID = assignedSlotIDs[i]
-    guard assignedSlotID != UInt32.max else {
-      continue
-    }
-    guard i == 2457 else {
-      continue
-    }
-    
-    let headerAddress = Int(assignedSlotID) * 55304 / 4
-    let atomCount = memorySlots[headerAddress]
-    guard atomCount == 1165 else {
-      fatalError("Got unexpected atom count: \(atomCount)")
-    }
-    
-    let smallRefCount = memorySlots[headerAddress + 1]
-    print("large references allocated:", atomCount)
-    print("small references allocated:", smallRefCount)
-    
-    let largeRefAddress = headerAddress + 2056 / 4
-    let smallRefAddress = headerAddress + 14344 / 4
-    var smallReferences: [UInt16] = []
-    for i in 0..<((smallRefCount + 1) / 2) {
-      let value32 = memorySlots[smallRefAddress + Int(i)]
-      let casted = unsafeBitCast(value32, to: SIMD2<UInt16>.self)
-      smallReferences.append(casted[0])
-      smallReferences.append(casted[1])
-    }
-    
-    var atomDuplicatedReferences = [Int](
-      repeating: .zero, count: Int(atomCount))
-    let smallHeaderBase = headerAddress + 8 / 4
-    for voxelID in 0..<512 {
-      let header = memorySlots[smallHeaderBase + voxelID]
-      guard header != UInt32.zero else {
-        continue
-      }
-      let headerCasted = unsafeBitCast(header, to: SIMD2<UInt16>.self)
-      let offsetStart = headerCasted[0]
-      let offsetEnd = headerCasted[1]
-      let refCount = offsetEnd - offsetStart
-      print(pad(voxelID), pad(offsetStart), pad(refCount), terminator: " ")
-      
-      let listAddress = headerAddress + 2056 / 4
-      for referenceID in offsetStart..<offsetEnd {
-        let smallAtomID = smallReferences[Int(referenceID)]
-        let largeAtomID = memorySlots[listAddress + Int(smallAtomID)]
-        if referenceID < offsetStart + 12 {
-          print(pad(largeAtomID), terminator: " ")
-        }
-        
-        if smallAtomID >= atomCount {
-          fatalError("Invalid small atom ID: \(smallAtomID)")
-        }
-        atomDuplicatedReferences[Int(smallAtomID)] += 1
-      }
-      print()
-    }
-    
-    var summary = [Int](repeating: .zero, count: 28)
-    for atomID in atomDuplicatedReferences.indices {
-      let referenceCount = atomDuplicatedReferences[atomID]
-      if referenceCount > 27 {
-        fatalError("Invalid reference count: \(referenceCount)")
-      }
-      summary[referenceCount] += 1
-    }
-    
-    print()
-    for referenceCount in summary.indices {
-      let atomCount = summary[referenceCount]
-      print("\(pad(referenceCount)): \(pad(atomCount))")
-    }
-    print("total atom count: \(summary[1...].reduce(0, +))")
-    print("total reference count: \(atomDuplicatedReferences.reduce(0, +))")
-  }
-}
-
-for frameID in 0...0 {
+for frameID in 0..<6 {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
     application.atoms[atomID] = atom
   }
   
+  application.checkCrashBuffer()
   application.updateBVH(inFlightFrameID: frameID % 3)
   application.forgetIdleState(inFlightFrameID: frameID % 3)
   
@@ -272,8 +107,6 @@ for frameID in 0...0 {
   
   print()
   analyzeGeneralCounters()
-  print()
-  inspectSmallReferences()
 }
 
 #endif

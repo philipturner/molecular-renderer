@@ -1,6 +1,31 @@
 extension Application {
   // TODO: Before finishing the acceleration structure PR, remove the public
   // modifier for this.
+  public func checkCrashBuffer() {
+    if frameID >= 3 {
+      let elementCount = CounterResources.crashBufferSize / 4
+      var output = [UInt32](repeating: .zero, count: elementCount)
+      bvhBuilder.counters.crashBuffer.read(
+        data: &output,
+        inFlightFrameID: frameID % 3)
+      
+      if output[0] != 1 {
+        var crashInfoDesc = CrashInfoDescriptor()
+        crashInfoDesc.bufferContents = output
+        crashInfoDesc.clockFrames = clock.frames
+        crashInfoDesc.displayFrameRate = display.frameRate
+        crashInfoDesc.frameID = frameID
+        crashInfoDesc.memorySlotCount = bvhBuilder.voxels.memorySlotCount
+        crashInfoDesc.worldDimension = bvhBuilder.voxels.worldDimension
+        let crashInfo = CrashInfo(descriptor: crashInfoDesc)
+        
+        fatalError(crashInfo.message)
+      }
+    }
+  }
+  
+  // TODO: Before finishing the acceleration structure PR, remove the public
+  // modifier for this.
   public func updateBVH(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
     
@@ -92,45 +117,6 @@ extension Application {
     }
     
     var output = [UInt32](repeating: .zero, count: 10)
-    downloadDebugOutput(
-      &output, copySourceBuffer: copySourceBuffer())
-    return output
-  }
-  
-  public func downloadAssignedSlotIDs() -> [UInt32] {
-    func copySourceBuffer() -> Buffer {
-      bvhBuilder.voxels.dense.assignedSlotIDs
-    }
-    
-    var output = [UInt32](repeating: .zero, count: 4096)
-    downloadDebugOutput(
-      &output, copySourceBuffer: copySourceBuffer())
-    return output
-  }
-  
-  public func downloadMemorySlots() -> [UInt32] {
-    func copySourceBuffer() -> Buffer {
-      bvhBuilder.voxels.sparse.memorySlots
-    }
-    
-    var arraySize = bvhBuilder.voxels.memorySlotCount
-    arraySize *= MemorySlot.totalSize
-    arraySize /= 4
-    
-    var output = [UInt32](repeating: .zero, count: arraySize)
-    downloadDebugOutput(
-      &output, copySourceBuffer: copySourceBuffer())
-    return output
-  }
-  
-  public func downloadRebuiltVoxelCoords() -> [UInt32] {
-    func copySourceBuffer() -> Buffer {
-      bvhBuilder.voxels.sparse.rebuiltVoxelCoords
-    }
-    
-    let arraySize = bvhBuilder.voxels.memorySlotCount
-    
-    var output = [UInt32](repeating: .zero, count: arraySize)
     downloadDebugOutput(
       &output, copySourceBuffer: copySourceBuffer())
     return output
