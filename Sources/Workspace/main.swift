@@ -130,13 +130,11 @@ func inspectMemorySlots() {
   let memorySlots = application.downloadMemorySlots()
   
   var atomDuplicatedReferences = [Int](repeating: .zero, count: 8631)
-  var outputArray: [Int] = []
   for i in assignedSlotIDs.indices {
     let assignedSlotID = assignedSlotIDs[i]
     guard assignedSlotID != UInt32.max else {
       continue
     }
-    outputArray.append(i)
     
     let headerAddress = Int(assignedSlotID) * 55304 / 4
     let atomCount = memorySlots[headerAddress]
@@ -175,6 +173,31 @@ func inspectMemorySlots() {
   print("total reference count: \(atomDuplicatedReferences.reduce(0, +))")
 }
 
+@MainActor
+func inspectSmallReferences() {
+  let assignedSlotIDs = application.downloadAssignedSlotIDs()
+  let memorySlots = application.downloadMemorySlots()
+  
+  for i in assignedSlotIDs.indices {
+    let assignedSlotID = assignedSlotIDs[i]
+    guard assignedSlotID != UInt32.max else {
+      continue
+    }
+    guard i == 2457 else {
+      continue
+    }
+    
+    let headerAddress = Int(assignedSlotID) * 55304 / 4
+    let atomCount = memorySlots[headerAddress]
+    guard atomCount == 1165 else {
+      fatalError("Got unexpected atom count: \(atomCount)")
+    }
+    
+    let referenceCount = memorySlots[headerAddress + 1]
+    print(referenceCount)
+  }
+}
+
 for frameID in 0...0 {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
@@ -192,7 +215,7 @@ for frameID in 0...0 {
   print()
   analyzeGeneralCounters()
   print()
-  inspectMemorySlots()
+  inspectSmallReferences()
 }
 
 #endif
