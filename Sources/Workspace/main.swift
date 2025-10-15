@@ -295,7 +295,7 @@ for frameID in 0..<1 {
 //    application.atoms[offset + atomID] = atom
 //  }
   
-  application.checkCrashBuffer()
+  application.checkCrashBuffer(frameID: frameID + 3)
   application.updateBVH(inFlightFrameID: frameID % 3)
   application.forgetIdleState(inFlightFrameID: frameID % 3)
   
