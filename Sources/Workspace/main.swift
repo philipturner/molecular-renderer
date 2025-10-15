@@ -181,6 +181,7 @@ func inspectMemorySlots() {
     for j in 0..<Int(atomCount) {
       let atomID = memorySlots[listAddress + j]
       if j < 12 {
+//      if atomID == 8432 {
         print(pad(atomID), terminator: " ")
       }
       
@@ -192,6 +193,7 @@ func inspectMemorySlots() {
     print()
   }
   
+  print()
   var summary = [Int](repeating: .zero, count: 17)
   for atomID in atomDuplicatedReferences.indices {
     let referenceCount = atomDuplicatedReferences[atomID]
@@ -199,6 +201,10 @@ func inspectMemorySlots() {
       fatalError("Invalid reference count: \(referenceCount)")
     }
     summary[referenceCount] += 1
+    
+    if referenceCount == 8 {
+      print(pad(atomID))
+    }
   }
   
   print()
@@ -304,19 +310,39 @@ for frameID in 0...1 {
   print()
   analyzeGeneralCounters()
   print()
-  inspectAtomsRemovedVoxels()
-  //inspectMemorySlots()
+  //inspectAtomsRemovedVoxels()
+  inspectMemorySlots()
   
   application.updateBVH2(inFlightFrameID: frameID)
   
   print()
   analyzeGeneralCounters()
   print()
-  inspectRebuiltVoxels()
-  //inspectMemorySlots()
+  //inspectRebuiltVoxels()
+  inspectMemorySlots()
   
   application.forgetIdleState(inFlightFrameID: frameID)
 }
+
+// 1911  256  199 8432 8552 8560 8568 8576 8584 8592 8600 8608 8520 8440 8528
+// 1912  257  199 8552 8560 8568 8576 8584 8592 8600 8608 8616 8624 8520 8528
+print()
+print(lattice.atoms[8432])
+print(AtomStyles.radii[14])
+print(lattice.atoms[8432].position - AtomStyles.radii[14])
+print(lattice.atoms[8432].position + AtomStyles.radii[14])
+
+// 1911
+// 1912
+// 1927
+// 1928
+// 2167
+// 2168
+// 2183
+// 2184
+
+// behavior if all atoms added at once:
+// 2696
 
 /*
  0 SIMD3<Float>(-2.0, -2.0, 0.0)
@@ -447,6 +473,293 @@ for frameID in 0...1 {
  1912 = 7 * 16 * 16 + 7 * 16 + 8
  1911 -> (14, 14, 14) -> (-2, -2, -2)
  1912 -> (16, 14, 14) -> (0, -2, -2)
+ */
+
+/*
+ 167
+ 168
+ 207
+ 539
+ 540
+ 577
+ 611
+ 612
+ 617
+3201
+3202
+3241
+3495
+3496
+3567
+3568
+3806
+3840
+3841
+3878
+3880
+7370
+7371
+7406
+7442
+7443
+7446
+7700
+7736
+7737
+7772
+7776
+8108
+8109
+8110
+8144
+8146
+8180
+8181
+8182
+8184
+8186
+8432
+8433
+8434
+8435
+8436
+8437
+8438
+8439
+8440
+8441
+8442
+8443
+8444
+8445
+8446
+8447
+8448
+8449
+8450
+8451
+8452
+8453
+8454
+8455
+8456
+8457
+8458
+8459
+8460
+8461
+8462
+8463
+8464
+8465
+8466
+8467
+8468
+8469
+8470
+8471
+8472
+8473
+8474
+8475
+8476
+8477
+8478
+8479
+8480
+8481
+8482
+8483
+8484
+8485
+8486
+8487
+8488
+8489
+8490
+8491
+8492
+8493
+8494
+8495
+8496
+8497
+8498
+8499
+8500
+8501
+8502
+8503
+8504
+8505
+8506
+8507
+8508
+8509
+8510
+8511
+8512
+8513
+8514
+8515
+8516
+8517
+8518
+8519
+8520
+8521
+8522
+8523
+8524
+8525
+8526
+8527
+8528
+8529
+8530
+8531
+8532
+8533
+8534
+8535
+8536
+8537
+8538
+8539
+8540
+8541
+8542
+8543
+8544
+8545
+8546
+8547
+8548
+8549
+8550
+8551
+8552
+8553
+8554
+8555
+8556
+8557
+8558
+8559
+8560
+8561
+8562
+8563
+8564
+8565
+8566
+8567
+8568
+8569
+8570
+8571
+8572
+8573
+8574
+8575
+8576
+8577
+8578
+8579
+8580
+8581
+8582
+8583
+8584
+8585
+8586
+8587
+8588
+8589
+8590
+8591
+8592
+8593
+8594
+8595
+8596
+8597
+8598
+8599
+8600
+8601
+8602
+8603
+8604
+8605
+8606
+8607
+8608
+8609
+8610
+8611
+8612
+8613
+8614
+8615
+8616
+8617
+8618
+8619
+8620
+8621
+8622
+8623
+8624
+8625
+8626
+8627
+8628
+8629
+8630
+ 
+ 366
+ 367
+ 406
+ 738
+ 739
+ 776
+ 810
+ 811
+ 816
+3400
+3401
+3440
+3694
+3695
+3766
+3767
+4104
+4138
+4139
+4176
+4178
+7569
+7570
+7605
+7641
+7642
+7645
+7899
+7935
+7936
+7971
+7975
+8307
+8308
+8309
+8343
+8345
+8379
+8380
+8381
+8383
+8385
  */
 
 #endif
