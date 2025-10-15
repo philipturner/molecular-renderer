@@ -106,7 +106,7 @@ extension AddProcess {
       // WARNING: Never read from transactionAtoms again. Always read from
       // the address space, which has the correct radius.
       uint atomID = transactionIDs[removedCount + globalID];
-      float4 atom = transactionAtoms[removedCount + globalID];
+      float4 atom = transactionAtoms[globalID];
       
       // Pack the atomic number and radius^2 into the 4th component.
       {
