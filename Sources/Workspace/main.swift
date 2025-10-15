@@ -3,6 +3,9 @@ import MolecularRenderer
 
 // Components of this PR:
 // - Tasks on "BVH Update Process". Estimated completion: Oct 16 2025
+// - Jump straight to a kernel that intersects primary rays with atoms, with
+//   no fear of infinite loops crashing the Mac.
+//   - Will have validated that corrupted BVH is not a likely culprit of bugs.
 // - Implement fully optimized primary ray intersector from main-branch-backup.
 // - Critical distance heuristic is mandatory. Unacceptable to have a warped
 //   data distribution where atoms far from the user suffer two-fold: more cost
@@ -10,20 +13,17 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Rigorous test for correct functionality during add/remove: experiment on
-//   atoms 0...99, 4000...4049, and 4051...4099.
-//   - First test: these atoms are not rewritten, the rest register as 'moved'.
-//   - Second test: these atoms are moved, the rest are either 'moved', 'added',
-//     or unchanged. Test each of the 3 cases.
-//   - Third test: these atoms are either 'moved' or unchanged. The rest are
-//     removed. Test each of the 2 cases.
-// - Archive the above testing code to a GitHub gist, along with its utilities
-//   in "Application+UpdateBVH.swift".
-// - Rigorous test for correct functionality during rebuild
-//   - Probably less complex than the previous test.
+// - Clean up the code base after the previous test.
+//   - Retain the functionality for reading buffers from the public API.
+//   - Remove the intersection of 4 custom occupied slots prior to frame 0.
+//   - Merge the two parts of updateBVH back into a single command buffer.
+// - Test for correct functionality during rebuild.
+//   - Less complex than the previous test; quite easy and quick.
 //   - Out of scope for the previous test, does not need to be cross-coupled
 //     with the various possibilities for behavior during add/remove.
 //   - Will still rely on the same silicon carbide lattice as the previous test.
+// - Archive the above testing code to a GitHub gist, along with its utilities
+//   in "Application+UpdateBVH.swift".
 
 // Helpful facts about the test setup:
 // atom count: 8631
