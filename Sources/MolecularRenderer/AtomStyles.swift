@@ -1,7 +1,5 @@
-// TODO: Remove public modifier after debugging.
-public struct AtomStyles {
-  // TODO: Remove public modifier after debugging.
-  public static var colors: [SIMD3<Float>] {
+struct AtomStyles {
+  static var colors: [SIMD3<Float>] {
     // Neutronium to argon: copied verbatim from NanoEngineer.
     //
     // The noble gases (Z=2, Z=10, Z=18, Z=36) and transition metals (Z=21-30)
@@ -79,8 +77,7 @@ public struct AtomStyles {
     return colors
   }
   
-  // TODO: Remove public modifier after debugging.
-  public static var radii: [Float] {
+  static var radii: [Float] {
     // Neutronium to argon: copied verbatim from NanoEngineer.
     //
     // Overwrote everything larger than 2.5 Å. This is because the kernel
