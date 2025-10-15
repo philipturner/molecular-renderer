@@ -301,45 +301,43 @@ for frameID in 0...4 {
       case add
     }
     
-    // TODO: Add a frame of delay to keep certain atoms persistent.
     var transactionType: TransactionType?
     if isSelected1 {
       if frameID == 0 {
         transactionType = .add
       } else if frameID == 1 {
-        transactionType = .move
-      } else {
+        
+      } else if frameID == 2 {
         transactionType = .remove
       }
     } else if isSelected2 {
       if frameID == 1 {
         transactionType = .add
       } else if frameID == 2 {
-        transactionType = .move
-      } else {
+        
+      } else if frameID == 3 {
         transactionType = .remove
       }
     } else if isSelected3 {
       if frameID == 2 {
         transactionType = .add
       } else if frameID == 3 {
-        transactionType = .move
-      } else {
+        
+      } else if frameID == 4 {
         transactionType = .remove
       }
     }
-    guard let transactionType else {
-      fatalError("Could not get transaction type.")
-    }
     
-    switch transactionType {
-    case .remove:
-      application.atoms[atomID] = nil
-    case .move:
-      // TODO: Add SIMD3<Float>(1, 1, 1) and see what the effects are.
-      application.atoms[atomID] = atom
-    case .add:
-      application.atoms[atomID] = atom
+    if let transactionType {
+      switch transactionType {
+      case .remove:
+        application.atoms[atomID] = nil
+      case .move:
+        // TODO: Add SIMD3<Float>(1, 1, 1) and see what the effects are.
+        fatalError("Not implemented.")
+      case .add:
+        application.atoms[atomID] = atom
+      }
     }
   }
   
