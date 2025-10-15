@@ -202,9 +202,9 @@ func inspectMemorySlots() {
     }
     summary[referenceCount] += 1
     
-    if referenceCount == 8 {
-      print(pad(atomID))
-    }
+//    if referenceCount == 8 {
+//      print(pad(atomID))
+//    }
   }
   
   print()
@@ -237,12 +237,12 @@ for frameID in 0...1 {
     // Then, test a scenario with removed, moved and added simultaneously.
     if frameID == 0 {
       if isSelected {
-//        let atom = lattice.atoms[atomID]
-//        application.atoms[atomID] = atom
+        let atom = lattice.atoms[atomID]
+        application.atoms[atomID] = atom
       }
     } else if frameID == 1 {
       if isSelected {
-//        application.atoms[atomID] = nil
+        application.atoms[atomID] = nil
       }
       if !isSelected {
         let atom = lattice.atoms[atomID]
