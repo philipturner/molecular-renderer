@@ -14,7 +14,7 @@ class CounterResources {
   
   #if os(Windows)
   let queryHeap: SwiftCOM.ID3D12QueryHeap
-  let queryDestinationBuffer: Buffer
+  var queryDestinationBuffers: [Buffer] = []
   #endif
   
   init(descriptor: CounterResourcesDescriptor) {
@@ -35,8 +35,11 @@ class CounterResources {
     
     #if os(Windows)
     self.queryHeap = Self.createQueryHeap(device: device)
-    self.queryDestinationBuffer = Self
-      .createQueryDestinationBuffer(device: device)
+    for _ in 0..<3 {
+      let buffer = Self
+        .createQueryDestinationBuffer(device: device)
+      queryDestinationBuffers.append(buffer)
+    }
     #endif
   }
   

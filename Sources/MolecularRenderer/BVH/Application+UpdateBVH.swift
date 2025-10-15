@@ -1,3 +1,9 @@
+// For profiling with D3D12 timestamp queries.
+#if os(Windows)
+import SwiftCOM
+import WinSDK
+#endif
+
 extension Application {
   // TODO: Before finishing the acceleration structure PR, remove the public
   // modifier for this.
@@ -41,6 +47,13 @@ extension Application {
       commandList.setDescriptorHeap(descriptorHeap)
       #endif
       
+      #if os(Windows)
+      try! commandList.d3d12CommandList.EndQuery(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        0)
+      #endif
+      
       bvhBuilder.purgeResources(
         commandList: commandList)
       bvhBuilder.setupGeneralCounters(
@@ -80,6 +93,23 @@ extension Application {
       bvhBuilder.counters.crashBuffer.download(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+      
+      #if os(Windows)
+      try! commandList.d3d12CommandList.EndQuery(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        1)
+      
+      let destinationBuffer = bvhBuilder.counters
+        .queryDestinationBuffers[inFlightFrameID]
+      try! commandList.d3d12CommandList.ResolveQueryData(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        0,
+        2,
+        destinationBuffer.d3d12Resource,
+        0)
+      #endif
     }
   }
   
