@@ -136,10 +136,6 @@ extension RebuildProcess {
       listAddress += \(MemorySlot.offset(.referenceLarge) / 4);
       uint atomCount = memorySlots32[headerAddress];
       
-      // Better memory locality in the Z axis for ray tracing.
-      uint threadgroupBase = localID / 64;
-      uint threadgroupIndex = localID % 64;
-      
       \(Shader.unroll)
       for (uint i = 0; i < 4; ++i) {
         uint address = \(threadgroupAddress("i"));

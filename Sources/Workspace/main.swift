@@ -93,6 +93,14 @@ application.run {
 }
 #else
 
+func pad<T: BinaryInteger>(_ integer: T) -> String {
+  var output = "\(integer)"
+  while output.count < 4 {
+    output = " " + output
+  }
+  return output
+}
+
 @MainActor
 func analyzeGeneralCounters() {
   let output = application.downloadGeneralCounters()
@@ -116,14 +124,6 @@ func inspectAtomsRemovedVoxels() {
   let voxelCoords = application.downloadAtomsRemovedVoxelCoords()
   
   for i in voxelCoords.indices {
-    func pad(_ integer: Int) -> String {
-      var output = "\(integer)"
-      while output.count < 3 {
-        output = " " + output
-      }
-      return output
-    }
-    
     let encoded = voxelCoords[i]
     guard encoded != UInt32.max else {
       continue
@@ -144,14 +144,6 @@ func inspectRebuiltVoxels() {
   let voxelCoords = application.downloadRebuiltVoxelCoords()
   
   for i in voxelCoords.indices {
-    func pad(_ integer: Int) -> String {
-      var output = "\(integer)"
-      while output.count < 3 {
-        output = " " + output
-      }
-      return output
-    }
-    
     let encoded = voxelCoords[i]
     guard encoded != UInt32.max else {
       continue
@@ -179,17 +171,9 @@ func inspectMemorySlots() {
       continue
     }
     
-    func pad(_ integer: UInt32) -> String {
-      var output = "\(integer)"
-      while output.count < 4 {
-        output = " " + output
-      }
-      return output
-    }
-    
     let headerAddress = Int(assignedSlotID) * 55304 / 4
     let atomCount = memorySlots[headerAddress]
-    print(i, assignedSlotID, pad(atomCount), terminator: " ")
+    print(pad(i), pad(assignedSlotID), pad(atomCount), terminator: " ")
     
     let listAddress = headerAddress + 2056 / 4
     for j in 0..<Int(atomCount) {
@@ -217,14 +201,6 @@ func inspectMemorySlots() {
   
   print()
   for referenceCount in summary.indices {
-    func pad(_ integer: Int) -> String {
-      var output = "\(integer)"
-      while output.count < 4 {
-        output = " " + output
-      }
-      return output
-    }
-    
     let atomCount = summary[referenceCount]
     print("\(pad(referenceCount)): \(pad(atomCount))")
   }
