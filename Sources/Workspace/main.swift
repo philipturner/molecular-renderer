@@ -15,17 +15,6 @@ import MolecularRenderer
 // Current task:
 // - Take a first pass at the rotating rod benchmark.
 
-// Helpful facts about the test setup:
-// atom count: 8631
-// memory slot count: 3616
-// memory slot size: 55304 B
-//   .headerLarge = 0 B
-//   .headerSmall = 8 B
-//   .referenceLarge = 2056 B
-//   .referenceSmall = 14344 B
-// voxel group count: 64
-// voxel count: 4096
-
 @MainActor
 func createApplication() -> Application {
   // Set up the device.
@@ -48,65 +37,62 @@ func createApplication() -> Application {
   
   applicationDesc.addressSpaceSize = 2_000_000
   applicationDesc.voxelAllocationSize = 200_000_000
-  applicationDesc.worldDimension = 32
+  applicationDesc.worldDimension = 192
   let application = Application(descriptor: applicationDesc)
   
   return application
 }
 let application = createApplication()
 
-let lattice = Lattice<Cubic> { h, k, l in
-  Bounds { 10 * (h + k + l) }
-  Material { .checkerboard(.silicon, .carbon) }
-}
 
-#if false
-application.run {
-  for atomID in lattice.atoms.indices {
-    let atom = lattice.atoms[atomID]
-    application.atoms[atomID] = atom
-  }
-  
-  let image = application.render()
-  application.present(image: image)
-}
-#else
 
-@MainActor
-func analyzeGeneralCounters() {
-  let output = application.downloadGeneralCounters()
-  
-  print("atoms removed voxel count:", output[0])
-  guard output[1] == 1,
-        output[2] == 1 else {
-    fatalError("Indirect dispatch arguments were malformatted.")
-  }
-  print("vacant slot count:", output[4])
-  print("allocated slot count:", output[5])
-  print("rebuilt voxel count:", output[6])
-  guard output[7] == 1,
-        output[8] == 1 else {
-    fatalError("Indirect dispatch arguments were malformatted.")
-  }
-}
-
-for frameID in 0..<6 {
-  for atomID in lattice.atoms.indices {
-    let atom = lattice.atoms[atomID]
-    application.atoms[atomID] = atom
-  }
-  
-  application.checkCrashBuffer()
-  application.updateBVH(inFlightFrameID: frameID % 3)
-  application.forgetIdleState(inFlightFrameID: frameID % 3)
-  
-  print()
-  print("===============")
-  print("=== frame \(frameID) ===")
-  print("===============")
-  
-  print()
-  analyzeGeneralCounters()
-}
-
-#endif
+//#if true
+//application.run {
+//  for atomID in lattice.atoms.indices {
+//    let atom = lattice.atoms[atomID]
+//    application.atoms[atomID] = atom
+//  }
+//  
+//  let image = application.render()
+//  application.present(image: image)
+//}
+//#else
+//
+//@MainActor
+//func analyzeGeneralCounters() {
+//  let output = application.downloadGeneralCounters()
+//  
+//  print("atoms removed voxel count:", output[0])
+//  guard output[1] == 1,
+//        output[2] == 1 else {
+//    fatalError("Indirect dispatch arguments were malformatted.")
+//  }
+//  print("vacant slot count:", output[4])
+//  print("allocated slot count:", output[5])
+//  print("rebuilt voxel count:", output[6])
+//  guard output[7] == 1,
+//        output[8] == 1 else {
+//    fatalError("Indirect dispatch arguments were malformatted.")
+//  }
+//}
+//
+//for frameID in 0..<6 {
+//  for atomID in lattice.atoms.indices {
+//    let atom = lattice.atoms[atomID]
+//    application.atoms[atomID] = atom
+//  }
+//  
+//  application.checkCrashBuffer()
+//  application.updateBVH(inFlightFrameID: frameID % 3)
+//  application.forgetIdleState(inFlightFrameID: frameID % 3)
+//  
+//  print()
+//  print("===============")
+//  print("=== frame \(frameID) ===")
+//  print("===============")
+//  
+//  print()
+//  analyzeGeneralCounters()
+//}
+//
+//#endif
