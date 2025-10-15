@@ -278,24 +278,24 @@ func analyzeGeneralCounters() {
   }
 }
 
-for frameID in 0..<1 {
+for frameID in 0..<4 {
   print()
   print("===============")
   print("=== frame \(frameID) ===")
   print("===============")
   
-//  let rotatedBeam = createRotatedBeam(frameID: frameID)
-//  for atomID in cross.atoms.indices {
-//    let atom = cross.atoms[atomID]
-//    application.atoms[atomID] = atom
-//  }
-//  for atomID in rotatedBeam.atoms.indices {
-//    let atom = rotatedBeam.atoms[atomID]
-//    let offset = cross.atoms.count
-//    application.atoms[offset + atomID] = atom
-//  }
+  let rotatedBeam = beam
+  for atomID in cross.atoms.indices {
+    let atom = cross.atoms[atomID]
+    application.atoms[atomID] = atom
+  }
+  for atomID in rotatedBeam.atoms.indices {
+    let atom = rotatedBeam.atoms[atomID]
+    let offset = cross.atoms.count
+    application.atoms[offset + atomID] = atom
+  }
   
-  application.checkCrashBuffer(frameID: frameID + 3)
+  application.checkCrashBuffer(frameID: frameID)
   application.updateBVH(inFlightFrameID: frameID % 3)
   application.forgetIdleState(inFlightFrameID: frameID % 3)
   

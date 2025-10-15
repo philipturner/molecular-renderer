@@ -88,6 +88,16 @@ TODO: Implement and document the heuristic.
 - Validate the process for normalizing for FOV.
 - Implement everything in a Google Sheet and hyperlink the results in this document.
 
+Realization about the API: user should specify the critical distance, as the distance where AO sample count starts dropping from "good enough for general purposes" to eventually 3, on a reciprocal curve. We provide studies, and recommended code for how it should vary with parameters like FOV. It is an opt-in option, given the complexity and number of variables involved. It should be part of the camera because it depends on FOV.
+
+`camera.criticalDistance: Float?`
+
+When shipping the PR, the default is `nil`. In the future, when the relationship between the variables has been ironed out, the framework will set a default value?
+
+No; it should at least be decoupled and normalized for FOV. Then, on startup, the descriptor may have a default value normalized for vertical FOV and vertical pixel count, also vertical resolution. Does upscale factor play a role? Perhaps it does, but we still normalize by final rendered image size. We cannot have a default value if it depends on the upscale factor.
+
+This seems like being lazy and not wanting to actually investigate the variables that contribute to critical distance. Then, there is no need for AO sample count or critical distance to be messed with in the public API. Just take the time to implement it as part of the current PR, when the time comes.
+
 ## MetalFX Latency Issues
 
 On macOS, there is a problem with the MetalFX framework that may lead to massive program startup times. These appear as if Swift switched from `-Xswiftc -Ounchecked` to true release mode, making the user wait up to 10 seconds to compile after the tiniest change to the code.
