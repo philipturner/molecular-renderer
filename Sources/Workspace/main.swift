@@ -98,6 +98,20 @@ func createCross() -> Topology {
   var topology = reconstruction.compile()
   passivate(topology: &topology)
   
+  for atomID in topology.atoms.indices {
+    var atom = topology.atoms[atomID]
+    
+    // This offset captures just one Si and one C for each unit cell on the
+    // (001) surface. By capture, I mean that atom.position.z > 0.
+    atom.position += SIMD3(0, 0, -0.800)
+    
+    // Shift the origin to allow larger beam depth, with fixed world dimension.
+    atom.position.z -= worldDimension / 2
+    atom.position.z += 8
+    
+    topology.atoms[atomID] = atom
+  }
+  
   return topology
 }
 
@@ -126,20 +140,29 @@ func analyze(topology: Topology) {
   do {
     var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
     var maximum = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
+    var counter: Int = .zero
     for atom in topology.atoms {
       let position = atom.position
-      minimum.replace(with: position, where: position .< minimum)
-      maximum.replace(with: position, where: position .> maximum)
+      if atom.element != .hydrogen {
+        minimum.replace(with: position, where: position .< minimum)
+        maximum.replace(with: position, where: position .> maximum)
+        
+      }
+      
+      if position.z > -worldDimension / 2 + 8 {
+        counter += 1
+      }
     }
-    print("minimum:", minimum - 0.853 / 10)
-    print("maximum:", maximum + 0.853 / 10)
+    print("minimum:", minimum)
+    print("maximum:", maximum)
+    print(counter)
   }
 }
 
 let cross = createCross()
 let beam = createBeam()
 analyze(topology: cross)
-analyze(topology: beam)
+//analyze(topology: beam)
 
 // MARK: - Launch Application
 
