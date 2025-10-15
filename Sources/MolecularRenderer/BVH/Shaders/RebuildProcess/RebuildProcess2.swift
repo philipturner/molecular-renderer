@@ -231,6 +231,7 @@ extension RebuildProcess {
         float4 atom = atoms[atomID];
         \(computeLoopBounds())
         
+        #if 1
         // Iterate over the footprint on the 3D grid.
         \(Shader.loop)
         for (float z = 0; z < 3; ++z) {
@@ -253,6 +254,23 @@ extension RebuildProcess {
             }
           }
         }
+        #else
+        
+        // Iterate over the footprint on the 3D grid.
+        for (float z = boxMin[2]; z < boxMax[2]; ++z) {
+          for (float y = boxMin[1]; y < boxMax[1]; ++y) {
+            for (float x = boxMin[0]; x < boxMax[0]; ++x) {
+              float3 xyz = float3(x, y, z);
+              float address = \(VoxelResources.generate("xyz", 8));
+              
+              uint offset;
+              \(atomicFetchAdd())
+              
+              memorySlots16[listAddress16 + offset] = \(castUShort("i"));
+            }
+          }
+        }
+        #endif
       }
       \(Reduction.groupLocalBarrier())
       
