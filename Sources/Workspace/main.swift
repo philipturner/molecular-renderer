@@ -301,6 +301,7 @@ for frameID in 0...4 {
       case add
     }
     
+    // TODO: Add a frame of delay to keep certain atoms persistent.
     var transactionType: TransactionType?
     if isSelected1 {
       if frameID == 0 {
@@ -329,6 +330,16 @@ for frameID in 0...4 {
     }
     guard let transactionType else {
       fatalError("Could not get transaction type.")
+    }
+    
+    switch transactionType {
+    case .remove:
+      application.atoms[atomID] = nil
+    case .move:
+      // TODO: Add SIMD3<Float>(1, 1, 1) and see what the effects are.
+      application.atoms[atomID] = atom
+    case .add:
+      application.atoms[atomID] = atom
     }
   }
   
