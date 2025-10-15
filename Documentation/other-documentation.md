@@ -97,7 +97,7 @@ struct Camera {
   ///
   /// Defaults to 15. Change to `nil` to disable ambient occlusion.
   ///
-  /// In the future, the default vary based on the refresh rate for the
+  /// In the future, the default may vary based on the refresh rate for the
   /// display, when in real-time rendering mode. It is not likely, but we must
   /// anticipate the possibility.
   var secondaryRayCount: Int?
