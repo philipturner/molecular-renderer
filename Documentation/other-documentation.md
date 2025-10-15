@@ -78,7 +78,7 @@ The most computationally intensive part of rendering is estimating the degree of
 
 A default of 7 or 15 secondary rays results in sufficient quality for any general use case. However, in cases prone to high divergence (non-uniform control flow, disorder or random memory access patterns), GPU performance may degrade so much that the FPS target cannot be reached. Divergence happens more often in regions far away from the camera. At large distances, each atom appears smaller, which (long story short) means higher divergence.
 
-### Critical Distance Heuristic
+### Critical Pixel Count Heuristic
 
 A highly tuned heuristic reduces the number of secondary rays, at a certain distance from the user. This particular case can afford lower rendering quality anyway.
 
@@ -88,15 +88,9 @@ TODO: Implement and document the heuristic.
 - Validate the process for normalizing for FOV.
 - Implement everything in a Google Sheet and hyperlink the results in this document.
 
-Realization about the API: user should specify the critical distance, as the distance where AO sample count starts dropping from "good enough for general purposes" to eventually 3, on a reciprocal curve. We provide studies, and recommended code for how it should vary with parameters like FOV. It is an opt-in option, given the complexity and number of variables involved. It should be part of the camera because it depends on FOV.
+Realization: test this by rendering an `.elemental` material, seeing how a single atom looks when it gets very small. Go by the need for AO quality in the intermediate texture, prior to upscaling. Therefore, 3x upscale factor tends to _reduce_ the AO sample count with the critical distance heuristic. 1x upscale is rendered at many more pixels, thus AO sample count is higher. We can use data gathered at 1x upscale, and it will generalize to 3x upscale without quality degradation. Problem solved! Go by quality in the final texture.
 
-`camera.criticalDistance: Float?`
-
-When shipping the PR, the default is `nil`. In the future, when the relationship between the variables has been ironed out, the framework will set a default value?
-
-No; it should at least be decoupled and normalized for FOV. Then, on startup, the descriptor may have a default value normalized for vertical FOV and vertical pixel count, also vertical resolution. Does upscale factor play a role? Perhaps it does, but we still normalize by final rendered image size. We cannot have a default value if it depends on the upscale factor.
-
-This seems like being lazy and not wanting to actually investigate the variables that contribute to critical distance. Then, there is no need for AO sample count or critical distance to be messed with in the public API. Just take the time to implement it as part of the current PR, when the time comes.
+Project the atom's radius onto the screen. Figure out how many pixels it spans after upscaling. Use that calculated pixel count as input for the heuristic. Different elements will have different pixel counts because their atoms are larger.
 
 ## MetalFX Latency Issues
 

@@ -278,17 +278,18 @@ func analyzeGeneralCounters() {
   }
 }
 
-for frameID in 0..<4 {
+for atomID in cross.atoms.indices {
+  let atom = cross.atoms[atomID]
+  application.atoms[atomID] = atom
+}
+
+for frameID in 0..<6 {
   print()
   print("===============")
   print("=== frame \(frameID) ===")
   print("===============")
   
   let rotatedBeam = beam
-  for atomID in cross.atoms.indices {
-    let atom = cross.atoms[atomID]
-    application.atoms[atomID] = atom
-  }
   for atomID in rotatedBeam.atoms.indices {
     let atom = rotatedBeam.atoms[atomID]
     let offset = cross.atoms.count
