@@ -142,8 +142,13 @@ class CrashBuffer {
 //    }
 //    #endif
     
+    print(data.count)
     data.withUnsafeMutableBytes { bufferPointer in
+      print(bufferPointer.count)
+      print(bufferPointer.baseAddress)
       let buffer = outputBuffers[inFlightFrameID]
+      print(buffer)
+      
       buffer.read(output: bufferPointer)
     }
   }

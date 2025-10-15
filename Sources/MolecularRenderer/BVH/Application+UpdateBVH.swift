@@ -2,6 +2,8 @@ extension Application {
   // TODO: Before finishing the acceleration structure PR, remove the public
   // modifier for this.
   public func checkCrashBuffer() {
+    device.commandQueue.flush()
+    
     let elementCount = CounterResources.crashBufferSize / 4
     var output = [UInt32](repeating: .zero, count: elementCount)
     bvhBuilder.counters.crashBuffer.read(

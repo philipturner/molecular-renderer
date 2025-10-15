@@ -255,11 +255,6 @@ let application = createApplication()
 
 #if false
 application.run {
-  for atomID in lattice.atoms.indices {
-    let atom = lattice.atoms[atomID]
-    application.atoms[atomID] = atom
-  }
-  
   let image = application.render()
   application.present(image: image)
 }
