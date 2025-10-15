@@ -192,7 +192,6 @@ func inspectMemorySlots() {
     print()
   }
   
-  print()
   var summary = [Int](repeating: .zero, count: 17)
   for atomID in atomDuplicatedReferences.indices {
     let referenceCount = atomDuplicatedReferences[atomID]
@@ -211,7 +210,7 @@ func inspectMemorySlots() {
   print("total reference count: \(atomDuplicatedReferences.reduce(0, +))")
 }
 
-for frameID in 0...2 {
+for frameID in 0...1 {
   for atomID in lattice.atoms.indices {
     var isSelected = false
     if atomID >= 0 && atomID <= 99 {
@@ -228,19 +227,17 @@ for frameID in 0...2 {
     // Then, test a scenario with removed, moved and added simultaneously.
     if frameID == 0 {
       if !isSelected {
-//        let atom = lattice.atoms[atomID]
-//        application.atoms[atomID] = atom
+        let atom = lattice.atoms[atomID]
+        application.atoms[atomID] = atom
       }
     } else if frameID == 1 {
       if !isSelected {
-//        application.atoms[atomID] = nil
+        application.atoms[atomID] = nil
       }
       if isSelected {
         let atom = lattice.atoms[atomID]
         application.atoms[atomID] = atom
       }
-    } else {
-      
     }
   }
   
@@ -249,16 +246,16 @@ for frameID in 0...2 {
   print()
   analyzeGeneralCounters()
   print()
-  inspectAtomsRemovedVoxels()
-//  inspectMemorySlots()
+//  inspectAtomsRemovedVoxels()
+  inspectMemorySlots()
   
   application.updateBVH2(inFlightFrameID: frameID)
   
   print()
   analyzeGeneralCounters()
   print()
-  inspectRebuiltVoxels()
-//  inspectMemorySlots()
+//  inspectRebuiltVoxels()
+  inspectMemorySlots()
   
   application.forgetIdleState(inFlightFrameID: frameID)
 }
