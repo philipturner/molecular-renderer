@@ -56,8 +56,30 @@ func passivate(topology: inout Topology) {
 
 func createCross() -> Topology {
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 10 * h + 10 * k + 5 * l }
+    Bounds { 100 * h + 100 * k + 5 * l }
     Material { .checkerboard(.silicon, .carbon) }
+    
+    for isPositiveX in [false, true] {
+      for isPositiveY in [false, true] {
+        let center = 50 * h + 50 * k
+        let deltaX = Float(isPositiveX ? 5 : -5) * h
+        let deltaY = Float(isPositiveY ? 5 : -5) * k
+        
+        Volume {
+          Concave {
+            Convex {
+              Origin { center + deltaX }
+              Plane { isPositiveX ? h : -h }
+            }
+            Convex {
+              Origin { center + deltaY }
+              Plane { isPositiveY ? k : -k }
+            }
+          }
+          Replace { .empty }
+        }
+      }
+    }
   }
   
   var reconstruction = Reconstruction()
@@ -69,20 +91,24 @@ func createCross() -> Topology {
   return topology
 }
 
-let cross = createCross()
-print()
-print("atom count:", cross.atoms.count)
-do {
-  var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
-  var maximum = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
-  for atom in cross.atoms {
-    let position = atom.position
-    minimum.replace(with: position, where: position .< minimum)
-    maximum.replace(with: position, where: position .> maximum)
+func analyze(topology: Topology) {
+  print()
+  print("atom count:", topology.atoms.count)
+  do {
+    var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
+    var maximum = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
+    for atom in topology.atoms {
+      let position = atom.position
+      minimum.replace(with: position, where: position .< minimum)
+      maximum.replace(with: position, where: position .> maximum)
+    }
+    print("minimum:", minimum - 0.853 / 10)
+    print("maximum:", maximum + 0.853 / 10)
   }
-  print("minimum:", minimum - 0.853 / 10)
-  print("maximum:", maximum + 0.853 / 10)
 }
+
+let cross = createCross()
+analyze(topology: cross)
 
 // MARK: - Launch Application
 
