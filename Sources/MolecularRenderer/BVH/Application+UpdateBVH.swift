@@ -32,6 +32,14 @@ extension Application {
     }
   }
   
+  // Only implemented on Windows at the moment. Metal should use an asynchronous
+  // command buffer handler indexing into an array with atomics or serial
+  // queues. Or we could make do with times appearing randomly in the console
+  // output. Just suppress all output when porting the benchmark to macOS.
+  public func checkExecutionTime(frameID: Int) {
+    
+  }
+  
   // TODO: Before finishing the acceleration structure PR, remove the public
   // modifier for this.
   public func updateBVH(inFlightFrameID: Int) {
