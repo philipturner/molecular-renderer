@@ -38,7 +38,7 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 | Upscale factor        | Make this as high as possible without graphical quality issues |
 | Atom count            | $O(1)$ with an acceleration structure, otherwise $O(n)$ |
 | AO sample count       | Number of rays cast/pixel = (1 + AO sample count). Primary ray will be more expensive than AO rays because it must travel extremely large distances through the uniform grid. |
-| Coverage of FOV       | Images with mostly empty space will not incur the cost of AO rays. This makes it look like the renderer supports larger atom counts than it actually does, in general applications. |
+| Coverage of FOV       | Images with mostly empty space will not incur the cost of AO rays. This makes it look like the renderer supports more expensive settings than it actually does, in general applications. |
 
 GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count (atoms that are moving, not atom count of the entire scene). The above performance model assumes a static scene, where the cost of updating the acceleration structure is zero.
 
@@ -96,6 +96,10 @@ struct Camera {
   /// The number of AO rays for ambient occlusion. Must be at least 3.
   ///
   /// Defaults to 15. Change to `nil` to disable ambient occlusion.
+  ///
+  /// In the future, the default vary based on the refresh rate for the
+  /// display, when in real-time rendering mode. It is not likely, but we must
+  /// anticipate the possibility.
   var secondaryRayCount: Int?
   
   /// The number of pixels an atom spans on-screen, before the secondary ray
