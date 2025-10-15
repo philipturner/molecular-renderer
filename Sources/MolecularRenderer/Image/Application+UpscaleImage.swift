@@ -42,32 +42,6 @@ private func createFFXResource(
   output.resource = createID3D12Resource()
   output.state = UInt32(FFX_API_RESOURCE_STATE_UNORDERED_ACCESS.rawValue)
   
-  // /// A structure describing a resource.
-  // ///
-  // /// @ingroup SDKTypes
-  // struct FfxApiResourceDescription
-  // {
-  //     uint32_t     type;      ///< The type of the resource.
-  //     uint32_t     format;    ///< The surface format.
-  //     union {
-  //         uint32_t width;     ///< The width of the texture resource.
-  //         uint32_t size;      ///< The size of the buffer resource.
-  //     };
-
-  //     union {
-  //         uint32_t height;    ///< The height of the texture resource.
-  //         uint32_t stride;    ///< The stride of the buffer resource.
-  //     };
-
-  //     union {
-  //         uint32_t depth;     ///< The depth of the texture resource.
-  //         uint32_t alignment; ///< The alignment of the buffer resource.
-  //     };
-
-  //     uint32_t     mipCount;  ///< Number of mips (or 0 for full mipchain).
-  //     uint32_t     flags;     ///< A set of resource flags.
-  //     uint32_t     usage;     ///< Resource usage flags.
-  // };
   let desc = try! d3d12Resource.GetDesc()
   output.description.flags = UInt32(
     FFX_API_RESOURCE_FLAGS_NONE.rawValue)
@@ -124,6 +98,9 @@ private func createFFXDimensions(
 #endif
 
 extension Application {
+  // TODO: Migrate fallbackUpscale and UpscaleShader to a GitHub gist, remove
+  // them from the code base.
+  
   // Fallback for debugging if the upscaler goes wrong, or for easily
   // visualizing the 3 inputs to the upscaler.
   private func fallbackUpscale() {

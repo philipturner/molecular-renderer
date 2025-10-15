@@ -1,12 +1,7 @@
 extension Application {
-  // Will eventually remove the public modifier and automatically invoke this
-  // inside 'application.render()'.
+  // TODO: Before finishing the acceleration structure PR, remove the public
+  // modifier for this.
   public func updateBVH(inFlightFrameID: Int) {
-    updateBVH1(inFlightFrameID: inFlightFrameID)
-    updateBVH2(inFlightFrameID: inFlightFrameID)
-  }
-  
-  public func updateBVH1(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
     
     device.commandQueue.withCommandList { commandList in
@@ -39,16 +34,6 @@ extension Application {
       bvhBuilder.addProcess1(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
-    }
-  }
-  
-  public func updateBVH2(inFlightFrameID: Int) {
-    device.commandQueue.withCommandList { commandList in
-      // Bind the descriptor heap.
-      #if os(Windows)
-      commandList.setDescriptorHeap(descriptorHeap)
-      #endif
-      
       bvhBuilder.addProcess2(
         commandList: commandList)
       bvhBuilder.addProcess3(
@@ -67,7 +52,8 @@ extension Application {
     }
   }
   
-  // Invoke this during 'application.render()', at the very end.
+  // TODO: Before finishing the acceleration structure PR, remove the public
+  // modifier for this.
   public func forgetIdleState(inFlightFrameID: Int) {
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
@@ -91,48 +77,14 @@ extension Application {
   }
 }
 
+// TODO: Before finishing the acceleration structure PR, remove these debugging
+// utilities from the code base.
 extension Application {
   // Circumvent a flaky crash by holding a reference to the buffer while the
   // command list executes. Do not abuse this by calling any of the 'Debug'
   // functions more than once in a single program execution.
   nonisolated(unsafe)
-  private static var uploadBuffers: [Buffer] = []
-  nonisolated(unsafe)
   private static var downloadBuffers: [Buffer] = []
-  
-  public func uploadAssignedVoxelCoords(
-    _ inputData: [UInt32]
-  ) {
-    func copyDestinationBuffer() -> Buffer {
-      bvhBuilder.voxels.sparse.assignedVoxelCoords
-    }
-    
-    #if os(macOS)
-    let inputBuffer = copyDestinationBuffer()
-    #else
-    let nativeBuffer = copyDestinationBuffer()
-    
-    var bufferDesc = BufferDescriptor()
-    bufferDesc.device = device
-    bufferDesc.size = nativeBuffer.size
-    bufferDesc.type = .input
-    let inputBuffer = Buffer(descriptor: bufferDesc)
-    #endif
-    Self.uploadBuffers.append(inputBuffer)
-    
-    device.commandQueue.flush()
-    inputData.withUnsafeBytes { bufferPointer in
-      inputBuffer.write(input: bufferPointer)
-    }
-    
-    #if os(Windows)
-    device.commandQueue.withCommandList { commandList in
-      commandList.upload(
-        inputBuffer: inputBuffer,
-        nativeBuffer: nativeBuffer)
-    }
-    #endif
-  }
   
   public func downloadGeneralCounters() -> [UInt32] {
     func copySourceBuffer() -> Buffer {
@@ -140,17 +92,6 @@ extension Application {
     }
     
     var output = [UInt32](repeating: .zero, count: 10)
-    downloadDebugOutput(
-      &output, copySourceBuffer: copySourceBuffer())
-    return output
-  }
-  
-  public func downloadAtomicCounters() -> [SIMD8<UInt32>] {
-    func copySourceBuffer() -> Buffer {
-      bvhBuilder.voxels.dense.atomicCounters
-    }
-    
-    var output = [SIMD8<UInt32>](repeating: .zero, count: 4096)
     downloadDebugOutput(
       &output, copySourceBuffer: copySourceBuffer())
     return output
@@ -175,19 +116,6 @@ extension Application {
     var arraySize = bvhBuilder.voxels.memorySlotCount
     arraySize *= MemorySlot.totalSize
     arraySize /= 4
-    
-    var output = [UInt32](repeating: .zero, count: arraySize)
-    downloadDebugOutput(
-      &output, copySourceBuffer: copySourceBuffer())
-    return output
-  }
-  
-  public func downloadAtomsRemovedVoxelCoords() -> [UInt32] {
-    func copySourceBuffer() -> Buffer {
-      bvhBuilder.voxels.sparse.atomsRemovedVoxelCoords
-    }
-    
-    let arraySize = bvhBuilder.voxels.memorySlotCount
     
     var output = [UInt32](repeating: .zero, count: arraySize)
     downloadDebugOutput(

@@ -70,17 +70,6 @@ let lattice = Lattice<Cubic> { h, k, l in
   Material { .checkerboard(.silicon, .carbon) }
 }
 
-@MainActor
-func uploadDebugInput() {
-  var input = [UInt32](repeating: UInt32.max, count: 3616)
-  input[5] = 0
-  input[120] = 1
-  input[121] = 2
-  input[184] = 3
-  application.uploadAssignedVoxelCoords(input)
-}
-uploadDebugInput()
-
 #if false
 application.run {
   for atomID in lattice.atoms.indices {
@@ -116,26 +105,6 @@ func analyzeGeneralCounters() {
   guard output[7] == 1,
         output[8] == 1 else {
     fatalError("Indirect dispatch arguments were malformatted.")
-  }
-}
-
-@MainActor
-func inspectAtomsRemovedVoxels() {
-  let voxelCoords = application.downloadAtomsRemovedVoxelCoords()
-  
-  for i in voxelCoords.indices {
-    let encoded = voxelCoords[i]
-    guard encoded != UInt32.max else {
-      continue
-    }
-    
-    let decoded = SIMD3<UInt32>(
-      encoded & 1023,
-      (encoded >> 10) & 1023,
-      encoded >> 20
-    )
-    let lowerCorner = SIMD3<Float>(decoded) * 2 - (Float(32) / 2)
-    print(pad(i), lowerCorner)
   }
 }
 
@@ -210,145 +179,13 @@ func inspectMemorySlots() {
   print("total reference count: \(atomDuplicatedReferences.reduce(0, +))")
 }
 
-for frameID in 0...5 {
+for frameID in 0...0 {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
-    
-    // voxels spanned: 24
-    //
-    //    0: 8432
-    //    1:   63
-    //    2:   97
-    //    3:    0
-    //    4:   35
-    //    5:    0
-    //    6:    0
-    //    7:    0
-    //    8:    4
-    //    9:    0
-    //   10:    0
-    //   11:    0
-    //   12:    0
-    //   13:    0
-    //   14:    0
-    //   15:    0
-    //   16:    0
-    // total atom count: 199
-    // total reference count: 429
-    var isSelected1 = false
-    if atomID >= 0 && atomID <= 99 {
-      isSelected1 = true
-    }
-    if atomID >= 4000 && atomID <= 4049 {
-      isSelected1 = true
-    }
-    if atomID >= 4051 && atomID <= 4099 {
-      isSelected1 = true
-    }
-    
-    // voxels spanned: 14
-    //
-    //    0: 8330
-    //    1:  107
-    //    2:  147
-    //    3:    0
-    //    4:   44
-    //    5:    0
-    //    6:    0
-    //    7:    0
-    //    8:    3
-    //    9:    0
-    //   10:    0
-    //   11:    0
-    //   12:    0
-    //   13:    0
-    //   14:    0
-    //   15:    0
-    //   16:    0
-    // total atom count: 301
-    // total reference count: 601
-    var isSelected2 = false
-    if atomID >= 500 && atomID <= 800 {
-      isSelected2 = true
-    }
-    
-    // voxels spanned: 60
-    //
-    //    0:  500
-    //    1: 4743
-    //    2: 2792
-    //    3:    0
-    //    4:  557
-    //    5:    0
-    //    6:    0
-    //    7:    0
-    //    8:   39
-    //    9:    0
-    //   10:    0
-    //   11:    0
-    //   12:    0
-    //   13:    0
-    //   14:    0
-    //   15:    0
-    //   16:    0
-    // total atom count: 8131
-    // total reference count: 12867
-    let isSelected3 = !(isSelected1 || isSelected2)
-    
-    enum TransactionType {
-      case remove
-      case move
-      case add
-    }
-    
-    var transactionType: TransactionType?
-    if isSelected1 {
-      if frameID == 0 {
-        transactionType = .add
-      } else if frameID == 1 {
-        
-      } else if frameID == 2 {
-        transactionType = .move
-      } else if frameID == 3 {
-        transactionType = .remove
-      }
-    } else if isSelected2 {
-      if frameID == 1 {
-        transactionType = .add
-      } else if frameID == 2 {
-        
-      } else if frameID == 3 {
-        transactionType = .move
-      } else if frameID == 4 {
-        transactionType = .remove
-      }
-    } else if isSelected3 {
-      if frameID == 2 {
-        transactionType = .add
-      } else if frameID == 3 {
-        
-      } else if frameID == 4 {
-        transactionType = .move
-      } else if frameID == 5 {
-        transactionType = .remove
-      }
-    }
-    
-    if let transactionType {
-      switch transactionType {
-      case .remove:
-        application.atoms[atomID] = nil
-      case .move:
-        var movedAtom = atom
-        movedAtom.position += SIMD3<Float>(1, 1, 1)
-        application.atoms[atomID] = movedAtom
-      case .add:
-        application.atoms[atomID] = atom
-      }
-    }
+    application.atoms[atomID] = atom
   }
   
-  application.updateBVH1(inFlightFrameID: frameID % 3)
+  application.updateBVH(inFlightFrameID: frameID % 3)
   
   print()
   print("===============")
@@ -358,15 +195,7 @@ for frameID in 0...5 {
   print()
   analyzeGeneralCounters()
   print()
-//  inspectAtomsRemovedVoxels()
-  inspectMemorySlots()
-  
-  application.updateBVH2(inFlightFrameID: frameID % 3)
-  
-  print()
-  analyzeGeneralCounters()
-  print()
-//  inspectRebuiltVoxels()
+  inspectRebuiltVoxels()
   inspectMemorySlots()
   
   application.forgetIdleState(inFlightFrameID: frameID % 3)
