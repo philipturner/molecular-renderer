@@ -204,14 +204,14 @@ func inspectMemorySlots() {
     let atomCount = summary[referenceCount]
     print("\(pad(referenceCount)): \(pad(atomCount))")
   }
-  print("total atom count: \(summary.reduce(0, +))")
+  print("total atom count: \(summary[1...].reduce(0, +))")
   print("total reference count: \(atomDuplicatedReferences.reduce(0, +))")
 }
 
 for frameID in 0...1 {
   for atomID in lattice.atoms.indices {
     var isSelected = false
-    if atomID >= 0 && atomID <= 99 {
+    if atomID >= 0 && atomID <= 3999 {
       isSelected = true
     }
     if atomID >= 4000 && atomID <= 4049 {
