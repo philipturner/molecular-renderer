@@ -210,7 +210,7 @@ func inspectMemorySlots() {
   print("total reference count: \(atomDuplicatedReferences.reduce(0, +))")
 }
 
-for frameID in 0...4 {
+for frameID in 0...5 {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
     
@@ -308,6 +308,8 @@ for frameID in 0...4 {
       } else if frameID == 1 {
         
       } else if frameID == 2 {
+        transactionType = .move
+      } else if frameID == 3 {
         transactionType = .remove
       }
     } else if isSelected2 {
@@ -316,6 +318,8 @@ for frameID in 0...4 {
       } else if frameID == 2 {
         
       } else if frameID == 3 {
+        transactionType = .move
+      } else if frameID == 4 {
         transactionType = .remove
       }
     } else if isSelected3 {
@@ -324,6 +328,8 @@ for frameID in 0...4 {
       } else if frameID == 3 {
         
       } else if frameID == 4 {
+        transactionType = .move
+      } else if frameID == 5 {
         transactionType = .remove
       }
     }
@@ -333,8 +339,9 @@ for frameID in 0...4 {
       case .remove:
         application.atoms[atomID] = nil
       case .move:
-        // TODO: Add SIMD3<Float>(1, 1, 1) and see what the effects are.
-        fatalError("Not implemented.")
+        var movedAtom = atom
+        movedAtom.position += SIMD3<Float>(1, 1, 1)
+        application.atoms[atomID] = movedAtom
       case .add:
         application.atoms[atomID] = atom
       }
@@ -351,16 +358,16 @@ for frameID in 0...4 {
   print()
   analyzeGeneralCounters()
   print()
-  inspectAtomsRemovedVoxels()
-//  inspectMemorySlots()
+//  inspectAtomsRemovedVoxels()
+  inspectMemorySlots()
   
   application.updateBVH2(inFlightFrameID: frameID % 3)
   
   print()
   analyzeGeneralCounters()
   print()
-  inspectRebuiltVoxels()
-//  inspectMemorySlots()
+//  inspectRebuiltVoxels()
+  inspectMemorySlots()
   
   application.forgetIdleState(inFlightFrameID: frameID % 3)
 }
