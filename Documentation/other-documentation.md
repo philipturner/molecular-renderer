@@ -80,17 +80,35 @@ A default of 7 or 15 secondary rays results in sufficient quality for any genera
 
 ### Critical Pixel Count Heuristic
 
-A highly tuned heuristic reduces the number of secondary rays, at a certain distance from the user. This particular case can afford lower rendering quality anyway.
+A simple heuristic reduces the number of secondary rays, at a certain distance from the user. When atoms are small, they are harder to clearly see, and therefore can afford less rendering quality. The reduction in sample count cancels the increase in divergence, leading to consistent rendering speed in all use cases.
 
 TODO: Implement and document the heuristic.
-- Measure the number of rays deemed "good enough" at both 60 Hz and 120 Hz. It is probably subjective, with no clear cutoff.
-- Next, see how this number changes with distance of a test structure. Use an arbitrarily large cubic SiC(111) surface, silicons on top, H-passivated. Find a quick way to determine the best number of rays.
-- Validate the process for normalizing for FOV.
-- Implement everything in a Google Sheet and hyperlink the results in this document.
+- No need for a complex Google Sheet to model multiple coupled variables, combined with subjectiveness of specific data points harming sensible quantitative analysis.
 
 Realization: test this by rendering an `.elemental` material, seeing how a single atom looks when it gets very small. Go by the need for AO quality in the intermediate texture, prior to upscaling. Therefore, 3x upscale factor tends to _reduce_ the AO sample count with the critical distance heuristic. 1x upscale is rendered at many more pixels, thus AO sample count is higher. We can use data gathered at 1x upscale, and it will generalize to 3x upscale without quality degradation. Problem solved! Go by quality in the final texture.
 
 Project the atom's radius onto the screen. Figure out how many pixels it spans after upscaling. Use that calculated pixel count as input for the heuristic. Different elements will have different pixel counts because their atoms are larger.
+
+We can now specify a better API:
+
+```swift
+struct Camera {
+  // The number of AO rays for ambient occlusion. Must be at least 3.
+  //
+  // Defaults to 15. Change to `nil` to disable ambient occlusion.
+  var secondaryRayCount: Int?
+  
+  // The number of pixels an atom spans on-screen, before the secondary ray
+  // count starts dropping off with the reciprocal of distance. The secondary
+  // ray count will never drop below 3.
+  //
+  // Defaults to TBD. Change to `nil` to disable the critical pixel count
+  // heuristic.
+  var criticalPixelCount: Float?
+}
+```
+
+In the backend, encode these settings in `RenderArgs` instead of `CameraArgs`.
 
 ## MetalFX Latency Issues
 
