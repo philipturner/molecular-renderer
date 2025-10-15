@@ -93,17 +93,17 @@ We can now specify a better API:
 
 ```swift
 struct Camera {
-  // The number of AO rays for ambient occlusion. Must be at least 3.
-  //
-  // Defaults to 15. Change to `nil` to disable ambient occlusion.
+  /// The number of AO rays for ambient occlusion. Must be at least 3.
+  ///
+  /// Defaults to 15. Change to `nil` to disable ambient occlusion.
   var secondaryRayCount: Int?
   
-  // The number of pixels an atom spans on-screen, before the secondary ray
-  // count starts dropping off with the reciprocal of distance. The secondary
-  // ray count will never drop below 3.
-  //
-  // Defaults to TBD. Change to `nil` to disable the critical pixel count
-  // heuristic.
+  /// The number of pixels an atom spans on-screen, before the secondary ray
+  /// count starts dropping off with the reciprocal of distance. The secondary
+  /// ray count will never drop below 3.
+  ///
+  /// Defaults to TBD. Change to `nil` to disable the critical pixel count
+  /// heuristic.
   var criticalPixelCount: Float?
 }
 ```
