@@ -70,19 +70,21 @@ func createCross() -> Topology {
     
     for isPositiveX in [false, true] {
       for isPositiveY in [false, true] {
-        let center = 75 * h + 75 * k
+        let halfSize = Float(crossSize) / 2
+        let center = halfSize * h + halfSize * k
+        
         let directionX = isPositiveX ? h : -h
         let directionY = isPositiveY ? k : -k
-        let deltaMagnitude = Float(crossThickness) / 2
+        let halfThickness = Float(crossThickness) / 2
         
         Volume {
           Concave {
             Convex {
-              Origin { center + deltaMagnitude * directionX }
+              Origin { center + halfThickness * directionX }
               Plane { isPositiveX ? h : -h }
             }
             Convex {
-              Origin { center + deltaMagnitude * directionY }
+              Origin { center + halfThickness * directionY }
               Plane { isPositiveY ? k : -k }
             }
           }
@@ -102,12 +104,22 @@ func createCross() -> Topology {
     var atom = topology.atoms[atomID]
     
     // This offset captures just one Si and one C for each unit cell on the
-    // (001) surface. By capture, I mean that atom.position.z > 0.
+    // (001) surface. By capture, I mean that atom.position.z > 0. We want a
+    // small number of static atoms in a 2 nm voxel that overlaps some moving
+    // atoms.
     atom.position += SIMD3(0, 0, -0.800)
     
     // Shift the origin to allow larger beam depth, with fixed world dimension.
     atom.position.z -= worldDimension / 2
     atom.position.z += 8
+    
+    // Shift so the structure is centered in X and Y.
+    let latticeConstant = Constant(.square) {
+      .checkerboard(.silicon, .carbon)
+    }
+    let halfSize = Float(crossSize) / 2
+    atom.position.x -= halfSize * latticeConstant
+    atom.position.y -= halfSize * latticeConstant
     
     topology.atoms[atomID] = atom
   }
@@ -140,22 +152,13 @@ func analyze(topology: Topology) {
   do {
     var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
     var maximum = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
-    var counter: Int = .zero
     for atom in topology.atoms {
       let position = atom.position
-      if atom.element != .hydrogen {
-        minimum.replace(with: position, where: position .< minimum)
-        maximum.replace(with: position, where: position .> maximum)
-        
-      }
-      
-      if position.z > -worldDimension / 2 + 8 {
-        counter += 1
-      }
+      minimum.replace(with: position, where: position .< minimum)
+      maximum.replace(with: position, where: position .> maximum)
     }
     print("minimum:", minimum)
     print("maximum:", maximum)
-    print(counter)
   }
 }
 
