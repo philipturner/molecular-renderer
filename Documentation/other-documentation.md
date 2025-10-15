@@ -26,19 +26,9 @@ Solution: add a second mode for `Display`. In the descriptor, leave `monitorID` 
 
 A new API function, `application.stop()`, prevents the next run loop from happening. Functions called during the current loop iteration (before `stop()` is called) still work the same. `application.present()` forwards one final render command to the GPU, which will be handled in the `handler` before the backend fully shuts down. Finally, `application.run()` exits the scope of its closure and the calling program resumes. The user can perform custom cleanup processes without relying on intentional program crashes (`exit(0)` and `fatalError`).
 
-## Ambient Occlusion Sample Count
+## Rendering Performance
 
-The most computationally intensive part of rendering is estimating the degree of self-shadowing, or how "occluded" / crowded a location is. A place wedged between two atoms should appear darker than an unobstructed surface exposed directly to open space. In practice, this is achieved by randomly choosing a set of ray directions, then following the rays until they hit a nearby surface.
-
-A default of 7 secondary rays results in sufficient quality for any general use case. However, in cases prone to high divergence (non-uniform control flow, disorder or random memory access patterns), GPU performance may degrade so much that the FPS target cannot be reached. Divergence happens more often in regions far away from the camera. At large distances, each atom appears smaller, which (long story short) means higher divergence.
-
-There is a highly tuned heuristic that reduces the sample count to 3, at a certain distance from the user. This particular case can afford lower rendering quality anyway. This heuristic will be implemented in the acceleration structure PR.
-
-## Atom Count Limitation
-
-In its current state, the cross-platform Molecular Renderer lacks an acceleration structure to speed up ray-sphere intersections. Therefore, the compute cost of rendering scales linearly with the atom count. Until an acceleration structure is implemented, you can try tweaking a few settings to render as many atoms as possible.
-
-The time to render a frame is a multiplication of many variables. Like the Drake Equation, changing a few by 2x could change the end result by 10x. The code base has always been tested at a "reasonable" window size for general applications, but you can squint at a 480x480 window for structures in the 100&ndash;1000 atom range.
+The time to render a frame is a multiplication of many variables. Like the Drake Equation, changing a few by 2x could change the end result by 10x. Users can tune these variables to render as many pixels as possible, while still producing one frame per display refresh period.
 
 | Multiplicative Factor | Explanation |
 | --------------------- | ----------- |
@@ -46,10 +36,11 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 | FPS target            | Lower refresh-rate displays permit more render time (in ms/frame) |
 | Window resolution     | Less pixels means less compute cost |
 | Upscale factor        | Make this as high as possible without graphical quality issues |
-| Atom count            | $O(n)$ with the current implementation. In the future, more like $O(1)$. |
+| Atom count            | $O(1)$ with an acceleration structure, otherwise $O(n)$ |
 | AO sample count       | Number of rays cast/pixel = (1 + AO sample count). Primary ray will be more expensive than AO rays because it must travel extremely large distances through the uniform grid. |
-| Acceleration structure update | (In the future) GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count (atoms that are moving, not atom count of the entire scene). |
 | Coverage of FOV       | Images with mostly empty space will not incur the cost of AO rays. This makes it look like the renderer supports larger atom counts than it actually does, in general applications. |
+
+GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count (atoms that are moving, not atom count of the entire scene). The above performance model assumes a static scene, where the cost of updating the acceleration structure is zero.
 
 These combinations of settings are known to run smoothly (or predicted to).
 
@@ -57,10 +48,41 @@ These combinations of settings are known to run smoothly (or predicted to).
 | --------------------- | :-------: | :-------: | :-------: |
 | GPU model             | M1 Max    | M1        | GTX 970   |
 | FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
-| Window resolution     | 1920x1920 | 1200x1200 | 1200x1200 |
+| Window resolution     | TBD       | TBD       | TBD       |
 | Upscale factor        | 1x        | 1x        | 1x        |
-| Atom count            | 12        | 12        | 12        |
-| AO sample count       | 7         | 7         | 7         |
+| AO sample count       | 15        | 15        | 15        |
+
+| Multiplicative Factor | macOS     | macOS (target audience) | Windows |
+| --------------------- | :-------: | :-------: | :-------: |
+| GPU model             | M1 Max    | M1        | GTX 970   |
+| FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
+| Window resolution     | TBD       | TBD       | TBD       |
+| Upscale factor        | 2x        | 2x        | 2x        |
+| AO sample count       | 15        | 15        | 15        |
+
+| Multiplicative Factor | macOS     | macOS (target audience) | Windows |
+| --------------------- | :-------: | :-------: | :-------: |
+| GPU model             | M1 Max    | M1        | GTX 970   |
+| FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
+| Window resolution     | TBD       | TBD       | TBD       |
+| Upscale factor        | 3x        | 3x        | 3x        |
+| AO sample count       | 15        | 15        | 15        |
+
+The benchmarked systems are a few atoms very close to the user, consuming all of the FOV. Divergence is negligible and the critical distance heuristic does not kick in. The source code is found in [Tests](./Tests).
+
+TODO: Implement the test after getting the acceleration structure working.
+
+## Ambient Occlusion Sample Count
+
+The most computationally intensive part of rendering is estimating the degree of self-shadowing, or how "occluded" / crowded a location is. A place wedged between two atoms should appear darker than an unobstructed surface exposed directly to open space. In practice, this is achieved by randomly choosing a set of ray directions, then following the rays until they hit a nearby surface.
+
+A default of 7 or 15 secondary rays results in sufficient quality for any general use case. However, in cases prone to high divergence (non-uniform control flow, disorder or random memory access patterns), GPU performance may degrade so much that the FPS target cannot be reached. Divergence happens more often in regions far away from the camera. At large distances, each atom appears smaller, which (long story short) means higher divergence.
+
+### Critical Distance Heuristic
+
+A highly tuned heuristic reduces the number of secondary rays, at a certain distance from the user. This particular case can afford lower rendering quality anyway.
+
+TODO: Implement and document the heuristic.
 
 ## MetalFX Latency Issues
 
