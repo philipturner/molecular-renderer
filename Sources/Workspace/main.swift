@@ -211,7 +211,7 @@ func inspectMemorySlots() {
   print("total reference count: \(atomDuplicatedReferences.reduce(0, +))")
 }
 
-for frameID in 0...1 {
+for frameID in 0...2 {
   for atomID in lattice.atoms.indices {
     var isSelected = false
     if atomID >= 0 && atomID <= 99 {
@@ -227,18 +227,20 @@ for frameID in 0...1 {
     // After this, switch the order of which ones were added, which removed.
     // Then, test a scenario with removed, moved and added simultaneously.
     if frameID == 0 {
-      if isSelected {
-        let atom = lattice.atoms[atomID]
-        application.atoms[atomID] = atom
+      if !isSelected {
+//        let atom = lattice.atoms[atomID]
+//        application.atoms[atomID] = atom
       }
     } else if frameID == 1 {
-      if isSelected {
-        application.atoms[atomID] = nil
-      }
       if !isSelected {
+//        application.atoms[atomID] = nil
+      }
+      if isSelected {
         let atom = lattice.atoms[atomID]
         application.atoms[atomID] = atom
       }
+    } else {
+      
     }
   }
   
