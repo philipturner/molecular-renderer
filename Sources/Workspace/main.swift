@@ -56,7 +56,7 @@ func passivate(topology: inout Topology) {
 
 func createCross() -> Topology {
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 10 * h + 10 * k + 2 * l }
+    Bounds { 10 * h + 10 * k + 5 * l }
     Material { .checkerboard(.silicon, .carbon) }
   }
   
@@ -71,10 +71,18 @@ func createCross() -> Topology {
 
 let cross = createCross()
 print()
-print(cross.atoms.count)
-print(cross.atoms.count(where: { $0.element == .hydrogen }))
-print(cross.atoms.count(where: { $0.element == .carbon }))
-print(cross.atoms.count(where: { $0.element == .silicon }))
+print("atom count:", cross.atoms.count)
+do {
+  var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
+  var maximum = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
+  for atom in cross.atoms {
+    let position = atom.position
+    minimum.replace(with: position, where: position .< minimum)
+    maximum.replace(with: position, where: position .> maximum)
+  }
+  print("minimum:", minimum - 0.853 / 10)
+  print("maximum:", maximum + 0.853 / 10)
+}
 
 // MARK: - Launch Application
 
