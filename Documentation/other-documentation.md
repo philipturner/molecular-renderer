@@ -4,30 +4,27 @@
 
 ![Render Process Diagram](./RenderProcessDiagram.png)
 
-<details>
-<summary>Personal notes about the async raw pixel buffer, which was out of scope for the latest PR</summary>
+### Asynchronous Raw Pixel Buffer Handler
 
-```swift
-// Implement the "asynchronous raw pixel buffer handler" functionality promised
-// in the render process diagram.
-// - [IMPORTANT] Decide on the best name for the API function that exposes
-//   this functionality.
-// - Handlers should be executed on a sequential dispatch queue. Although it's
-//   not thread safe with the main or @MainActor thread, it's thread safe
-//   between sequential calls to itself.
-// - Implement an equivalent of 3 frames in flight DispatchSemaphore for the
-//   asynchronous handlers, to avoid overflowing the dispatch queue for this.
-// - Guarantee that all asynchronous handlers have executed before
-//   'application.run' returns.
-//
-// Can probably make this feature very far down the priority list; offline
-// rendering is not the primary use case of interactive CAD programs. It will
-// be needed to make professional YouTube videos from rendered animations.
-```
+> This API is required before users can make professional YouTube videos out of animations. Until then, record your computer screen with a smartphone camera.
+
+API design requirements:
+- Handlers should be executed on a sequential dispatch queue. Although it's
+  not thread safe with the main or `@MainActor` thread, it's thread safe
+  between sequential calls to itself.
+- Implement an equivalent of 3 frames in flight `DispatchSemaphore` for the
+  asynchronous handlers, to avoid overflowing the dispatch queue for this.
+  - The user should be able to stall the render loop, for example to encode a large batch of GIF frames. They do this by making the handler take extra long, thus reaching the limit of the dispatch semaphore.
+- Guarantee that all asynchronous handlers have executed before
+  `application.run()` returns.
 
 Perhaps it would be more appropriate to exit the `application.run()` paradigm entirely for offline rendering. `Display` and `Clock` are inappropriate because there is no interaction with DXGI/CVDisplayLink, notion of "frames per second", or need to accurately track wall time for real-time animations. However, the backend code can be applied to offline rendering with little effort. It is mostly a frontend (API) design problem.
 
-</details>
+Solution: add a second mode for `Display`. In the descriptor, leave `monitorID` as `nil` and instead specify the pixel buffer handler in `handler`. The application now follows the same APIs as a real-time render loop. It creates an artificial "display" with triple buffering, but no actual link to DXGI. The frame rate is zero and the clock never increments. Every call to `application.present()` forwards an asynchronous handler to the dispatch queue mentioned above.
+
+> In real-time renders, always use `clock.frames` to find the accurate time for coding animations. In offline renders, always use `frameID` for correct timing.
+
+A new API function, `application.stop()`, prevents the next run loop from happening. Functions called during the current loop iteration (before `stop()` is called) still work the same. `application.present()` forwards one final render command to the GPU, which will be handled in the `handler` before the backend fully shuts down. Finally, `application.run()` exits the scope of its closure and the calling program resumes. The user can perform custom cleanup processes without relying on intentional program crashes (`exit(0)` and `fatalError`).
 
 ## Ambient Occlusion Sample Count
 
