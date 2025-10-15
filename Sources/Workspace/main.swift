@@ -193,8 +193,12 @@ func inspectSmallReferences() {
       fatalError("Got unexpected atom count: \(atomCount)")
     }
     
-    let referenceCount = memorySlots[headerAddress + 1]
-    print(referenceCount)
+    let smallRefCount = memorySlots[headerAddress + 1]
+    print("large references allocated:", atomCount)
+    print("small references allocated:", smallRefCount)
+    
+    let largeRefAddress = headerAddress + 2056 / 4
+    let smallRefAddress = headerAddress + 14344 / 4
   }
 }
 
