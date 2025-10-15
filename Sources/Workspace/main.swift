@@ -13,7 +13,70 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Take a first pass at the rotating rod benchmark.
+// - Take a first pass at the rotating beam benchmark.
+
+// MARK: - Compile Structures
+
+func passivate(topology: inout Topology) {
+  func createHydrogen(
+    atomID: UInt32,
+    orbital: SIMD3<Float>
+  ) -> Atom {
+    let atom = topology.atoms[Int(atomID)]
+    
+    var bondLength = atom.element.covalentRadius
+    bondLength += Element.hydrogen.covalentRadius
+    
+    let position = atom.position + bondLength * orbital
+    return Atom(position: position, element: .hydrogen)
+  }
+  
+  let orbitalLists = topology.nonbondingOrbitals()
+  
+  var insertedAtoms: [Atom] = []
+  var insertedBonds: [SIMD2<UInt32>] = []
+  for atomID in topology.atoms.indices {
+    let orbitalList = orbitalLists[atomID]
+    for orbital in orbitalList {
+      let hydrogen = createHydrogen(
+        atomID: UInt32(atomID),
+        orbital: orbital)
+      let hydrogenID = topology.atoms.count + insertedAtoms.count
+      insertedAtoms.append(hydrogen)
+      
+      let bond = SIMD2(
+        UInt32(atomID),
+        UInt32(hydrogenID))
+      insertedBonds.append(bond)
+    }
+  }
+  topology.atoms += insertedAtoms
+  topology.bonds += insertedBonds
+}
+
+func createCross() -> Topology {
+  let lattice = Lattice<Cubic> { h, k, l in
+    Bounds { 10 * h + 10 * k + 2 * l }
+    Material { .checkerboard(.silicon, .carbon) }
+  }
+  
+  var reconstruction = Reconstruction()
+  reconstruction.atoms = lattice.atoms
+  reconstruction.material = .checkerboard(.silicon, .carbon)
+  var topology = reconstruction.compile()
+  passivate(topology: &topology)
+  
+  return topology
+}
+
+let cross = createCross()
+print()
+print(cross.atoms.count)
+print(cross.atoms.count(where: { $0.element == .hydrogen }))
+print(cross.atoms.count(where: { $0.element == .carbon }))
+print(cross.atoms.count(where: { $0.element == .silicon }))
+
+// MARK: - Launch Application
 
 @MainActor
 func createApplication() -> Application {
@@ -43,8 +106,6 @@ func createApplication() -> Application {
   return application
 }
 let application = createApplication()
-
-
 
 //#if true
 //application.run {

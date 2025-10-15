@@ -42,7 +42,7 @@ At the time of writing, the Windows xTB executable is compiled with OpenBLAS to 
 
 Reference video: [YouTube](https://www.youtube.com/shorts/rV1UGau20xQ)
 
-## Rotating Rod
+## Rotating Beam
 
 Test at least one case of a skinny, rotating rod where the total number of cells swept vastly exceeds the number of memory slots. The rod's atom count is less than 1 million, and every atom moves every frame. Use this as a benchmark for the true maximum atoms/frame in a practical setting.
 
