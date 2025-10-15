@@ -155,10 +155,10 @@ func inspectMemorySlots() {
     print()
   }
   
-  var summary = [Int](repeating: .zero, count: 17)
+  var summary = [Int](repeating: .zero, count: 9)
   for atomID in atomDuplicatedReferences.indices {
     let referenceCount = atomDuplicatedReferences[atomID]
-    if referenceCount > 16 {
+    if referenceCount > 8 {
       fatalError("Invalid reference count: \(referenceCount)")
     }
     summary[referenceCount] += 1
@@ -226,7 +226,7 @@ func inspectSmallReferences() {
         let smallAtomID = smallReferences[Int(referenceID)]
         let largeAtomID = memorySlots[listAddress + Int(smallAtomID)]
         if referenceID < offsetStart + 12 {
-          print(pad(smallAtomID), terminator: " ")
+          print(pad(largeAtomID), terminator: " ")
         }
         
         if smallAtomID >= atomCount {
@@ -236,6 +236,23 @@ func inspectSmallReferences() {
       }
       print()
     }
+    
+    var summary = [Int](repeating: .zero, count: 28)
+    for atomID in atomDuplicatedReferences.indices {
+      let referenceCount = atomDuplicatedReferences[atomID]
+      if referenceCount > 27 {
+        fatalError("Invalid reference count: \(referenceCount)")
+      }
+      summary[referenceCount] += 1
+    }
+    
+    print()
+    for referenceCount in summary.indices {
+      let atomCount = summary[referenceCount]
+      print("\(pad(referenceCount)): \(pad(atomCount))")
+    }
+    print("total atom count: \(summary[1...].reduce(0, +))")
+    print("total reference count: \(atomDuplicatedReferences.reduce(0, +))")
   }
 }
 
