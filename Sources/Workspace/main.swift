@@ -212,31 +212,95 @@ func inspectMemorySlots() {
 
 for frameID in 0...1 {
   for atomID in lattice.atoms.indices {
-    var isSelected = false
+    // voxels spanned: 24
+    //
+    //    0: 8432
+    //    1:   63
+    //    2:   97
+    //    3:    0
+    //    4:   35
+    //    5:    0
+    //    6:    0
+    //    7:    0
+    //    8:    4
+    //    9:    0
+    //   10:    0
+    //   11:    0
+    //   12:    0
+    //   13:    0
+    //   14:    0
+    //   15:    0
+    //   16:    0
+    // total atom count: 199
+    // total reference count: 429
+    var isSelected1 = false
     if atomID >= 0 && atomID <= 99 {
-      isSelected = true
+      isSelected1 = true
     }
     if atomID >= 4000 && atomID <= 4049 {
-      isSelected = true
+      isSelected1 = true
     }
     if atomID >= 4051 && atomID <= 4099 {
-      isSelected = true
+      isSelected1 = true
     }
     
-    // After this, switch the order of which ones were added, which removed.
-    // Then, test a scenario with removed, moved and added simultaneously.
+    // voxels spanned: 14
+    //
+    //    0: 8330
+    //    1:  107
+    //    2:  147
+    //    3:    0
+    //    4:   44
+    //    5:    0
+    //    6:    0
+    //    7:    0
+    //    8:    3
+    //    9:    0
+    //   10:    0
+    //   11:    0
+    //   12:    0
+    //   13:    0
+    //   14:    0
+    //   15:    0
+    //   16:    0
+    // total atom count: 301
+    // total reference count: 601
+    var isSelected2 = false
+    if atomID >= 500 && atomID <= 800 {
+      isSelected2 = true
+    }
+    
+    // voxels spanned: 60
+    //
+    //    0:  500
+    //    1: 4743
+    //    2: 2792
+    //    3:    0
+    //    4:  557
+    //    5:    0
+    //    6:    0
+    //    7:    0
+    //    8:   39
+    //    9:    0
+    //   10:    0
+    //   11:    0
+    //   12:    0
+    //   13:    0
+    //   14:    0
+    //   15:    0
+    //   16:    0
+    // total atom count: 8131
+    // total reference count: 12867
+    let isSelected3 = !(isSelected1 || isSelected2)
+    
     if frameID == 0 {
-      if !isSelected {
+      if isSelected3 {
         let atom = lattice.atoms[atomID]
         application.atoms[atomID] = atom
       }
     } else if frameID == 1 {
-      if !isSelected {
+      if isSelected3 {
         application.atoms[atomID] = nil
-      }
-      if isSelected {
-        let atom = lattice.atoms[atomID]
-        application.atoms[atomID] = atom
       }
     }
   }
