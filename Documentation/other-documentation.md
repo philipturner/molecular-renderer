@@ -96,10 +96,6 @@ struct Camera {
   /// The number of AO rays for ambient occlusion. Must be at least 3.
   ///
   /// Defaults to 15. Change to `nil` to disable ambient occlusion.
-  ///
-  /// In the future, the default may vary based on the refresh rate for the
-  /// display, when in real-time rendering mode. It is not likely, but we must
-  /// anticipate the possibility.
   var secondaryRayCount: Int?
   
   /// The number of pixels an atom spans on-screen, before the secondary ray
