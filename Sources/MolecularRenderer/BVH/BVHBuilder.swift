@@ -174,22 +174,22 @@ class BVHBuilder {
     inFlightFrameID: Int
   ) {
     // Reduce over all chunks of the transaction.
-    var removedCount: Int = .zero
-    var movedCount: Int = .zero
-    var addedCount: Int = .zero
+    var totalRemoved: Int = .zero
+    var totalMoved: Int = .zero
+    var totalAdded: Int = .zero
     for chunk in transaction {
-      removedCount += Int(chunk.removedCount)
-      movedCount += Int(chunk.movedCount)
-      addedCount += Int(chunk.addedCount)
+      totalRemoved += Int(chunk.removedCount)
+      totalMoved += Int(chunk.movedCount)
+      totalAdded += Int(chunk.addedCount)
     }
-    print(removedCount, movedCount, addedCount)
+    print(totalRemoved, totalMoved, totalAdded)
     
     // Validate the sizes of the transaction components.
     let maxTransactionSize = AtomResources.maxTransactionSize
-    guard removedCount <= maxTransactionSize else {
+    guard totalRemoved <= maxTransactionSize else {
       fatalError("Removed atom count must not exceed \(maxTransactionSize).")
     }
-    guard movedCount + addedCount <= maxTransactionSize else {
+    guard totalMoved + totalAdded <= maxTransactionSize else {
       fatalError(
         "Moved and added atom count must not exceed \(maxTransactionSize).")
     }
@@ -207,21 +207,21 @@ class BVHBuilder {
       var addedOffset: Int = .zero
       for chunk in transaction {
         let removedPointer = UnsafeRawBufferPointer(
-          start: chunk.removedIDs, count: removedCount * 4)
+          start: chunk.removedIDs, count: Int(chunk.removedCount) * 4)
         let movedPointer = UnsafeRawBufferPointer(
-          start: chunk.movedIDs, count: movedCount * 4)
+          start: chunk.movedIDs, count: Int(chunk.movedCount) * 4)
         let addedPointer = UnsafeRawBufferPointer(
-          start: chunk.addedIDs, count: addedCount * 4)
+          start: chunk.addedIDs, count: Int(chunk.addedCount) * 4)
         
         buffer.write(
           input: removedPointer,
           offset: (removedOffset) * 4)
         buffer.write(
           input: movedPointer,
-          offset: (removedCount + movedOffset) * 4)
+          offset: (totalRemoved + movedOffset) * 4)
         buffer.write(
           input: addedPointer,
-          offset: (removedCount + movedCount + addedOffset) * 4)
+          offset: (totalRemoved + totalMoved + addedOffset) * 4)
         
         removedOffset += Int(chunk.removedCount)
         movedOffset += Int(chunk.movedCount)
@@ -257,16 +257,16 @@ class BVHBuilder {
       var addedOffset: Int = .zero
       for chunk in transaction {
         let movedPointer = UnsafeRawBufferPointer(
-          start: chunk.movedPositions, count: movedCount * 16)
+          start: chunk.movedPositions, count: Int(chunk.movedCount) * 16)
         let addedPointer = UnsafeRawBufferPointer(
-          start: chunk.addedPositions, count: addedCount * 16)
+          start: chunk.addedPositions, count: Int(chunk.addedCount) * 16)
         
         buffer.write(
           input: movedPointer,
           offset: (movedOffset) * 16)
         buffer.write(
           input: addedPointer,
-          offset: (movedCount + addedOffset) * 16)
+          offset: (totalMoved + addedOffset) * 16)
         
         movedOffset += Int(chunk.movedCount)
         addedOffset += Int(chunk.addedCount)
@@ -287,13 +287,13 @@ class BVHBuilder {
     #if os(Windows)
     // Dispatch the GPU commands to copy the PCIe data.
     do {
-      let idsCount = removedCount + movedCount + addedCount
+      let idsCount = totalRemoved + totalMoved + totalAdded
       atoms.transactionIDs.copy(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         range: 0..<(idsCount * 4))
       
-      let atomsCount = movedCount + addedCount
+      let atomsCount = totalMoved + totalAdded
       atoms.transactionAtoms.copy(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
@@ -304,9 +304,9 @@ class BVHBuilder {
     // Set the transactionArgs.
     do {
       var transactionArgs = TransactionArgs()
-      transactionArgs.removedCount = UInt32(removedCount)
-      transactionArgs.movedCount = UInt32(movedCount)
-      transactionArgs.addedCount = UInt32(addedCount)
+      transactionArgs.removedCount = UInt32(totalRemoved)
+      transactionArgs.movedCount = UInt32(totalMoved)
+      transactionArgs.addedCount = UInt32(totalAdded)
       self.transactionArgs = transactionArgs
     }
   }
