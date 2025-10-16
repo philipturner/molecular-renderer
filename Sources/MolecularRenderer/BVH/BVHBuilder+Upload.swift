@@ -59,72 +59,53 @@ extension BVHBuilder {
     //
     // TODO
     
-    // Write to the IDs buffer.
-    do {
-      #if os(macOS)
-      nonisolated(unsafe)
-      let idsBuffer = atoms.transactionIDs.nativeBuffers[inFlightFrameID]
-      #else
-      nonisolated(unsafe)
-      let idsBuffer = atoms.transactionIDs.inputBuffers[inFlightFrameID]
-      #endif
-      
-      nonisolated(unsafe)
-      let safeTransaction = transaction
-      let taskCount = transaction.count
-      DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
-        let chunk = safeTransaction[taskID]
-        let removedIDsPointer = UnsafeRawBufferPointer(
-          start: chunk.removedIDs, count: Int(chunk.removedCount) * 4)
-        let movedIDsPointer = UnsafeRawBufferPointer(
-          start: chunk.movedIDs, count: Int(chunk.movedCount) * 4)
-        let addedIDsPointer = UnsafeRawBufferPointer(
-          start: chunk.addedIDs, count: Int(chunk.addedCount) * 4)
-        
-        let removedOffset = Int(reduction.removedPrefixSum[taskID])
-        let movedOffset = Int(reduction.movedPrefixSum[taskID])
-        let addedOffset = Int(reduction.addedPrefixSum[taskID])
-        idsBuffer.write(
-          input: removedIDsPointer,
-          offset: (removedOffset) * 4)
-        idsBuffer.write(
-          input: movedIDsPointer,
-          offset: (reduction.totalRemoved + movedOffset) * 4)
-        idsBuffer.write(
-          input: addedIDsPointer,
-          offset: (reduction.totalRemoved + reduction.totalMoved + addedOffset) * 4)
-      }
-    }
+    #if os(macOS)
+    nonisolated(unsafe)
+    let idsBuffer = atoms.transactionIDs.nativeBuffers[inFlightFrameID]
+    nonisolated(unsafe)
+    let atomsBuffer = atoms.transactionAtoms.nativeBuffers[inFlightFrameID]
+    #else
+    nonisolated(unsafe)
+    let idsBuffer = atoms.transactionIDs.inputBuffers[inFlightFrameID]
+    nonisolated(unsafe)
+    let atomsBuffer = atoms.transactionAtoms.inputBuffers[inFlightFrameID]
+    #endif
     
-    // Write to the atoms buffer.
-    do {
-      #if os(macOS)
-      nonisolated(unsafe)
-      let atomsBuffer = atoms.transactionAtoms.nativeBuffers[inFlightFrameID]
-      #else
-      nonisolated(unsafe)
-      let atomsBuffer = atoms.transactionAtoms.inputBuffers[inFlightFrameID]
-      #endif
+    nonisolated(unsafe)
+    let safeTransaction = transaction
+    let taskCount = transaction.count
+    DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
+      let chunk = safeTransaction[taskID]
+      let removedOffset = Int(reduction.removedPrefixSum[taskID])
+      let movedOffset = Int(reduction.movedPrefixSum[taskID])
+      let addedOffset = Int(reduction.addedPrefixSum[taskID])
       
-      nonisolated(unsafe)
-      let safeTransaction = transaction
-      let taskCount = transaction.count
-      DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
-        let chunk = safeTransaction[taskID]
-        let movedPositionsPointer = UnsafeRawBufferPointer(
-          start: chunk.movedPositions, count: Int(chunk.movedCount) * 16)
-        let addedPositionsPointer = UnsafeRawBufferPointer(
-          start: chunk.addedPositions, count: Int(chunk.addedCount) * 16)
-        
-        let movedOffset = Int(reduction.movedPrefixSum[taskID])
-        let addedOffset = Int(reduction.addedPrefixSum[taskID])
-        atomsBuffer.write(
-          input: movedPositionsPointer,
-          offset: (movedOffset) * 16)
-        atomsBuffer.write(
-          input: addedPositionsPointer,
-          offset: (reduction.totalMoved + addedOffset) * 16)
-      }
+      let removedIDsPointer = UnsafeRawBufferPointer(
+        start: chunk.removedIDs, count: Int(chunk.removedCount) * 4)
+      let movedIDsPointer = UnsafeRawBufferPointer(
+        start: chunk.movedIDs, count: Int(chunk.movedCount) * 4)
+      let addedIDsPointer = UnsafeRawBufferPointer(
+        start: chunk.addedIDs, count: Int(chunk.addedCount) * 4)
+      idsBuffer.write(
+        input: removedIDsPointer,
+        offset: (removedOffset) * 4)
+      idsBuffer.write(
+        input: movedIDsPointer,
+        offset: (reduction.totalRemoved + movedOffset) * 4)
+      idsBuffer.write(
+        input: addedIDsPointer,
+        offset: (reduction.totalRemoved + reduction.totalMoved + addedOffset) * 4)
+      
+      let movedPositionsPointer = UnsafeRawBufferPointer(
+        start: chunk.movedPositions, count: Int(chunk.movedCount) * 16)
+      let addedPositionsPointer = UnsafeRawBufferPointer(
+        start: chunk.addedPositions, count: Int(chunk.addedCount) * 16)
+      atomsBuffer.write(
+        input: movedPositionsPointer,
+        offset: (movedOffset) * 16)
+      atomsBuffer.write(
+        input: addedPositionsPointer,
+        offset: (reduction.totalMoved + addedOffset) * 16)
     }
     
     #if os(Windows)
