@@ -173,9 +173,9 @@ class BVHBuilder {
     commandList: CommandList,
     inFlightFrameID: Int
   ) {
-    let removedCount = transaction.removedIDs.count
-    let movedCount = transaction.movedIDs.count
-    let addedCount = transaction.addedIDs.count
+    let removedCount = Int(transaction.removedCount)
+    let movedCount = Int(transaction.movedCount)
+    let addedCount = Int(transaction.addedCount)
     
     // Validate the sizes of the transaction components.
     let maxTransactionSize = AtomResources.maxTransactionSize
@@ -186,10 +186,6 @@ class BVHBuilder {
       fatalError(
         "Moved and added atom count must not exceed \(maxTransactionSize).")
     }
-    guard transaction.movedPositions.count == movedCount,
-          transaction.addedPositions.count == addedCount else {
-      fatalError("This should never happen.")
-    }
     
     // Write to the IDs buffer.
     do {
@@ -199,21 +195,38 @@ class BVHBuilder {
       let buffer = atoms.transactionIDs.inputBuffers[inFlightFrameID]
       #endif
       
-      transaction.removedIDs.withUnsafeBytes { bufferPointer in
-        buffer.write(
-          input: bufferPointer,
-          offset: 0)
-      }
-      transaction.movedIDs.withUnsafeBytes { bufferPointer in
-        buffer.write(
-          input: bufferPointer,
-          offset: removedCount * 4)
-      }
-      transaction.addedIDs.withUnsafeBytes { bufferPointer in
-        buffer.write(
-          input: bufferPointer,
-          offset: (removedCount + movedCount) * 4)
-      }
+      let removedPointer = UnsafeRawBufferPointer(
+        start: transaction.removedIDs, count: removedCount * 4)
+      let movedPointer = UnsafeRawBufferPointer(
+        start: transaction.movedIDs, count: movedCount * 4)
+      let addedPointer = UnsafeRawBufferPointer(
+        start: transaction.addedIDs, count: addedCount * 4)
+      
+      buffer.write(
+        input: removedPointer,
+        offset: 0)
+      buffer.write(
+        input: movedPointer,
+        offset: removedCount * 4)
+      buffer.write(
+        input: addedPointer,
+        offset: (removedCount + movedCount) * 4)
+      
+//      transaction.removedIDs.withUnsafeBytes { bufferPointer in
+//        buffer.write(
+//          input: bufferPointer,
+//          offset: 0)
+//      }
+//      transaction.movedIDs.withUnsafeBytes { bufferPointer in
+//        buffer.write(
+//          input: bufferPointer,
+//          offset: removedCount * 4)
+//      }
+//      transaction.addedIDs.withUnsafeBytes { bufferPointer in
+//        buffer.write(
+//          input: bufferPointer,
+//          offset: (removedCount + movedCount) * 4)
+//      }
     }
     
     // Write to the atoms buffer.
@@ -224,16 +237,28 @@ class BVHBuilder {
       let buffer = atoms.transactionAtoms.inputBuffers[inFlightFrameID]
       #endif
       
-      transaction.movedPositions.withUnsafeBytes { bufferPointer in
-        buffer.write(
-          input: bufferPointer,
-          offset: 0)
-      }
-      transaction.addedPositions.withUnsafeBytes { bufferPointer in
-        buffer.write(
-          input: bufferPointer,
-          offset: movedCount * 16)
-      }
+      let movedPointer = UnsafeRawBufferPointer(
+        start: transaction.movedPositions, count: movedCount * 16)
+      let addedPointer = UnsafeRawBufferPointer(
+        start: transaction.addedPositions, count: addedCount * 16)
+      
+      buffer.write(
+        input: movedPointer,
+        offset: 0)
+      buffer.write(
+        input: addedPointer,
+        offset: movedCount * 16)
+      
+//      transaction.movedPositions.withUnsafeBytes { bufferPointer in
+//        buffer.write(
+//          input: bufferPointer,
+//          offset: 0)
+//      }
+//      transaction.addedPositions.withUnsafeBytes { bufferPointer in
+//        buffer.write(
+//          input: bufferPointer,
+//          offset: movedCount * 16)
+//      }
     }
     
     #if os(Windows)

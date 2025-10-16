@@ -70,12 +70,33 @@ public class Atoms {
   }
   
   // Changes to the acceleration structure in a single frame.
-  struct Transaction {
-    var removedIDs: [UInt32] = []
-    var movedIDs: [UInt32] = []
-    var movedPositions: [SIMD4<Float>] = []
-    var addedIDs: [UInt32] = []
-    var addedPositions: [SIMD4<Float>] = []
+  class Transaction {
+    var removedCount: UInt32 = .zero
+    var addedCount: UInt32 = .zero
+    var movedCount: UInt32 = .zero
+    
+    var removedIDs: UnsafeMutablePointer<UInt32>
+    var movedIDs: UnsafeMutablePointer<UInt32>
+    var movedPositions: UnsafeMutablePointer<SIMD4<Float>>
+    var addedIDs: UnsafeMutablePointer<UInt32>
+    var addedPositions: UnsafeMutablePointer<SIMD4<Float>>
+    
+    init(blockCount: Int) {
+      let maxAtomCount = blockCount * Atoms.blockSize
+      removedIDs = .allocate(capacity: maxAtomCount)
+      movedIDs = .allocate(capacity: maxAtomCount)
+      movedPositions = .allocate(capacity: maxAtomCount)
+      addedIDs = .allocate(capacity: maxAtomCount)
+      addedPositions = .allocate(capacity: maxAtomCount)
+    }
+    
+    deinit {
+      removedIDs.deallocate()
+      movedIDs.deallocate()
+      movedPositions.deallocate()
+      addedIDs.deallocate()
+      addedPositions.deallocate()
+    }
   }
   
   // TODO: Attempt to optimize this with multithreading + merging the memory
@@ -183,13 +204,7 @@ public class Atoms {
     let checkpoint1 = Date()
     
     // Reserve array capacity to defeat overhead of array re-allocation.
-    let maxAtomCount = modifiedBlockIDs.count * Self.blockSize
-    var output = Transaction()
-    output.removedIDs.reserveCapacity(maxAtomCount)
-    output.movedIDs.reserveCapacity(maxAtomCount)
-    output.movedPositions.reserveCapacity(maxAtomCount)
-    output.addedIDs.reserveCapacity(maxAtomCount)
-    output.addedPositions.reserveCapacity(maxAtomCount)
+    let output = Transaction(blockCount: modifiedBlockIDs.count)
     
     let checkpoint2 = Date()
     
@@ -212,18 +227,21 @@ public class Atoms {
         
         if !atomOccupied {
           if atomPreviousOccupied {
-            output.removedIDs.append(atomID)
+            output.removedIDs[Int(output.removedCount)] = atomID
+            output.removedCount += 1
           }
         } else {
           // Read positions
           let position = positions[Int(atomID)]
           
           if atomPreviousOccupied {
-            output.movedIDs.append(atomID)
-            output.movedPositions.append(position)
+            output.movedIDs[Int(output.movedCount)] = atomID
+            output.movedPositions[Int(output.movedCount)] = position
+            output.movedCount += 1
           } else {
-            output.addedIDs.append(atomID)
-            output.addedPositions.append(position)
+            output.addedIDs[Int(output.addedCount)] = atomID
+            output.addedPositions[Int(output.addedCount)] = position
+            output.addedCount += 1
           }
         }
       }
