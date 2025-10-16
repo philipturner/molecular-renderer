@@ -104,9 +104,10 @@ public class Atoms {
   // cost is zero, CPU-side latency/atom/frame would be the bottleneck holding
   // back the entire application's performance.
   //
-  // Therefore, I spent an extra day during the acceleration structure PR,
-  // optimizing the latency of 'registerChanges()' and 'upload(transaction:)'.
-  // Here are the results of the development time invested.
+  // Therefore, I spent an extra day (Oct 16 2025) during the acceleration
+  // structure PR, addressing this problem. I optimized the latency of
+  // 'registerChanges()' and 'upload(transaction:)' with multicore CPU
+  // parallelism. Here are the results of the development time invested.
   
   // macOS system:
   // - M1 Max (10-core CPU, 32-core GPU)
@@ -114,20 +115,15 @@ public class Atoms {
   // - original latency estimate: 9.25 nm/atom
   //   - limited to 0.9M atoms/frame @ 120 Hz,
   //   - GPU time predicted to be ~1.5 ms / 8.3 ms
-  // - optimized latency estimate:
+  // - optimized latency estimate: TODO
   //
   // Windows system:
   // - Intel Core i5-4460, GTX 970
   // - 60 Hz display
-  // - original latency estimate: 21.13 ns/atom
+  // - original latency estimate: 21.16 ns/atom
   //   - limited to 0.8M atoms/frame @ 60 Hz
-  //   - GPU time predicted to be
-  
-  
-  // - limited to 0.8M atoms/frame @ 60 Hz if 21.13 ns/atom latency
-  //   - GPU time predicted to be ~7.1 ms / 16.7 ms
-  // - limited to 1.2M atoms/frame @ 60 Hz if 13.42 ns/atom latency
-  //   - GPU time predicted to be ~10.7 ms / 16.7 ms
+  //   - GPU time predicted to be ~5.9 ms / 16.7 ms
+  // - optimized latency estimate: TODO
   //
   // Real-world performance can probably come very close to the limits stated
   // above. While the GPU is occupied with a second demanding task besides
