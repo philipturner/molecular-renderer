@@ -45,19 +45,28 @@ extension BVHBuilder {
         "Moved and added atom count must not exceed \(maxTransactionSize).")
     }
     
+    // TODO: Specify the benchmark conditions so we can preserve these
+    // stats in the future, as justification for the design choice.
+    
     // Serial copying of IDs and positions
     //
     // macOS:
-    //   single-threaded: 88, 351 -> 461
-    //   multi-threaded: 77, 215 -> 285
+    //   single-threaded: 88, 351 -> 461 μs
+    //   multi-threaded: 77, 215 -> 285 μs
     //
     // Windows:
-    //   single-threaded: 354, 1256 -> 1626
-    //   multi-threaded: 345, 1262 -> 1678
+    //   single-threaded: 354, 1256 -> 1626 μs
+    //   multi-threaded: 345, 1262 -> 1678 μs
     
     // Concurrent / simultaneous copying of IDs and positions
     //
-    // TODO
+    // macOS:
+    //   single-threaded:
+    //   multi-threaded:
+    //
+    // Windows:
+    //   single-threaded: 1623 μs
+    //   multi-threaded: 1657 μs
     
     #if os(macOS)
     nonisolated(unsafe)
@@ -74,7 +83,8 @@ extension BVHBuilder {
     nonisolated(unsafe)
     let safeTransaction = transaction
     let taskCount = transaction.count
-    DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
+    // DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
+    for taskID in 0..<taskCount {
       let chunk = safeTransaction[taskID]
       let removedOffset = Int(reduction.removedPrefixSum[taskID])
       let movedOffset = Int(reduction.movedPrefixSum[taskID])
