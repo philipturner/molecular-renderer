@@ -122,7 +122,7 @@ public class Atoms {
   // - 120 Hz display
   // - original latency estimate: 9.25 nm/atom
   //   - limited to 0.901M atoms/frame @ 120 Hz,
-  //   - GPU time predicted to be 1.52 ms / 8.33 ms
+  //   - GPU time at this atom count: 1.52 ms / 8.33 ms
   // - optimized latency estimate: TODO
   //
   // Windows system:
@@ -130,9 +130,8 @@ public class Atoms {
   // - 60 Hz display
   // - original latency estimate: 21.16 ns/atom
   //   - limited to 0.788M atoms/frame @ 60 Hz
-  //   - GPU time predicted to be 5.78 ms / 16.67 ms
+  //   - GPU time at this atom count: 5.78 ms / 16.67 ms
   // - optimized latency estimate: TODO
-  //
   //
   // Real-world performance can probably come very close to the limits stated
   // above. While the GPU is occupied with a second demanding task besides
