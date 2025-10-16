@@ -284,6 +284,9 @@ struct RenderShader {
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
       
+      // Access the crash buffer for convenient debugging. Crash if the
+      // atom ID is nonzero and waveIsFirstLane().
+      
       // Write the depth and motion vector ASAP, reducing register pressure.
       \(computeDepth())
       \(computeMotionVector())

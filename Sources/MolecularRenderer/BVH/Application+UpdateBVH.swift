@@ -117,9 +117,7 @@ extension Application {
       bvhBuilder.rebuildProcess2(
         commandList: commandList)
       
-      bvhBuilder.counters.crashBuffer.download(
-        commandList: commandList,
-        inFlightFrameID: inFlightFrameID)
+      
       
       #if os(Windows)
       try! commandList.d3d12CommandList.EndQuery(
@@ -166,6 +164,9 @@ extension Application {
         inFlightFrameID: inFlightFrameID)
       bvhBuilder.resetVoxelMarks(
         commandList: commandList)
+      bvhBuilder.counters.crashBuffer.download(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
       
       #if os(Windows)
       bvhBuilder.computeUAVBarrier(commandList: commandList)

@@ -91,3 +91,17 @@ Objective is to reach as many atoms as possible, until your GPU runs out of memo
 Get this working at the very end of the PR. Make a YouTube video of ~70M atoms on M1 Max (1620x1620 window for maximum detail). Post it, link into this document, overhaul the repo, and then return to social media. Estimated date: end of October.
 
 The scene will take some time to design correctly. Expect it to hit challenging pain points for performance. It is a rigorous proof that I have achieved the ultimate goal of computer graphics.
+
+Make the entire thing parameterizable and scalable. Then, fix the parameters at a set that theoretically scales to a scene with 500M atoms.
+
+| Chip     | RAM    | Theoretical Max Atoms |
+| -------- | -----: | --------------------: |
+| GTX 970  | 3.5 GB | 33M   |
+| M1       |   8 GB | 75M   |
+| M1 Pro   |  16 GB | 150M  |
+| 7900 XTX |  24 GB | 225M  |
+| RTX 4090 |  24 GB | 225M  |
+| M1 Max   |  32 GB | 300M  |
+| RTX 5090 |  32 GB | 300M  |
+| M3 Max   | 128 GB | 1200M |
+| M3 Ultra | 512 GB | 4800M |
