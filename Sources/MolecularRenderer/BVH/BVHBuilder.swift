@@ -253,17 +253,24 @@ class BVHBuilder {
       let buffer = atoms.transactionAtoms.inputBuffers[inFlightFrameID]
       #endif
       
-      let movedPointer = UnsafeRawBufferPointer(
-        start: transaction[0].movedPositions, count: movedCount * 16)
-      let addedPointer = UnsafeRawBufferPointer(
-        start: transaction[0].addedPositions, count: addedCount * 16)
-      
-      buffer.write(
-        input: movedPointer,
-        offset: 0)
-      buffer.write(
-        input: addedPointer,
-        offset: movedCount * 16)
+      var movedOffset: Int = .zero
+      var addedOffset: Int = .zero
+      for chunk in transaction {
+        let movedPointer = UnsafeRawBufferPointer(
+          start: chunk.movedPositions, count: movedCount * 16)
+        let addedPointer = UnsafeRawBufferPointer(
+          start: chunk.addedPositions, count: addedCount * 16)
+        
+        buffer.write(
+          input: movedPointer,
+          offset: (movedOffset) * 16)
+        buffer.write(
+          input: addedPointer,
+          offset: (movedCount + addedOffset) * 16)
+        
+        movedOffset += Int(chunk.movedCount)
+        addedOffset += Int(chunk.addedCount)
+      }
       
 //      transaction.movedPositions.withUnsafeBytes { bufferPointer in
 //        buffer.write(
