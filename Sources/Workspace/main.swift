@@ -226,6 +226,28 @@ func createRotatedBeam(frameID: Int) -> Topology {
   return topology
 }
 
+do {
+  print("Hello Quaternion")
+  
+  let angleDegrees: Float = 3 * Float(9)
+  let rotation = Quaternion<Float>(
+    angle: angleDegrees * Float.pi / 180,
+    axis: SIMD3(0, 0, 1))
+  let basis0 = rotation.act(on: SIMD3<Float>(1, 0, 0))
+  let basis1 = rotation.act(on: SIMD3<Float>(0, 1, 0))
+  let basis2 = rotation.act(on: SIMD3<Float>(0, 0, 1))
+  
+  let position = SIMD3<Float>(4.5, 6.1, -9.2)
+  print(rotation.act(on: position))
+  
+  var rotatedPosition: SIMD3<Float> = .zero
+  rotatedPosition += position[0] * basis0
+  rotatedPosition += position[1] * basis1
+  rotatedPosition += position[2] * basis2
+  print(rotatedPosition)
+}
+exit(0)
+
 // MARK: - Launch Application
 
 @MainActor
