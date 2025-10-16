@@ -1,3 +1,5 @@
+import Foundation
+
 public class Atoms {
   public let addressSpaceSize: Int
   private static let blockSize: Int = 512
@@ -167,6 +169,7 @@ public class Atoms {
   // That means 1.61 ns/atom (0.1M atoms), 1.59 ns/atom (1M atoms) on the GPU
   // timeline.
   func registerChanges() -> Transaction {
+    let checkpoint0 = Date()
     var modifiedBlockIDs: [UInt32] = []
     for blockID in 0..<(addressSpaceSize / Self.blockSize) {
       // Reset blocksModified
@@ -177,6 +180,7 @@ public class Atoms {
       
       modifiedBlockIDs.append(UInt32(blockID))
     }
+    let checkpoint1 = Date()
     
     // Reserve array capacity to defeat overhead of array re-allocation.
     let maxAtomCount = modifiedBlockIDs.count * Self.blockSize
@@ -186,6 +190,8 @@ public class Atoms {
     output.movedPositions.reserveCapacity(maxAtomCount)
     output.addedIDs.reserveCapacity(maxAtomCount)
     output.addedPositions.reserveCapacity(maxAtomCount)
+    
+    let checkpoint2 = Date()
     
     for blockID in modifiedBlockIDs {
       let startAtomID = blockID * UInt32(Self.blockSize)
@@ -222,6 +228,24 @@ public class Atoms {
         }
       }
     }
+    
+    let checkpoint3 = Date()
+    
+    let latency01 = checkpoint1.timeIntervalSince(checkpoint0)
+    let latency12 = checkpoint2.timeIntervalSince(checkpoint1)
+    let latency23 = checkpoint3.timeIntervalSince(checkpoint2)
+    let latency01Microseconds = Int(latency01 * 1e6)
+    let latency12Microseconds = Int(latency12 * 1e6)
+    let latency23Microseconds = Int(latency23 * 1e6)
+    print("register.latency01:", latency01Microseconds, "μs")
+    print("register.latency12:", latency12Microseconds, "μs")
+    print("register.latency23:", latency23Microseconds, "μs")
+    
+    let total =
+    latency01Microseconds +
+    latency12Microseconds +
+    latency23Microseconds
+    print("register.total:", total, "μs")
     
     return output
   }
