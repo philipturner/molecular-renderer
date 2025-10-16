@@ -50,6 +50,9 @@ extension BVHBuilder {
         "Moved and added atom count must not exceed \(maxTransactionSize).")
     }
     
+    // TODO: If parallelization proves worthwhile on all platforms, try one
+    // final optimization: copy the IDs and atoms concurrently.
+    
     // Write to the IDs buffer.
     let checkpoint1 = Date()
     do {
@@ -61,8 +64,12 @@ extension BVHBuilder {
       let buffer = atoms.transactionIDs.inputBuffers[inFlightFrameID]
       #endif
       
-      for taskID in transaction.indices {
-        let chunk = transaction[taskID]
+      nonisolated(unsafe)
+      let safeTransaction = transaction
+      let taskCount = transaction.count
+      DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
+//      for taskID in 0..<taskCount {
+        let chunk = safeTransaction[taskID]
         let removedPointer = UnsafeRawBufferPointer(
           start: chunk.removedIDs, count: Int(chunk.removedCount) * 4)
         let movedPointer = UnsafeRawBufferPointer(
@@ -100,6 +107,7 @@ extension BVHBuilder {
       let safeTransaction = transaction
       let taskCount = transaction.count
       DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
+//      for taskID in 0..<taskCount {
         let chunk = safeTransaction[taskID]
         let movedPointer = UnsafeRawBufferPointer(
           start: chunk.movedPositions, count: Int(chunk.movedCount) * 16)
