@@ -48,6 +48,11 @@ Test at least one case of a skinny, rotating rod where the total number of cells
 
 Also include some stationary atoms nearby, which you can guarantee fall into some of the same cells. The test is scaleable, just like the long distances test.
 
+| Maximum Atom Count | macOS System | Windows System |
+| ------------------ | -----------: | -------------: |
+| Theoretical        | 1,546,000    | 954,000        |
+| Actual             | 934,000      | TBD            |
+
 ## Long Distances
 
 Run a test that hits the pain points of ray tracing. Long primary ray traversal times in the DDA, high divergence for AO rays. Not exactly stressing the BVH update process. Rather, a single unchanging BVH and a rotating camera to detect stuttering. Make the test scaleable to different distances and window sizes.

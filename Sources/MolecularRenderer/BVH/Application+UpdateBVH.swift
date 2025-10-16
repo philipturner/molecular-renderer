@@ -1,33 +1,7 @@
-// For profiling with D3D12 timestamp queries.
 #if os(Windows)
 import SwiftCOM
 import WinSDK
 #endif
-
-// Temporary import for profiling CPU-side bottleneck.
-import Foundation
-
-public struct PerformanceMeter {
-  public var minimum: Int = .max
-  
-  public init() {
-    
-  }
-  
-  public mutating func integrate(_ measurement: Int) {
-    if measurement < minimum {
-      minimum = measurement
-    }
-  }
-  
-  public static func pad(_ latency: Int) -> String {
-    var output = "\(latency)"
-    while output.count < 5 {
-      output = " " + output
-    }
-    return output
-  }
-}
 
 // TODO: Before finishing the acceleration structure PR, remove the public
 // modifier for the functions in this extension.
@@ -89,19 +63,14 @@ extension Application {
       }
       #endif
       
+      // Edit this code to inspect GPU-side performance.
       _ = updateBVHLatency
       _ = renderLatency
     }
   }
   
   public func updateBVH(inFlightFrameID: Int) {
-    let start = Date()
     let transaction = atoms.registerChanges()
-    let end = Date()
-    let registerLatency = end.timeIntervalSince(start)
-    let registerLatencyMicroseconds = Int(registerLatency * 1e6)
-    registerMeter.integrate(registerLatencyMicroseconds)
-    print(PerformanceMeter.pad(registerMeter.minimum), terminator: " ")
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
@@ -118,17 +87,10 @@ extension Application {
         commandList: commandList)
       bvhBuilder.setupGeneralCounters(
         commandList: commandList)
-      
-      let start = Date()
       bvhBuilder.upload(
         transaction: transaction,
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
-      let end = Date()
-      let uploadLatency = end.timeIntervalSince(start)
-      let uploadLatencyMicroseconds = Int(uploadLatency * 1e6)
-      uploadMeter.integrate(uploadLatencyMicroseconds)
-      print(PerformanceMeter.pad(uploadMeter.minimum), terminator: " ")
       
       // Encode the remove process.
       bvhBuilder.removeProcess1(

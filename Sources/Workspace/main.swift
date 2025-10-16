@@ -197,9 +197,6 @@ analyze(topology: beam)
 
 // MARK: - Rotation Animation
 
-var rotateMeter = PerformanceMeter()
-var apiMeter = PerformanceMeter()
-
 @MainActor
 func createRotatedBeam(frameID: Int) -> Topology {
   // 0.5 Hz -> 3 degrees/frame @ 60 Hz
@@ -220,7 +217,6 @@ func createRotatedBeam(frameID: Int) -> Topology {
   let basis1 = rotation.act(on: SIMD3<Float>(0, 1, 0))
   let basis2 = rotation.act(on: SIMD3<Float>(0, 0, 1))
   
-  let start = Date()
   var topology = beam
   for atomID in topology.atoms.indices {
     var atom = topology.atoms[atomID]
@@ -233,11 +229,6 @@ func createRotatedBeam(frameID: Int) -> Topology {
     
     topology.atoms[atomID] = atom
   }
-  let end = Date()
-  let rotateLatency = end.timeIntervalSince(start)
-  let rotateLatencyMicroseconds = Int(rotateLatency * 1e6)
-  rotateMeter.integrate(rotateLatencyMicroseconds)
-  print(PerformanceMeter.pad(rotateMeter.minimum), terminator: " ")
   
   return topology
 }
@@ -287,16 +278,10 @@ func addRotatedBeam(frameID: Int) {
   // 'application' from the global scope.
   let applicationCopy = application
   
-  let start = Date()
   for atomID in rotatedBeam.atoms.indices {
     let atom = rotatedBeam.atoms[atomID]
     applicationCopy.atoms[offset + atomID] = atom
   }
-  let end = Date()
-  let apiLatency = end.timeIntervalSince(start)
-  let apiLatencyMicroseconds = Int(apiLatency * 1e6)
-  apiMeter.integrate(apiLatencyMicroseconds)
-  print(PerformanceMeter.pad(apiMeter.minimum), terminator: " ")
 }
 
 #if false

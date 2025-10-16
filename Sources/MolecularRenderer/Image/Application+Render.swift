@@ -1,5 +1,4 @@
 import func Foundation.tan
-
 #if os(Windows)
 import SwiftCOM
 import WinSDK
