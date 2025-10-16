@@ -144,6 +144,20 @@ extension Application {
         destinationBuffer.d3d12Resource,
         0)
       #endif
+      
+      #if os(macOS)
+      nonisolated(unsafe)
+      let selfReference = self
+      commandList.mtlCommandBuffer.addCompletedHandler { commandBuffer in
+        selfReference.bvhBuilder.counters.queue.sync {
+          var executionTime = commandBuffer.gpuEndTime
+          executionTime -= commandBuffer.gpuStartTime
+          let latencyMicroseconds = Int(executionTime * 1e6)
+          selfReference.bvhBuilder.counters
+            .updateBVHLatencies[inFlightFrameID] = latencyMicroseconds
+        }
+      }
+      #endif
     }
   }
   
