@@ -57,7 +57,7 @@ func passivate(topology: inout Topology) {
 
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 48
+let beamDepth: Int = 2
 let worldDimension: Float = 96
 
 func createCross() -> Topology {

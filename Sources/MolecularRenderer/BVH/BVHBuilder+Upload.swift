@@ -1,8 +1,5 @@
 import Dispatch
 
-// Temporary import for profiling CPU-side bottleneck.
-import Foundation
-
 extension BVHBuilder {
   // Reduction over all chunks of the transaction.
   private struct TransactionReduction {
@@ -35,8 +32,6 @@ extension BVHBuilder {
     commandList: CommandList,
     inFlightFrameID: Int
   ) {
-    
-    let checkpoint0 = Date()
     let reduction = TransactionReduction(
       transaction: transaction)
     
@@ -50,11 +45,21 @@ extension BVHBuilder {
         "Moved and added atom count must not exceed \(maxTransactionSize).")
     }
     
-    // TODO: If parallelization proves worthwhile on all platforms, try one
-    // final optimization: copy the IDs and atoms concurrently.
+    // Serial copying of IDs and positions
+    //
+    // macOS:
+    //   single-threaded: 88, 351 -> 461
+    //   multi-threaded: 77, 215 -> 285
+    //
+    // Windows:
+    //   single-threaded: 354, 1256 -> 1626
+    //   multi-threaded: 345, 1262 -> 1678
+    
+    // Concurrent / simultaneous copying of IDs and positions
+    //
+    // TODO
     
     // Write to the IDs buffer.
-    let checkpoint1 = Date()
     do {
       #if os(macOS)
       nonisolated(unsafe)
@@ -64,25 +69,10 @@ extension BVHBuilder {
       let buffer = atoms.transactionIDs.inputBuffers[inFlightFrameID]
       #endif
       
-      // Serial copying of IDs and positions
-      //
-      // macOS:
-      //   single-threaded: 88, 351 -> 461
-      //   multi-threaded: 77, 215 -> 285
-      //
-      // Windows:
-      //   single-threaded: 354, 1256 -> 1626
-      //   multi-threaded: 345, 1262 -> 1678
-      
-      // Concurrent copying of IDs and positions
-      //
-      // TODO
-      
       nonisolated(unsafe)
       let safeTransaction = transaction
       let taskCount = transaction.count
       DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
-      // for taskID in 0..<taskCount {
         let chunk = safeTransaction[taskID]
         let removedPointer = UnsafeRawBufferPointer(
           start: chunk.removedIDs, count: Int(chunk.removedCount) * 4)
@@ -107,7 +97,6 @@ extension BVHBuilder {
     }
     
     // Write to the atoms buffer.
-    let checkpoint2 = Date()
     do {
       #if os(macOS)
       nonisolated(unsafe)
@@ -121,7 +110,6 @@ extension BVHBuilder {
       let safeTransaction = transaction
       let taskCount = transaction.count
       DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
-      // for taskID in 0..<taskCount {
         let chunk = safeTransaction[taskID]
         let movedPointer = UnsafeRawBufferPointer(
           start: chunk.movedPositions, count: Int(chunk.movedCount) * 16)
@@ -138,7 +126,6 @@ extension BVHBuilder {
           offset: (reduction.totalMoved + addedOffset) * 16)
       }
     }
-    let checkpoint3 = Date()
     
     #if os(Windows)
     // Dispatch the GPU commands to copy the PCIe data.
@@ -158,21 +145,6 @@ extension BVHBuilder {
         range: 0..<(atomsCount * 16))
     }
     #endif
-    let checkpoint4 = Date()
-    
-    func displayLatency(
-      _ start: Date,
-      _ end: Date,
-      name: String
-    ) {
-      let latency = end.timeIntervalSince(start)
-      let latencyMicroseconds = Int(latency * 1e6)
-      print("upload.\(name):", latencyMicroseconds, "μs")
-    }
-//    displayLatency(checkpoint0, checkpoint1, name: "latency01")
-//    displayLatency(checkpoint1, checkpoint2, name: "latency12")
-//    displayLatency(checkpoint2, checkpoint3, name: "latency23")
-//    displayLatency(checkpoint3, checkpoint4, name: "latency34")
     
     // Set the transactionArgs.
     do {

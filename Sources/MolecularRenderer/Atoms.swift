@@ -209,7 +209,7 @@ public class Atoms {
     let modifiedBlockIDs = createModifiedBlockIDs()
     
     // TODO: Revert to 50_000
-    let taskSize: Int = 50_000 / Self.blockSize
+    let taskSize: Int = 5_000 / Self.blockSize
     let taskCount = (modifiedBlockIDs.count + taskSize - 1) / taskSize
     
     func createChunks() -> [Transaction] {
