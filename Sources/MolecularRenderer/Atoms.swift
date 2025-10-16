@@ -1,5 +1,3 @@
-import Foundation
-
 public class Atoms {
   public let addressSpaceSize: Int
   private static let blockSize: Int = 512
@@ -190,7 +188,6 @@ public class Atoms {
   // That means 1.61 ns/atom (0.1M atoms), 1.59 ns/atom (1M atoms) on the GPU
   // timeline.
   func registerChanges() -> [Transaction] {
-    let checkpoint0 = Date()
     var modifiedBlockIDs: [UInt32] = []
     for blockID in 0..<(addressSpaceSize / Self.blockSize) {
       // Reset blocksModified
@@ -201,70 +198,55 @@ public class Atoms {
       
       modifiedBlockIDs.append(UInt32(blockID))
     }
-    let checkpoint1 = Date()
     
-    // Reserve array capacity to defeat overhead of array re-allocation.
-    let output = Transaction(blockCount: modifiedBlockIDs.count)
+    var output: [Transaction] = []
+    do {
+      let chunk = Transaction(blockCount: modifiedBlockIDs.count)
+      output.append(chunk)
+    }
     
-    let checkpoint2 = Date()
-    
-    for blockID in modifiedBlockIDs {
-      let startAtomID = blockID * UInt32(Self.blockSize)
-      let endAtomID = startAtomID + UInt32(Self.blockSize)
-      for atomID in startAtomID..<endAtomID {
-        // Reset positionsModified
-        guard positionsModified[Int(atomID)] else {
-          continue
-        }
-        positionsModified[Int(atomID)] = false
-        
-        // Read occupied
-        let atomPreviousOccupied = previousOccupied[Int(atomID)]
-        let atomOccupied = occupied[Int(atomID)]
-        
-        // Save changes to previousOccupied
-        previousOccupied[Int(atomID)] = atomOccupied
-        
-        if !atomOccupied {
-          if atomPreviousOccupied {
-            output.removedIDs[Int(output.removedCount)] = atomID
-            output.removedCount += 1
+    do {
+      let chunk = output[0]
+      for blockID in modifiedBlockIDs {
+        let startAtomID = blockID * UInt32(Self.blockSize)
+        let endAtomID = startAtomID + UInt32(Self.blockSize)
+        for atomID in startAtomID..<endAtomID {
+          // Reset positionsModified
+          guard positionsModified[Int(atomID)] else {
+            continue
           }
-        } else {
-          // Read positions
-          let position = positions[Int(atomID)]
+          positionsModified[Int(atomID)] = false
           
-          if atomPreviousOccupied {
-            output.movedIDs[Int(output.movedCount)] = atomID
-            output.movedPositions[Int(output.movedCount)] = position
-            output.movedCount += 1
+          // Read occupied
+          let atomPreviousOccupied = previousOccupied[Int(atomID)]
+          let atomOccupied = occupied[Int(atomID)]
+          
+          // Save changes to previousOccupied
+          previousOccupied[Int(atomID)] = atomOccupied
+          
+          if !atomOccupied {
+            if atomPreviousOccupied {
+              chunk.removedIDs[Int(chunk.removedCount)] = atomID
+              chunk.removedCount += 1
+            }
           } else {
-            output.addedIDs[Int(output.addedCount)] = atomID
-            output.addedPositions[Int(output.addedCount)] = position
-            output.addedCount += 1
+            // Read positions
+            let position = positions[Int(atomID)]
+            
+            if atomPreviousOccupied {
+              chunk.movedIDs[Int(chunk.movedCount)] = atomID
+              chunk.movedPositions[Int(chunk.movedCount)] = position
+              chunk.movedCount += 1
+            } else {
+              chunk.addedIDs[Int(chunk.addedCount)] = atomID
+              chunk.addedPositions[Int(chunk.addedCount)] = position
+              chunk.addedCount += 1
+            }
           }
         }
       }
     }
     
-    let checkpoint3 = Date()
-    
-    let latency01 = checkpoint1.timeIntervalSince(checkpoint0)
-    let latency12 = checkpoint2.timeIntervalSince(checkpoint1)
-    let latency23 = checkpoint3.timeIntervalSince(checkpoint2)
-    let latency01Microseconds = Int(latency01 * 1e6)
-    let latency12Microseconds = Int(latency12 * 1e6)
-    let latency23Microseconds = Int(latency23 * 1e6)
-    print("register.latency01:", latency01Microseconds, "μs")
-    print("register.latency12:", latency12Microseconds, "μs")
-    print("register.latency23:", latency23Microseconds, "μs")
-    
-    let total =
-    latency01Microseconds +
-    latency12Microseconds +
-    latency23Microseconds
-    print("register.total:", total, "μs")
-    
-    return [output]
+    return output
   }
 }
