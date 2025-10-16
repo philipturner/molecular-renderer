@@ -199,15 +199,26 @@ public class Atoms {
       modifiedBlockIDs.append(UInt32(blockID))
     }
     
+    let taskSize: Int = modifiedBlockIDs.count
+    let taskCount = (modifiedBlockIDs.count + taskSize - 1) / taskSize
+    
     var output: [Transaction] = []
-    do {
-      let chunk = Transaction(blockCount: modifiedBlockIDs.count)
+    for taskID in 0..<taskCount {
+      let start = taskID * taskSize
+      let end = min(start + taskSize, modifiedBlockIDs.count)
+      
+      let chunk = Transaction(blockCount: end - start)
       output.append(chunk)
     }
     
-    do {
-      let chunk = output[0]
-      for blockID in modifiedBlockIDs {
+    for taskID in 0..<taskCount {
+      let chunk = output[taskID]
+      
+      let start = taskID * taskSize
+      let end = min(start + taskSize, modifiedBlockIDs.count)
+      for i in start..<end {
+        let blockID = modifiedBlockIDs[i]
+        
         let startAtomID = blockID * UInt32(Self.blockSize)
         let endAtomID = startAtomID + UInt32(Self.blockSize)
         for atomID in startAtomID..<endAtomID {
