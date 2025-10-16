@@ -102,7 +102,7 @@ public class Atoms {
   //   - GPU time predicted to be ~7.1 ms / 16.7 ms
   // - limited to 1.2M atoms/frame @ 60 Hz if 13.42 ns/atom latency
   //   - GPU time predicted to be ~10.7 ms / 16.7 ms
-  
+  //
   // Real-world performance can probably come very close to the limits stated
   // above. While the GPU is occupied with a second demanding task besides
   // updating the BVH, the CPU is not.
