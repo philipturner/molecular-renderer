@@ -59,7 +59,7 @@ func passivate(topology: inout Topology) {
 
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 57
+let beamDepth: Int = 1
 let worldDimension: Float = 96
 
 func createCross() -> Topology {
@@ -199,14 +199,6 @@ analyze(topology: beam)
 
 // MARK: - Rotation Animation
 
-func pad(_ latency: Int) -> String {
-  var output = "\(latency)"
-  while output.count < 5 {
-    output = " " + output
-  }
-  return output
-}
-
 @MainActor
 func createRotatedBeam(frameID: Int) -> Topology {
   // 0.5 Hz -> 3 degrees/frame @ 60 Hz
@@ -243,7 +235,7 @@ func createRotatedBeam(frameID: Int) -> Topology {
   let end = Date()
   let rotateLatency = end.timeIntervalSince(start)
   let rotateLatencyMicroseconds = Int(rotateLatency * 1e6)
-  print(pad(rotateLatencyMicroseconds), terminator: " ")
+  print(PerformanceMeter.pad(rotateLatencyMicroseconds), terminator: " ")
   
   return topology
 }
@@ -299,9 +291,9 @@ func addRotatedBeam(frameID: Int) {
     applicationCopy.atoms[offset + atomID] = atom
   }
   let end = Date()
-  let addLatency = end.timeIntervalSince(start)
-  let addLatencyMicroseconds = Int(addLatency * 1e6)
-  print(pad(addLatencyMicroseconds), terminator: " ")
+  let apiLatency = end.timeIntervalSince(start)
+  let apiLatencyMicroseconds = Int(apiLatency * 1e6)
+  print(PerformanceMeter.pad(apiLatencyMicroseconds), terminator: " ")
 }
 
 #if false

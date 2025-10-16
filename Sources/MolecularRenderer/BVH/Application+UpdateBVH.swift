@@ -7,6 +7,28 @@ import WinSDK
 // Temporary import for profiling CPU-side bottleneck.
 import Foundation
 
+public struct PerformanceMeter {
+  public var minimum: Int = .max
+  
+  public init() {
+    
+  }
+  
+  public mutating func integrate(_ measurement: Int) {
+    if measurement < minimum {
+      minimum = measurement
+    }
+  }
+  
+  public static func pad(_ latency: Int) -> String {
+    var output = "\(latency)"
+    while output.count < 5 {
+      output = " " + output
+    }
+    return output
+  }
+}
+
 // TODO: Before finishing the acceleration structure PR, remove the public
 // modifier for the functions in this extension.
 extension Application {
@@ -69,26 +91,16 @@ extension Application {
       
       _ = updateBVHLatency
       _ = renderLatency
-      // print("update BVH:", updateBVHLatency, "μs")
-      // print("render:", renderLatency, "μs")
     }
   }
   
   public func updateBVH(inFlightFrameID: Int) {
-    func pad(_ latency: Int) -> String {
-      var output = "\(latency)"
-      while output.count < 5 {
-        output = " " + output
-      }
-      return output
-    }
-    
     let start = Date()
     let transaction = atoms.registerChanges()
     let end = Date()
     let registerLatency = end.timeIntervalSince(start)
     let registerLatencyMicroseconds = Int(registerLatency * 1e6)
-    print(pad(registerLatencyMicroseconds), terminator: " ")
+    print(PerformanceMeter.pad(registerLatencyMicroseconds), terminator: " ")
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
@@ -114,7 +126,7 @@ extension Application {
       let end = Date()
       let uploadLatency = end.timeIntervalSince(start)
       let uploadLatencyMicroseconds = Int(uploadLatency * 1e6)
-      print(pad(uploadLatencyMicroseconds), terminator: " ")
+      print(PerformanceMeter.pad(uploadLatencyMicroseconds), terminator: " ")
       
       // Encode the remove process.
       bvhBuilder.removeProcess1(
