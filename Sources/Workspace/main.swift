@@ -1,3 +1,4 @@
+import Foundation
 import HDL
 import MolecularRenderer
 import QuaternionModule
@@ -55,7 +56,7 @@ func passivate(topology: inout Topology) {
 
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 2
+let beamDepth: Int = 40
 let worldDimension: Float = 96
 
 func createCross() -> Topology {
@@ -210,12 +211,18 @@ func createRotatedBeam(frameID: Int) -> Topology {
     angle: angleDegrees * Float.pi / 180,
     axis: SIMD3(0, 0, 1))
   
+  let start = Date()
   var topology = beam
   for atomID in topology.atoms.indices {
     var atom = topology.atoms[atomID]
-    atom.position = rotation.act(on: atom.position)
+    atom.position = atom.position + Float(1) //rotation.act(on: atom.position)
     topology.atoms[atomID] = atom
   }
+  let end = Date()
+  let rotateLatency = end.timeIntervalSince(start)
+  let rotateLatencyMicroseconds = Int(rotateLatency * 1e6)
+  print("rotate:", rotateLatencyMicroseconds, "μs")
+  
   return topology
 }
 
@@ -280,12 +287,12 @@ for atomID in cross.atoms.indices {
   application.atoms[atomID] = atom
 }
 
-for frameID in 0..<16 {
-//   print()
-//   print("===============")
-//   print("=== frame \(frameID) ===")
-//   print("===============")
-//  
+for frameID in 0..<6 {
+  print()
+  print("===============")
+  print("=== frame \(frameID) ===")
+  print("===============")
+//
 //   print()
 //   print("rotation: \(frameID * 3) degrees")
   
@@ -301,8 +308,8 @@ for frameID in 0..<16 {
   application.updateBVH(inFlightFrameID: frameID % 3)
   application.forgetIdleState(inFlightFrameID: frameID % 3)
   
-//   print()
-//   analyzeGeneralCounters()
+  print()
+  analyzeGeneralCounters()
 }
 
 #endif

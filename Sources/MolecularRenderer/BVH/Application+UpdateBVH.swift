@@ -64,7 +64,6 @@ extension Application {
       }
       #endif
       
-      print()
       print("update BVH:", updateBVHLatency, "μs")
       print("render:", renderLatency, "μs")
     }
