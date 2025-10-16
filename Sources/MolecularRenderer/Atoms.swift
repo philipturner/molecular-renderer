@@ -199,7 +199,7 @@ public class Atoms {
       modifiedBlockIDs.append(UInt32(blockID))
     }
     
-    let taskSize: Int = modifiedBlockIDs.count
+    let taskSize: Int = 10
     let taskCount = (modifiedBlockIDs.count + taskSize - 1) / taskSize
     
     var output: [Transaction] = []
@@ -212,6 +212,7 @@ public class Atoms {
     }
     
     for taskID in 0..<taskCount {
+      print("task ID:", taskID)
       let chunk = output[taskID]
       
       let start = taskID * taskSize
