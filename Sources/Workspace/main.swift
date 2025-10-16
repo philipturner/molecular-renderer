@@ -57,7 +57,7 @@ func passivate(topology: inout Topology) {
 
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 56
+let beamDepth: Int = 48
 let worldDimension: Float = 96
 
 func createCross() -> Topology {
@@ -269,22 +269,36 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-#if true
 for atomID in cross.atoms.indices {
   let atom = cross.atoms[atomID]
   application.atoms[atomID] = atom
 }
 
+@MainActor
+func addRotatedBeam(frameID: Int) {
+  let rotatedBeam = createRotatedBeam(frameID: frameID)
+  let offset = cross.atoms.count
+  
+  // Circumvent a massive CPU-side bottleneck from @MainActor referencing to
+  // 'application' from the global scope.
+  let applicationCopy = application
+  
+  let start = Date()
+  for atomID in rotatedBeam.atoms.indices {
+    let atom = rotatedBeam.atoms[atomID]
+    applicationCopy.atoms[offset + atomID] = atom
+  }
+  let end = Date()
+  let addLatency = end.timeIntervalSince(start)
+  let addLatencyMicroseconds = Int(addLatency * 1e6)
+  print("add:", addLatencyMicroseconds, "μs")
+}
+
+#if false
 application.run {
   print()
   
-  let rotatedBeam = createRotatedBeam(
-    frameID: application.clock.frames)
-  for atomID in rotatedBeam.atoms.indices {
-    let atom = rotatedBeam.atoms[atomID]
-    let offset = cross.atoms.count
-    application.atoms[offset + atomID] = atom
-  }
+  addRotatedBeam(frameID: application.clock.frames)
   
   let image = application.render()
   application.present(image: image)
@@ -309,36 +323,18 @@ func analyzeGeneralCounters() {
   }
 }
 
-for atomID in cross.atoms.indices {
-  let atom = cross.atoms[atomID]
-  application.atoms[atomID] = atom
-}
-
 for frameID in 0..<16 {
-  // print()
-  // print("===============")
-  // print("=== frame \(frameID) ===")
-  // print("===============")
-
-  // print()
-  // print("rotation: \(frameID * 3) degrees")
-  
   print()
   
-  let rotatedBeam = createRotatedBeam(frameID: frameID)
-  for atomID in rotatedBeam.atoms.indices {
-    let atom = rotatedBeam.atoms[atomID]
-    let offset = cross.atoms.count
-    application.atoms[offset + atomID] = atom
-  }
+  addRotatedBeam(frameID: frameID)
   
   application.checkCrashBuffer(frameID: frameID)
   application.checkExecutionTime(frameID: frameID)
   application.updateBVH(inFlightFrameID: frameID % 3)
   application.forgetIdleState(inFlightFrameID: frameID % 3)
   
-  // print()
-  // analyzeGeneralCounters()
+  print()
+  analyzeGeneralCounters()
 }
 
 #endif
