@@ -45,6 +45,8 @@ public class Application {
   // Other resources
   let imageResources: ImageResources
   let bvhBuilder: BVHBuilder
+  var registerMeter = PerformanceMeter()
+  var uploadMeter = PerformanceMeter()
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {

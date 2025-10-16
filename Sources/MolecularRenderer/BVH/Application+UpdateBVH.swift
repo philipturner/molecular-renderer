@@ -100,7 +100,8 @@ extension Application {
     let end = Date()
     let registerLatency = end.timeIntervalSince(start)
     let registerLatencyMicroseconds = Int(registerLatency * 1e6)
-    print(PerformanceMeter.pad(registerLatencyMicroseconds), terminator: " ")
+    registerMeter.integrate(registerLatencyMicroseconds)
+    print(PerformanceMeter.pad(registerMeter.minimum), terminator: " ")
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
@@ -126,7 +127,8 @@ extension Application {
       let end = Date()
       let uploadLatency = end.timeIntervalSince(start)
       let uploadLatencyMicroseconds = Int(uploadLatency * 1e6)
-      print(PerformanceMeter.pad(uploadLatencyMicroseconds), terminator: " ")
+      uploadMeter.integrate(uploadLatencyMicroseconds)
+      print(PerformanceMeter.pad(uploadMeter.minimum), terminator: " ")
       
       // Encode the remove process.
       bvhBuilder.removeProcess1(
