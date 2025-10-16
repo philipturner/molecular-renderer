@@ -64,6 +64,9 @@ extension Application {
       // Edit this code to inspect GPU-side performance.
       _ = updateBVHLatency
       _ = renderLatency
+      print()
+      print(updateBVHLatency)
+      print(renderLatency)
     }
   }
   
@@ -116,8 +119,6 @@ extension Application {
         commandList: commandList)
       bvhBuilder.rebuildProcess2(
         commandList: commandList)
-      
-      
       
       #if os(Windows)
       try! commandList.d3d12CommandList.EndQuery(
