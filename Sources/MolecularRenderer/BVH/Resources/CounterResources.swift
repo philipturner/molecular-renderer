@@ -43,7 +43,7 @@ class CounterResources {
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
     
     #if os(macOS)
-    let label = "com.philipturner.MolecularRenderer.CounterResources.queue"
+    let label = "CounterResources.queue"
     self.queue = DispatchQueue(label: label)
     #else
     self.queryHeap = Self.createQueryHeap(device: device)
