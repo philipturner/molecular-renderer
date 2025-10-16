@@ -4,9 +4,9 @@ import SwiftCOM
 import WinSDK
 #endif
 
+// TODO: Before finishing the acceleration structure PR, remove the public
+// modifier for the functions in this extension.
 extension Application {
-  // TODO: Before finishing the acceleration structure PR, remove the public
-  // modifier for this.
   public func checkCrashBuffer(frameID: Int) {
     if frameID >= 3 {
       let elementCount = CounterResources.crashBufferSize / 4
@@ -30,9 +30,6 @@ extension Application {
     }
   }
   
-  // Only implemented on Windows at the moment. Metal should use an asynchronous
-  // command buffer handler indexing into an array with atomics or serial
-  // queues.
   public func checkExecutionTime(frameID: Int) {
     if frameID >= 3 {
       #if os(Windows)
@@ -53,15 +50,26 @@ extension Application {
         
         return Int(elapsedTime * 1e6)
       }
-      print()
-      print("update BVH:", latencyMicroseconds(startIndex: 0), "μs")
-      print("render:", latencyMicroseconds(startIndex: 2), "μs")
+      
+      let updateBVHLatency = latencyMicroseconds(startIndex: 0)
+      let renderLatency = latencyMicroseconds(startIndex: 2)
+      #else
+      var updateBVHLatency: Int = 0
+      var renderLatency: Int = 0
+      bvhBuilder.counters.queue.sync {
+        updateBVHLatency = bvhBuilder.counters
+          .updateBVHLatencies[frameID % 3]
+        renderLatency = bvhBuilder.counters
+          .renderLatencies[frameID % 3]
+      }
       #endif
+      
+      print()
+      print("update BVH:", updateBVHLatency, "μs")
+      print("render:", renderLatency, "μs")
     }
   }
   
-  // TODO: Before finishing the acceleration structure PR, remove the public
-  // modifier for this.
   public func updateBVH(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
 //     print()
@@ -139,8 +147,6 @@ extension Application {
     }
   }
   
-  // TODO: Before finishing the acceleration structure PR, remove the public
-  // modifier for this.
   public func forgetIdleState(inFlightFrameID: Int) {
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
