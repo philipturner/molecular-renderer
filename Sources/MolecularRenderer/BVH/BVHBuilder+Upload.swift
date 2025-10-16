@@ -63,10 +63,10 @@ extension BVHBuilder {
     do {
       #if os(macOS)
       nonisolated(unsafe)
-      let buffer = atoms.transactionIDs.nativeBuffers[inFlightFrameID]
+      let idsBuffer = atoms.transactionIDs.nativeBuffers[inFlightFrameID]
       #else
       nonisolated(unsafe)
-      let buffer = atoms.transactionIDs.inputBuffers[inFlightFrameID]
+      let idsBuffer = atoms.transactionIDs.inputBuffers[inFlightFrameID]
       #endif
       
       nonisolated(unsafe)
@@ -74,24 +74,24 @@ extension BVHBuilder {
       let taskCount = transaction.count
       DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
         let chunk = safeTransaction[taskID]
-        let removedPointer = UnsafeRawBufferPointer(
+        let removedIDsPointer = UnsafeRawBufferPointer(
           start: chunk.removedIDs, count: Int(chunk.removedCount) * 4)
-        let movedPointer = UnsafeRawBufferPointer(
+        let movedIDsPointer = UnsafeRawBufferPointer(
           start: chunk.movedIDs, count: Int(chunk.movedCount) * 4)
-        let addedPointer = UnsafeRawBufferPointer(
+        let addedIDsPointer = UnsafeRawBufferPointer(
           start: chunk.addedIDs, count: Int(chunk.addedCount) * 4)
         
         let removedOffset = Int(reduction.removedPrefixSum[taskID])
         let movedOffset = Int(reduction.movedPrefixSum[taskID])
         let addedOffset = Int(reduction.addedPrefixSum[taskID])
-        buffer.write(
-          input: removedPointer,
+        idsBuffer.write(
+          input: removedIDsPointer,
           offset: (removedOffset) * 4)
-        buffer.write(
-          input: movedPointer,
+        idsBuffer.write(
+          input: movedIDsPointer,
           offset: (reduction.totalRemoved + movedOffset) * 4)
-        buffer.write(
-          input: addedPointer,
+        idsBuffer.write(
+          input: addedIDsPointer,
           offset: (reduction.totalRemoved + reduction.totalMoved + addedOffset) * 4)
       }
     }
@@ -100,10 +100,10 @@ extension BVHBuilder {
     do {
       #if os(macOS)
       nonisolated(unsafe)
-      let buffer = atoms.transactionAtoms.nativeBuffers[inFlightFrameID]
+      let atomsBuffer = atoms.transactionAtoms.nativeBuffers[inFlightFrameID]
       #else
       nonisolated(unsafe)
-      let buffer = atoms.transactionAtoms.inputBuffers[inFlightFrameID]
+      let atomsBuffer = atoms.transactionAtoms.inputBuffers[inFlightFrameID]
       #endif
       
       nonisolated(unsafe)
@@ -111,18 +111,18 @@ extension BVHBuilder {
       let taskCount = transaction.count
       DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
         let chunk = safeTransaction[taskID]
-        let movedPointer = UnsafeRawBufferPointer(
+        let movedPositionsPointer = UnsafeRawBufferPointer(
           start: chunk.movedPositions, count: Int(chunk.movedCount) * 16)
-        let addedPointer = UnsafeRawBufferPointer(
+        let addedPositionsPointer = UnsafeRawBufferPointer(
           start: chunk.addedPositions, count: Int(chunk.addedCount) * 16)
         
         let movedOffset = Int(reduction.movedPrefixSum[taskID])
         let addedOffset = Int(reduction.addedPrefixSum[taskID])
-        buffer.write(
-          input: movedPointer,
+        atomsBuffer.write(
+          input: movedPositionsPointer,
           offset: (movedOffset) * 16)
-        buffer.write(
-          input: addedPointer,
+        atomsBuffer.write(
+          input: addedPositionsPointer,
           offset: (reduction.totalMoved + addedOffset) * 16)
       }
     }
