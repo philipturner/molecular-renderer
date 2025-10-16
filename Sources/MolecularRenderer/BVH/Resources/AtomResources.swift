@@ -47,13 +47,13 @@ class AtomResources {
     self.atoms = createBuffer(size: addressSpaceSize * 16)
     self.motionVectors = createBuffer(size: addressSpaceSize * 8)
     self.addressOccupiedMarks = createBuffer(size: addressSpaceSize)
-    self.relativeOffsets1 = createBuffer(size: 1_000_000 * 8)
-    self.relativeOffsets2 = createBuffer(size: 1_000_000 * 8)
+    self.relativeOffsets1 = createBuffer(size: 2_000_000 * 8)
+    self.relativeOffsets2 = createBuffer(size: 2_000_000 * 8)
     
     self.transactionIDs = Self.createTransactionIDsBuffer(
-      device: device, maxTransactionSize: 2_000_000)
+      device: device, maxTransactionSize: 4_000_000)
     self.transactionAtoms = Self.createTransactionAtomsBuffer(
-      device: device, maxTransactionSize: 1_000_000)
+      device: device, maxTransactionSize: 2_000_000)
   }
   
   private static func createTransactionIDsBuffer(

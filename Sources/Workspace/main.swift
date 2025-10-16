@@ -55,7 +55,7 @@ func passivate(topology: inout Topology) {
 
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 2
+let beamDepth: Int = 56
 let worldDimension: Float = 96
 
 func createCross() -> Topology {
@@ -260,7 +260,7 @@ func createApplication() -> Application {
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 1
   
-  applicationDesc.addressSpaceSize = 2_000_000
+  applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
   applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
@@ -300,10 +300,10 @@ for atomID in cross.atoms.indices {
 }
 
 for frameID in 0..<16 {
-  // print()
-  // print("===============")
-  // print("=== frame \(frameID) ===")
-  // print("===============")
+//   print()
+//   print("===============")
+//   print("=== frame \(frameID) ===")
+//   print("===============")
 
   // print()
   // print("rotation: \(frameID * 3) degrees")
@@ -322,8 +322,8 @@ for frameID in 0..<16 {
   application.updateBVH(inFlightFrameID: frameID % 3)
   application.forgetIdleState(inFlightFrameID: frameID % 3)
   
-  // print()
-  // analyzeGeneralCounters()
+//   print()
+//   analyzeGeneralCounters()
 }
 
 #endif
