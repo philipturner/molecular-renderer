@@ -81,31 +81,54 @@ public class Atoms {
   // the GPU buffer. It consumes up to 57% of the CPU-side latency per atom per
   // frame.
   //
-  // We don't expect 1M atoms/frame to be a reasonable target for GPU-side
-  // performance, so this optimization isn't critical. It will be deferred to a
-  // future PR.
+  // In the rotating beam benchmark, the cost of animating the beam on a single
+  // CPU core drives the contribution down to 42%. Still, it is worthwhile to
+  // optimize the latency as much as possible. Assuming the rendering cost
+  // is zero, CPU-side latency/atom/frame is the bottleneck holding back the
+  // entire application's performance.
+  
+  // macOS system:
+  // - M1 Max (10-core CPU, 32-core GPU)
+  // - 120 Hz display
+  // - limited to 0.9M atoms/frame @ 120 Hz if 9.25 ns/atom latency
+  // - limited to 1.6M atoms/frame @ 120 Hz if 5.35 ns/atom latency
+  //
+  // Windows system:
+  // - Intel Core i5-4460, GTX 970
+  // - 60 Hz display
+  // - limited to 0.8M atoms/frame @ 60 Hz if 21.13 ns/atom latency
+  // - limited to 1.2M atoms/frame @ 60 Hz if 13.42 ns/atom latency
+  //
+  // Real-world performance can probably come very close to the limits stated
+  // above. While the GPU is occupied with a second demanding task besides
+  // atom uploading, the CPU is not. The second (better) limit is overly
+  // optimistic because it models the cost of registering a transaction as
+  // 0.00 ns/atom. Real-world results could be expected to be a fraction of
+  // the current latency, hopefully lower than 50%.
+  
+  // TODO: Investigate GPU time with the limits stated above.
   
   // 0.1M atoms/frame
   //
   // | CPU-side contributor | macOS   | Windows |
   // | -------------------- | ------: | ------: |
   // |                      | ns/atom | ns/atom |
-  // | API usage            |     2.4 |     5.4 |
-  // | register transaction |     2.9 |     9.0 |
-  // | memcpy to GPU buffer |     0.3 |     2.6 |
-  // | total                |     5.7 |    17.0 |
-  // | latency (ms)         |   0.570 |   1.696 |
+  // | rotate animation     |    2.70 |    6.60 |
+  // | API usage            |    2.44 |    5.41 |
+  // | register transaction |    2.93 |    8.98 |
+  // | memcpy to GPU buffer |    0.33 |    2.57 |
+  // | total                |    8.40 |   23.56 |
   
   // 1M atoms/frame
   //
   // | CPU-side contributor | macOS   | Windows |
   // | -------------------- | ------: | ------: |
   // |                      | ns/atom | ns/atom |
-  // | API usage            |     2.3 |     5.3 |
-  // | register transaction |     3.9 |     7.7 |
-  // | memcpy to GPU buffer |     0.5 |     2.0 |
-  // | total                |     6.8 |    15.0 |
-  // | latency (ms)         |   6.764 |  15.040 |
+  // | rotate animation     |    2.49 |    6.12 |
+  // | API usage            |    2.32 |    5.28 |
+  // | register transaction |    3.90 |    7.74 |
+  // | memcpy to GPU buffer |    0.54 |    2.02 |
+  // | total                |    9.25 |   21.16 |
   
   // 100M address space size
   //
@@ -116,12 +139,12 @@ public class Atoms {
   // | 512        |  6.50E-13 |  9.90E-13 |
   // | 1024       |  3.30E-13 |  5.50E-13 |
   //
-  // | Block Size | macOS | Windows |
-  // | ---------- | ----: | ------: |
-  // |            | ms    | ms      |
-  // | 256        | 0.130 |   0.186 |
-  // | 512        | 0.065 |   0.099 |
-  // | 1024       | 0.033 |   0.055 |
+  // | Block Size | macOS     | Windows   |
+  // | ---------- | --------: | --------: |
+  // |            | ms        | ms        |
+  // | 256        |     0.130 |     0.186 |
+  // | 512        |     0.065 |     0.099 |
+  // | 1024       |     0.033 |     0.055 |
   
   // GPU is reaching 78-80% PCIe utilization, with PCIe 3 x16 = 15.76 GB/s.
   // That means 1.61 ns/atom (0.1M atoms), 1.59 ns/atom (1M atoms) on the GPU

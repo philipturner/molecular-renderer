@@ -12,7 +12,7 @@ import QuaternionModule
 // - Implement fully optimized primary ray intersector from main-branch-backup.
 //
 // Current task:
-// - Take a first pass at the rotating beam benchmark.
+// - Archive the current state of the rotating beam benchmark in Tests.
 
 // MARK: - Compile Structures
 
