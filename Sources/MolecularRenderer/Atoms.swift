@@ -99,7 +99,7 @@ public class Atoms {
     }
   }
   
-  // Originally, this function created the majority of the CPU-side latency.
+  // Originally, this function caused the majority of the CPU-side latency.
   // In the rotating beam benchmark, its contribution was 42%. If the rendering
   // cost is zero, CPU-side latency/atom/frame would be the bottleneck holding
   // back the entire application's performance.
@@ -108,6 +108,14 @@ public class Atoms {
   // structure PR, addressing this problem. I optimized the latency of
   // 'registerChanges()' and 'upload(transaction:)' with multicore CPU
   // parallelism. Here are the results of the development time invested.
+  
+  //                      | macOS | Windows
+  // -------------------- | ----: | ----: |
+  // before optimizations | 42.1% | 36.6% |
+  //  after optimizations | 18.2% | 29.7% |
+  //
+  // 'registerChanges()' as percent of CPU-side latency. The macOS system
+  // should benefit more from this optimizations, as it has more CPU cores.
   
   // macOS system:
   // - M1 Max (10-core CPU, 32-core GPU)
@@ -118,12 +126,13 @@ public class Atoms {
   // - optimized latency estimate: TODO
   //
   // Windows system:
-  // - Intel Core i5-4460, GTX 970
+  // - Intel Core i5-4460 (4-core), GTX 970 (13-core)
   // - 60 Hz display
   // - original latency estimate: 21.16 ns/atom
   //   - limited to 0.788M atoms/frame @ 60 Hz
   //   - GPU time predicted to be 5.78 ms / 16.67 ms
   // - optimized latency estimate: TODO
+  //
   //
   // Real-world performance can probably come very close to the limits stated
   // above. While the GPU is occupied with a second demanding task besides
