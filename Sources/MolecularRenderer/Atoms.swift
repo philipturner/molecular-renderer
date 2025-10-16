@@ -1,3 +1,5 @@
+import Dispatch
+
 public class Atoms {
   public let addressSpaceSize: Int
   private static let blockSize: Int = 512
@@ -188,32 +190,49 @@ public class Atoms {
   // That means 1.61 ns/atom (0.1M atoms), 1.59 ns/atom (1M atoms) on the GPU
   // timeline.
   func registerChanges() -> [Transaction] {
-    var modifiedBlockIDs: [UInt32] = []
-    for blockID in 0..<(addressSpaceSize / Self.blockSize) {
-      // Reset blocksModified
-      guard blocksModified[blockID] else {
-        continue
+    func createModifiedBlockIDs() -> [UInt32] {
+      var modifiedBlockIDs: [UInt32] = []
+      for blockID in 0..<(addressSpaceSize / Self.blockSize) {
+        // Reset blocksModified
+        guard blocksModified[blockID] else {
+          continue
+        }
+        blocksModified[blockID] = false
+        
+        modifiedBlockIDs.append(UInt32(blockID))
       }
-      blocksModified[blockID] = false
-      
-      modifiedBlockIDs.append(UInt32(blockID))
+      return modifiedBlockIDs
     }
+    let modifiedBlockIDs = createModifiedBlockIDs()
     
     // On single-core, we reach the lowest latency for 30 x 512 (macOS),
     // 200 x 512 (Windows).
     let taskSize: Int = 10
     let taskCount = (modifiedBlockIDs.count + taskSize - 1) / taskSize
     
-    var output: [Transaction] = []
-    for taskID in 0..<taskCount {
-      let start = taskID * taskSize
-      let end = min(start + taskSize, modifiedBlockIDs.count)
-      
-      let chunk = Transaction(blockCount: end - start)
-      output.append(chunk)
+    func createChunks() -> [Transaction] {
+      var output: [Transaction] = []
+      for taskID in 0..<taskCount {
+        let start = taskID * taskSize
+        let end = min(start + taskSize, modifiedBlockIDs.count)
+        
+        let chunk = Transaction(blockCount: end - start)
+        output.append(chunk)
+      }
+      return output
     }
+    nonisolated(unsafe)
+    let output = createChunks()
     
-    for taskID in 0..<taskCount {
+    nonisolated(unsafe)
+    let safePositionsModified = self.positionsModified
+    nonisolated(unsafe)
+    let safePreviousOccupied = self.previousOccupied
+    nonisolated(unsafe)
+    let safeOccupied = self.occupied
+    nonisolated(unsafe)
+    let safePositions = self.positions
+    DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
       let chunk = output[taskID]
       
       let start = taskID * taskSize
@@ -225,17 +244,17 @@ public class Atoms {
         let endAtomID = startAtomID + UInt32(Self.blockSize)
         for atomID in startAtomID..<endAtomID {
           // Reset positionsModified
-          guard positionsModified[Int(atomID)] else {
+          guard safePositionsModified[Int(atomID)] else {
             continue
           }
-          positionsModified[Int(atomID)] = false
+          safePositionsModified[Int(atomID)] = false
           
           // Read occupied
-          let atomPreviousOccupied = previousOccupied[Int(atomID)]
-          let atomOccupied = occupied[Int(atomID)]
+          let atomPreviousOccupied = safePreviousOccupied[Int(atomID)]
+          let atomOccupied = safeOccupied[Int(atomID)]
           
           // Save changes to previousOccupied
-          previousOccupied[Int(atomID)] = atomOccupied
+          safePreviousOccupied[Int(atomID)] = atomOccupied
           
           if !atomOccupied {
             if atomPreviousOccupied {
@@ -244,7 +263,7 @@ public class Atoms {
             }
           } else {
             // Read positions
-            let position = positions[Int(atomID)]
+            let position = safePositions[Int(atomID)]
             
             if atomPreviousOccupied {
               chunk.movedIDs[Int(chunk.movedCount)] = atomID
