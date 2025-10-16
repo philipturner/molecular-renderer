@@ -57,7 +57,7 @@ func passivate(topology: inout Topology) {
 
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 112
+let beamDepth: Int = 2
 let worldDimension: Float = 96
 
 func createCross() -> Topology {
@@ -269,8 +269,29 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-#if false
+#if true
+for atomID in cross.atoms.indices {
+  let atom = cross.atoms[atomID]
+  application.atoms[atomID] = atom
+}
+
 application.run {
+  print()
+  print("===============")
+  print("=== frame \(application.clock.frames) ===")
+  print("===============")
+  
+  print()
+  print("rotation: \(application.clock.frames * 3) degrees")
+  
+  let rotatedBeam = createRotatedBeam(
+    frameID: application.clock.frames)
+  for atomID in rotatedBeam.atoms.indices {
+    let atom = rotatedBeam.atoms[atomID]
+    let offset = cross.atoms.count
+    application.atoms[offset + atomID] = atom
+  }
+  
   let image = application.render()
   application.present(image: image)
 }
