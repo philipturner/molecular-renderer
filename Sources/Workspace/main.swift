@@ -199,6 +199,9 @@ analyze(topology: beam)
 
 // MARK: - Rotation Animation
 
+var rotateMeter = PerformanceMeter()
+var apiMeter = PerformanceMeter()
+
 @MainActor
 func createRotatedBeam(frameID: Int) -> Topology {
   // 0.5 Hz -> 3 degrees/frame @ 60 Hz
@@ -235,7 +238,8 @@ func createRotatedBeam(frameID: Int) -> Topology {
   let end = Date()
   let rotateLatency = end.timeIntervalSince(start)
   let rotateLatencyMicroseconds = Int(rotateLatency * 1e6)
-  print(PerformanceMeter.pad(rotateLatencyMicroseconds), terminator: " ")
+  rotateMeter.integrate(rotateLatencyMicroseconds)
+  print(PerformanceMeter.pad(rotateMeter.minimum), terminator: " ")
   
   return topology
 }
@@ -293,7 +297,8 @@ func addRotatedBeam(frameID: Int) {
   let end = Date()
   let apiLatency = end.timeIntervalSince(start)
   let apiLatencyMicroseconds = Int(apiLatency * 1e6)
-  print(PerformanceMeter.pad(apiLatencyMicroseconds), terminator: " ")
+  apiMeter.integrate(apiLatencyMicroseconds)
+  print(PerformanceMeter.pad(apiMeter.minimum), terminator: " ")
 }
 
 #if false
