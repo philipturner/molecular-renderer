@@ -91,22 +91,25 @@ public class Atoms {
   // - M1 Max (10-core CPU, 32-core GPU)
   // - 120 Hz display
   // - limited to 0.9M atoms/frame @ 120 Hz if 9.25 ns/atom latency
+  //   - GPU time predicted to be ~1.5 ms / 8.3 ms
   // - limited to 1.6M atoms/frame @ 120 Hz if 5.35 ns/atom latency
+  //   - GPU time predicted to be ~2.7 ms / 8.3 ms
   //
   // Windows system:
   // - Intel Core i5-4460, GTX 970
   // - 60 Hz display
   // - limited to 0.8M atoms/frame @ 60 Hz if 21.13 ns/atom latency
+  //   - GPU time predicted to be ~7.1 ms / 16.7 ms
   // - limited to 1.2M atoms/frame @ 60 Hz if 13.42 ns/atom latency
-  //
+  //   - GPU time predicted to be ~10.7 ms / 16.7 ms
+  
   // Real-world performance can probably come very close to the limits stated
   // above. While the GPU is occupied with a second demanding task besides
-  // atom uploading, the CPU is not. The second (better) limit is overly
-  // optimistic because it models the cost of registering a transaction as
-  // 0.00 ns/atom. Real-world results could be expected to be a fraction of
-  // the current latency, hopefully lower than 50%.
-  
-  // TODO: Investigate GPU time with the limits stated above.
+  // updating the BVH, the CPU is not.
+  //
+  // The second (better) limit is overly optimistic because it models the cost
+  // of registering a transaction as 0.00 ns/atom. Real-world results could be
+  // expected to be a fraction of the current latency, hopefully under 50%.
   
   // 0.1M atoms/frame
   //
@@ -118,6 +121,13 @@ public class Atoms {
   // | register transaction |    2.93 |    8.98 |
   // | memcpy to GPU buffer |    0.33 |    2.57 |
   // | total                |    8.40 |   23.56 |
+  //
+  // | GPU-side contributor | macOS   | Windows |
+  // | -------------------- | ------: | ------: |
+  // |                      | ns/atom | ns/atom |
+  // | PCIe transfer        |    0.00 |    1.61 |
+  // | update BVH           |    2.75 |    7.08 |
+  // | total                |    2.75 |    8.69 |
   
   // 1M atoms/frame
   //
@@ -129,6 +139,13 @@ public class Atoms {
   // | register transaction |    3.90 |    7.74 |
   // | memcpy to GPU buffer |    0.54 |    2.02 |
   // | total                |    9.25 |   21.16 |
+  //
+  // | GPU-side contributor | macOS   | Windows |
+  // | -------------------- | ------: | ------: |
+  // |                      | ns/atom | ns/atom |
+  // | PCIe transfer        |    0.00 |    1.59 |
+  // | update BVH           |    1.69 |    7.33 |
+  // | total                |    1.69 |    8.92 |
   
   // 100M address space size
   //

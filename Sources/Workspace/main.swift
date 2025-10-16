@@ -13,6 +13,8 @@ import QuaternionModule
 //
 // Current task:
 // - Archive the current state of the rotating beam benchmark in Tests.
+// - Clean up the backend code, archive 'checkExecutionTime' to a GitHub gist.
+// - That will conclude the implementation of the BVH update process.
 
 // MARK: - Compile Structures
 
@@ -235,8 +237,6 @@ func createRotatedBeam(frameID: Int) -> Topology {
   
   return topology
 }
-
-// exit(0)
 
 // MARK: - Launch Application
 
