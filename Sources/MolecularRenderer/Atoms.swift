@@ -189,6 +189,9 @@ public class Atoms {
   // GPU is reaching 78-80% PCIe utilization, with PCIe 3 x16 = 15.76 GB/s.
   // That means 1.61 ns/atom (0.1M atoms), 1.59 ns/atom (1M atoms) on the GPU
   // timeline.
+  //
+  // In performance calculations, assume "PCIe transfer" and "update BVH"
+  // happen concurrently on the GPU timeline.
   func registerChanges() -> [Transaction] {
     func createModifiedBlockIDs() -> [UInt32] {
       var modifiedBlockIDs: [UInt32] = []
