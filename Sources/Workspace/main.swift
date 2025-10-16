@@ -12,8 +12,6 @@ import QuaternionModule
 // - Implement fully optimized primary ray intersector from main-branch-backup.
 //
 // Current task:
-// - Gather this final round of benchmark data.
-// - Update the performance documentation in 'Atoms.swift'.
 // - Save the current 'main.swift' and 'Application+UpdateBVH.swift' to a
 //   GitHub gist for traceability.
 // - Clean up the CPU-side profiling, save the rotating beam test to Tests.

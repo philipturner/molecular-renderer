@@ -115,15 +115,17 @@ public class Atoms {
   //  after optimizations | 18.2% | 29.7% |
   //
   // 'registerChanges()' as percent of CPU-side latency. The macOS system
-  // should benefit more from this optimizations, as it has more CPU cores.
+  // should benefit more from this optimization, as it has more CPU cores.
   
   // macOS system:
   // - M1 Max (10-core CPU, 32-core GPU)
   // - 120 Hz display
   // - original latency estimate: 9.25 nm/atom
-  //   - limited to 0.901M atoms/frame @ 120 Hz,
+  //   - limited to 0.901M atoms/frame @ 120 Hz
   //   - GPU time at this atom count: 1.52 ms / 8.33 ms
-  // - optimized latency estimate: TODO
+  // - optimized latency estimate: 5.39 ns/atom
+  //   - limited to 1.546M atoms/frame @ 120 Hz
+  //   - GPU time at this atom count: 2.61 ms / 8.33 ms
   //
   // Windows system:
   // - Intel Core i5-4460 (4-core), GTX 970 (13-core)
@@ -131,7 +133,9 @@ public class Atoms {
   // - original latency estimate: 21.16 ns/atom
   //   - limited to 0.788M atoms/frame @ 60 Hz
   //   - GPU time at this atom count: 5.78 ms / 16.67 ms
-  // - optimized latency estimate: TODO
+  // - optimized latency estimate: 17.47 ns/atom
+  //   - limited to 0.954M atoms/frame @ 60 Hz
+  //   - GPU time at this atom count: 6.99 ms / 16.67 ms
   //
   // Real-world performance can probably come very close to the limits stated
   // above. While the GPU is occupied with a second demanding task besides
@@ -145,42 +149,45 @@ public class Atoms {
   // the 389 MHz mode and 0% for the other modes, up to 1296 MHz. Power
   // consumption was 2.05 W, but the maximum power I've ever recorded for this
   // chip is 52 W.
+  //
+  // In conclusion, the optimization boosted the practical achievable atom
+  // count from ~500,000 to ~800,000 on the macOS system.
   
   // 0.1M atoms/frame
   //
   // | CPU-side contributor | macOS   | Windows |
   // | -------------------- | ------: | ------: |
   // |                      | ns/atom | ns/atom |
-  // | rotate animation     |    2.70 |    6.60 |
-  // | API usage            |    2.44 |    5.41 |
-  // | register transaction |    2.93 |    8.98 |
-  // | memcpy to GPU buffer |    0.33 |    2.57 |
-  // | total                |    8.40 |   23.56 |
+  // | rotate animation     |    2.60 |    5.80 |
+  // | API usage            |    1.43 |    4.24 |
+  // | register transaction |    2.58 |    7.89 |
+  // | memcpy to GPU buffer |    0.38 |    1.68 |
+  // | total                |    6.99 |   19.61 |
   //
   // | GPU-side contributor | macOS   | Windows |
   // | -------------------- | ------: | ------: |
   // |                      | ns/atom | ns/atom |
   // | PCIe transfer        |    0.00 |    1.61 |
   // | update BVH           |    2.75 |    7.08 |
-  // | total                |    2.75 |    7.08 |
+  // | total (concurrent)   |    2.75 |    7.08 |
   
   // 1M atoms/frame
   //
   // | CPU-side contributor | macOS   | Windows |
   // | -------------------- | ------: | ------: |
   // |                      | ns/atom | ns/atom |
-  // | rotate animation     |    2.49 |    6.12 |
-  // | API usage            |    2.32 |    5.28 |
-  // | register transaction |    3.90 |    7.74 |
-  // | memcpy to GPU buffer |    0.54 |    2.02 |
-  // | total                |    9.25 |   21.16 |
+  // | rotate animation     |    2.51 |    5.65 |
+  // | API usage            |    1.60 |    4.57 |
+  // | register transaction |    0.98 |    5.19 |
+  // | memcpy to GPU buffer |    0.30 |    2.06 |
+  // | total                |    5.39 |   17.47 |
   //
   // | GPU-side contributor | macOS   | Windows |
   // | -------------------- | ------: | ------: |
   // |                      | ns/atom | ns/atom |
   // | PCIe transfer        |    0.00 |    1.59 |
   // | update BVH           |    1.69 |    7.33 |
-  // | total                |    1.69 |    7.33 |
+  // | total (concurrent)   |    1.69 |    7.33 |
   
   // 100M address space size
   //
