@@ -1,3 +1,5 @@
+import Dispatch
+
 // Temporary import for profiling CPU-side bottleneck.
 import Foundation
 
@@ -82,7 +84,8 @@ extension BVHBuilder {
       let buffer = atoms.transactionAtoms.inputBuffers[inFlightFrameID]
       #endif
       
-      for taskID in transaction.indices {
+      let taskCount = transaction.count
+      DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
         let chunk = transaction[taskID]
         let movedPointer = UnsafeRawBufferPointer(
           start: chunk.movedPositions, count: Int(chunk.movedCount) * 16)
