@@ -12,9 +12,13 @@ import QuaternionModule
 // - Implement fully optimized primary ray intersector from main-branch-backup.
 //
 // Current task:
-// - Archive the current state of the rotating beam benchmark in Tests.
-// - Clean up the backend code, archive 'checkExecutionTime' to a GitHub gist.
-// - That will conclude the implementation of the BVH update process.
+// - Gather this final round of benchmark data.
+// - Archive the code for the last benchmark ("main.swift" and
+//   "Application+UpdateBVH.swift") on GitHub gist.
+// - Test the rotating beam benchmark on macOS with the Metal performance HUD
+//   showing where it breaks down.
+// - Save the current state of the rotating beam benchmark in Tests.
+// - Update the performance documentation in 'Atoms.swift'
 
 // MARK: - Compile Structures
 
@@ -57,7 +61,7 @@ func passivate(topology: inout Topology) {
 
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 2
+let beamDepth: Int = 48
 let worldDimension: Float = 96
 
 func createCross() -> Topology {
@@ -197,6 +201,14 @@ analyze(topology: beam)
 
 // MARK: - Rotation Animation
 
+func pad(_ latency: Int) -> String {
+  var output = "\(latency)"
+  while output.count < 5 {
+    output = " " + output
+  }
+  return output
+}
+
 @MainActor
 func createRotatedBeam(frameID: Int) -> Topology {
   // 0.5 Hz -> 3 degrees/frame @ 60 Hz
@@ -233,7 +245,7 @@ func createRotatedBeam(frameID: Int) -> Topology {
   let end = Date()
   let rotateLatency = end.timeIntervalSince(start)
   let rotateLatencyMicroseconds = Int(rotateLatency * 1e6)
-  print("rotate:", rotateLatencyMicroseconds, "μs")
+  print(pad(rotateLatencyMicroseconds), terminator: " ")
   
   return topology
 }
@@ -291,7 +303,7 @@ func addRotatedBeam(frameID: Int) {
   let end = Date()
   let addLatency = end.timeIntervalSince(start)
   let addLatencyMicroseconds = Int(addLatency * 1e6)
-  print("add:", addLatencyMicroseconds, "μs")
+  print(pad(addLatencyMicroseconds), terminator: " ")
 }
 
 #if false

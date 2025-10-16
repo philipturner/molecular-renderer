@@ -75,12 +75,20 @@ extension Application {
   }
   
   public func updateBVH(inFlightFrameID: Int) {
+    func pad(_ latency: Int) -> String {
+      var output = "\(latency)"
+      while output.count < 5 {
+        output = " " + output
+      }
+      return output
+    }
+    
     let start = Date()
     let transaction = atoms.registerChanges()
     let end = Date()
     let registerLatency = end.timeIntervalSince(start)
     let registerLatencyMicroseconds = Int(registerLatency * 1e6)
-    print("register:", registerLatencyMicroseconds, "μs")
+    print(pad(registerLatencyMicroseconds), terminator: " ")
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
@@ -106,7 +114,7 @@ extension Application {
       let end = Date()
       let uploadLatency = end.timeIntervalSince(start)
       let uploadLatencyMicroseconds = Int(uploadLatency * 1e6)
-      print("upload:", uploadLatencyMicroseconds, "μs")
+      print(pad(uploadLatencyMicroseconds), terminator: " ")
       
       // Encode the remove process.
       bvhBuilder.removeProcess1(
