@@ -178,11 +178,13 @@ class BVHBuilder {
     let addedCount = transaction.addedIDs.count
     
     // Validate the sizes of the transaction components.
-    guard removedCount <= 2_000_000 else {
-      fatalError("Removed atom count must not exceed 2 million.")
+    let maxTransactionSize = AtomResources.maxTransactionSize
+    guard removedCount <= maxTransactionSize else {
+      fatalError("Removed atom count must not exceed \(maxTransactionSize).")
     }
-    guard movedCount + addedCount <= 2_000_000 else {
-      fatalError("Moved and added atom count must not exceed 2 million.")
+    guard movedCount + addedCount <= maxTransactionSize else {
+      fatalError(
+        "Moved and added atom count must not exceed \(maxTransactionSize).")
     }
     guard transaction.movedPositions.count == movedCount,
           transaction.addedPositions.count == addedCount else {

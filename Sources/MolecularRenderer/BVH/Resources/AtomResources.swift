@@ -10,6 +10,7 @@ struct AtomResourcesDescriptor {
 
 class AtomResources {
   let addressSpaceSize: Int
+  static var maxTransactionSize: Int { 2_000_000 }
   
   // Per atom address
   let atoms: Buffer
@@ -47,13 +48,13 @@ class AtomResources {
     self.atoms = createBuffer(size: addressSpaceSize * 16)
     self.motionVectors = createBuffer(size: addressSpaceSize * 8)
     self.addressOccupiedMarks = createBuffer(size: addressSpaceSize)
-    self.relativeOffsets1 = createBuffer(size: 2_000_000 * 8)
-    self.relativeOffsets2 = createBuffer(size: 2_000_000 * 8)
+    self.relativeOffsets1 = createBuffer(size: Self.maxTransactionSize * 8)
+    self.relativeOffsets2 = createBuffer(size: Self.maxTransactionSize * 8)
     
     self.transactionIDs = Self.createTransactionIDsBuffer(
-      device: device, maxTransactionSize: 4_000_000)
+      device: device, maxTransactionSize: 2 * Self.maxTransactionSize)
     self.transactionAtoms = Self.createTransactionAtomsBuffer(
-      device: device, maxTransactionSize: 2_000_000)
+      device: device, maxTransactionSize: Self.maxTransactionSize)
   }
   
   private static func createTransactionIDsBuffer(
@@ -118,7 +119,7 @@ extension AtomResources {
     uavDesc.Format = DXGI_FORMAT_R16G16B16A16_UINT
     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
     uavDesc.Buffer.FirstElement = 0
-    uavDesc.Buffer.NumElements = UInt32(2_000_000)
+    uavDesc.Buffer.NumElements = UInt32(Self.maxTransactionSize)
     uavDesc.Buffer.StructureByteStride = 0
     uavDesc.Buffer.CounterOffsetInBytes = 0
     uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
