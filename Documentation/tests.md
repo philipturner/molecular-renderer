@@ -53,7 +53,32 @@ Objective is to reach as many atoms as possible, until the Metal Performance HUD
 
 _For more detailed explanation of the benchmarked hardware, study the source code in "Sources/MolecularRenderer/Atoms.swift"._
 
-TODO: Add instructions for the user.
+In the source code, look for the declaration of `beamDepth`. The default value is 10. Increase this number as much as possible.
+
+<details>
+<summary>Guide to figuring out what beam depths to try</summary>
+
+| Beam Depth | Atom Count |
+| :--------: | ---------: |
+| 1   | 27,830    |
+| 2   | 44,007    |
+| 3   | 60,184    |
+| 4   | 76,361    |
+| 6   | 108,715   |
+| 8   | 141,069   |
+| 12  | 204,777   |
+| 16  | 270,485   |
+| 24  | 399,901   |
+| 32  | 529,317   |
+| 40  | 658,733   |
+| 48  | 788,149   |
+| 56  | 917,565   |
+| 64  | 1,046,981 |
+| 80  | 1,305,813 |
+| 96  | 1,564,645 |
+| 112 | 1,823,477 |
+
+</details>
 
 ## Long Distances
 
