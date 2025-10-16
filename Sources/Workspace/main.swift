@@ -56,7 +56,7 @@ func passivate(topology: inout Topology) {
 
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 40
+let beamDepth: Int = 2
 let worldDimension: Float = 96
 
 func createCross() -> Topology {
@@ -211,11 +211,22 @@ func createRotatedBeam(frameID: Int) -> Topology {
     angle: angleDegrees * Float.pi / 180,
     axis: SIMD3(0, 0, 1))
   
+  // Circumvent a massive CPU-side bottleneck from 'rotation.act()'
+  let basis0 = rotation.act(on: SIMD3<Float>(1, 0, 0))
+  let basis1 = rotation.act(on: SIMD3<Float>(0, 1, 0))
+  let basis2 = rotation.act(on: SIMD3<Float>(0, 0, 1))
+  
   let start = Date()
   var topology = beam
   for atomID in topology.atoms.indices {
     var atom = topology.atoms[atomID]
-    atom.position = atom.position + Float(1) //rotation.act(on: atom.position)
+    
+    var rotatedPosition: SIMD3<Float> = .zero
+    rotatedPosition += basis0 * atom.position[0]
+    rotatedPosition += basis1 * atom.position[1]
+    rotatedPosition += basis2 * atom.position[2]
+    atom.position = rotatedPosition
+    
     topology.atoms[atomID] = atom
   }
   let end = Date()
@@ -226,6 +237,7 @@ func createRotatedBeam(frameID: Int) -> Topology {
   return topology
 }
 
+#if false
 do {
   print("Hello Quaternion")
   
@@ -233,6 +245,8 @@ do {
   let rotation = Quaternion<Float>(
     angle: angleDegrees * Float.pi / 180,
     axis: SIMD3(0, 0, 1))
+  
+  // Circumvent a massive CPU-side bottleneck from 'rotation.act()'
   let basis0 = rotation.act(on: SIMD3<Float>(1, 0, 0))
   let basis1 = rotation.act(on: SIMD3<Float>(0, 1, 0))
   let basis2 = rotation.act(on: SIMD3<Float>(0, 0, 1))
@@ -247,6 +261,7 @@ do {
   print(rotatedPosition)
 }
 exit(0)
+#endif
 
 // MARK: - Launch Application
 
@@ -309,7 +324,7 @@ for atomID in cross.atoms.indices {
   application.atoms[atomID] = atom
 }
 
-for frameID in 0..<6 {
+for frameID in 0..<16 {
   print()
   print("===============")
   print("=== frame \(frameID) ===")
