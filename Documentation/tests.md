@@ -83,3 +83,11 @@ In the source code, look for the declaration of `beamDepth`. The default value i
 ## Long Distances
 
 Run a test that hits the pain points of ray tracing. Long primary ray traversal times in the DDA, high divergence for AO rays. Not exactly stressing the BVH update process. Rather, a single unchanging BVH and a rotating camera to detect stuttering. Make the test scaleable to different distances and window sizes.
+
+## Chunk Loader
+
+Objective is to reach as many atoms as possible, until your GPU runs out of memory.
+
+Get this working at the very end of the PR. Make a YouTube video of ~70M atoms on M1 Max (1620x1620 window for maximum detail). Post it, link into this document, overhaul the repo, and then return to social media. Estimated date: end of October.
+
+The scene will take some time to design correctly. Expect it to hit challenging pain points for performance. It is a rigorous proof that I have achieved the ultimate goal of computer graphics.
