@@ -118,7 +118,7 @@ extension AtomResources {
     uavDesc.Format = DXGI_FORMAT_R16G16B16A16_UINT
     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
     uavDesc.Buffer.FirstElement = 0
-    uavDesc.Buffer.NumElements = UInt32(1_000_000)
+    uavDesc.Buffer.NumElements = UInt32(2_000_000)
     uavDesc.Buffer.StructureByteStride = 0
     uavDesc.Buffer.CounterOffsetInBytes = 0
     uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
