@@ -67,8 +67,8 @@ extension BVHBuilder {
       // Serial copying of IDs and positions
       //
       // macOS:
-      //   single-threaded: TODO
-      //   multi-threaded: TODO
+      //   single-threaded: 88, 351 -> 461
+      //   multi-threaded: 77, 215 -> 285
       //
       // Windows:
       //   single-threaded: 354, 1256 -> 1626
@@ -169,10 +169,10 @@ extension BVHBuilder {
       let latencyMicroseconds = Int(latency * 1e6)
       print("upload.\(name):", latencyMicroseconds, "μs")
     }
-    displayLatency(checkpoint0, checkpoint1, name: "latency01")
-    displayLatency(checkpoint1, checkpoint2, name: "latency12")
-    displayLatency(checkpoint2, checkpoint3, name: "latency23")
-    displayLatency(checkpoint3, checkpoint4, name: "latency34")
+//    displayLatency(checkpoint0, checkpoint1, name: "latency01")
+//    displayLatency(checkpoint1, checkpoint2, name: "latency12")
+//    displayLatency(checkpoint2, checkpoint3, name: "latency23")
+//    displayLatency(checkpoint3, checkpoint4, name: "latency34")
     
     // Set the transactionArgs.
     do {
