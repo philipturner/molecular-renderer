@@ -28,7 +28,7 @@ Reference video: [YouTube](https://www.youtube.com/shorts/JQeyLJWGyVU)
 
 Test the potential energy curve of an N2 molecule. Start by running singlepoint energy calculations at 8 discrete points of the 1D potential energy surface. Then take efficient analytical gradients available with the GFN2-xTB method.
 
-The potential energy minimum is at 0.110 nm. At 0.090 and 0.150 nm, the energy rises ~820 zJ above the minimum. Although the energies are the same at these points, the forces are very different. Force should be about -66000 pN at 0.090 nm and about 24000 pN at 0.150 nm.
+The potential energy minimum is at 0.110 nm. At 0.090 nm and 0.150 nm, the energy rises ~820 zJ above the minimum. Although the energies are the same at these points, the forces are very different. Force should be about -66000 pN at 0.090 nm and about 24000 pN at 0.150 nm.
 
 At ~0.145 nm, the magnitude of the attractive force reaches its highest point. At longer bond distances, such as 0.155 nm, the magnitude starts falling. This inflection point is a region of "negative stiffness", where the bond stops behaving like a spring, and instead like deformable plastic. To break covalent bonds with mechanosynthesis, the mechanical force must be large enough to enter this region.
 
@@ -44,13 +44,7 @@ Reference video: [YouTube](https://www.youtube.com/shorts/rV1UGau20xQ)
 
 ## Rotating Beam
 
-> TODO: Improve the explanation for this test.
-
 Objective is to reach as many atoms as possible, until the Metal Performance HUD shows the FPS dropping below the display's native refresh rate. Windows users can detect the drop by observing stuttering in the animation.
-
-Test at least one case of a skinny, rotating rod where the total number of cells swept vastly exceeds the number of memory slots. The rod's atom count is less than 1 million, and every atom moves every frame. Use this as a benchmark for the true maximum atoms/frame in a practical setting.
-
-Also include some stationary atoms nearby, which you can guarantee fall into some of the same cells. The test is scaleable, just like the long distances test.
 
 | Maximum Atom Count | macOS System | Windows System |
 | ------------------ | -----------: | -------------: |
@@ -58,6 +52,8 @@ Also include some stationary atoms nearby, which you can guarantee fall into som
 | Actual             | 934,000      | TBD            |
 
 _For more detailed explanation of the benchmarked hardware, study the source code in "Sources/MolecularRenderer/Atoms.swift"._
+
+TODO: Add instructions for the user.
 
 ## Long Distances
 

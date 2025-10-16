@@ -2,17 +2,6 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
-// Components of this PR:
-// - Implement a kernel that intersects primary rays with atoms.
-// - Before implementing AO, implement a scheme where the atom's pixel count is
-//   diagnosed in the on-screen texture. Confirm that upscale factors don't
-//   change this (backend code has properly corrected for the upscale factor).
-// - Implement fully optimized primary ray intersector from main-branch-backup.
-//
-// Current task:
-// - Migrate back to the 8631-atom lattice testing structure. Position the
-//   camera in a good place for viewing the entire thing with FOV = 60°.
-
 // MARK: - Compile Structures
 
 func passivate(topology: inout Topology) {
