@@ -4,6 +4,9 @@ import SwiftCOM
 import WinSDK
 #endif
 
+// Temporary import for profiling CPU-side bottleneck.
+import Foundation
+
 // TODO: Before finishing the acceleration structure PR, remove the public
 // modifier for the functions in this extension.
 extension Application {
@@ -70,7 +73,12 @@ extension Application {
   }
   
   public func updateBVH(inFlightFrameID: Int) {
+    let start = Date()
     let transaction = atoms.registerChanges()
+    let end = Date()
+    let registerLatency = end.timeIntervalSince(start)
+    let registerLatencyMicroseconds = Int(registerLatency * 1e6)
+    print("register:", registerLatencyMicroseconds, "μs")
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
@@ -87,10 +95,16 @@ extension Application {
         commandList: commandList)
       bvhBuilder.setupGeneralCounters(
         commandList: commandList)
+      
+      let start = Date()
       bvhBuilder.upload(
         transaction: transaction,
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+      let end = Date()
+      let uploadLatency = end.timeIntervalSince(start)
+      let uploadLatencyMicroseconds = Int(uploadLatency * 1e6)
+      print("upload:", uploadLatencyMicroseconds, "μs")
       
       // Encode the remove process.
       bvhBuilder.removeProcess1(
