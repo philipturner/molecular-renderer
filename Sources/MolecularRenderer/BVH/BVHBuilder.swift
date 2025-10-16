@@ -179,7 +179,16 @@ class BVHBuilder {
     var totalRemoved: Int = .zero
     var totalMoved: Int = .zero
     var totalAdded: Int = .zero
-    for chunk in transaction {
+    var removedPrefixSum: [UInt32] = []
+    var movedPrefixSum: [UInt32] = []
+    var addedPrefixSum: [UInt32] = []
+    for taskID in transaction.indices {
+      let chunk = transaction[taskID]
+      
+      removedPrefixSum.append(UInt32(totalRemoved))
+      movedPrefixSum.append(UInt32(totalMoved))
+      addedPrefixSum.append(UInt32(totalAdded))
+      
       totalRemoved += Int(chunk.removedCount)
       totalMoved += Int(chunk.movedCount)
       totalAdded += Int(chunk.addedCount)
@@ -196,6 +205,7 @@ class BVHBuilder {
     }
     
     // Write to the IDs buffer.
+    // TODO: Break down the latency of upload into 3 major parts.
     do {
       #if os(macOS)
       let buffer = atoms.transactionIDs.nativeBuffers[inFlightFrameID]
@@ -203,10 +213,8 @@ class BVHBuilder {
       let buffer = atoms.transactionIDs.inputBuffers[inFlightFrameID]
       #endif
       
-      var removedOffset: Int = .zero
-      var movedOffset: Int = .zero
-      var addedOffset: Int = .zero
-      for chunk in transaction {
+      for taskID in transaction.indices {
+        let chunk = transaction[taskID]
         let removedPointer = UnsafeRawBufferPointer(
           start: chunk.removedIDs, count: Int(chunk.removedCount) * 4)
         let movedPointer = UnsafeRawBufferPointer(
@@ -214,6 +222,9 @@ class BVHBuilder {
         let addedPointer = UnsafeRawBufferPointer(
           start: chunk.addedIDs, count: Int(chunk.addedCount) * 4)
         
+        let removedOffset = Int(removedPrefixSum[taskID])
+        let movedOffset = Int(movedPrefixSum[taskID])
+        let addedOffset = Int(addedPrefixSum[taskID])
         buffer.write(
           input: removedPointer,
           offset: (removedOffset) * 4)
@@ -223,10 +234,6 @@ class BVHBuilder {
         buffer.write(
           input: addedPointer,
           offset: (totalRemoved + totalMoved + addedOffset) * 4)
-        
-        removedOffset += Int(chunk.removedCount)
-        movedOffset += Int(chunk.movedCount)
-        addedOffset += Int(chunk.addedCount)
       }
     }
     
@@ -238,23 +245,21 @@ class BVHBuilder {
       let buffer = atoms.transactionAtoms.inputBuffers[inFlightFrameID]
       #endif
       
-      var movedOffset: Int = .zero
-      var addedOffset: Int = .zero
-      for chunk in transaction {
+      for taskID in transaction.indices {
+        let chunk = transaction[taskID]
         let movedPointer = UnsafeRawBufferPointer(
           start: chunk.movedPositions, count: Int(chunk.movedCount) * 16)
         let addedPointer = UnsafeRawBufferPointer(
           start: chunk.addedPositions, count: Int(chunk.addedCount) * 16)
         
+        let movedOffset = Int(movedPrefixSum[taskID])
+        let addedOffset = Int(addedPrefixSum[taskID])
         buffer.write(
           input: movedPointer,
           offset: (movedOffset) * 16)
         buffer.write(
           input: addedPointer,
           offset: (totalMoved + addedOffset) * 16)
-        
-        movedOffset += Int(chunk.movedCount)
-        addedOffset += Int(chunk.addedCount)
       }
     }
     
