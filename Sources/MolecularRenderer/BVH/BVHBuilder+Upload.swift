@@ -4,40 +4,48 @@ import Dispatch
 import Foundation
 
 extension BVHBuilder {
+  // Reduction over all chunks of the transaction.
+  private struct TransactionReduction {
+    var totalRemoved: Int = .zero
+    var totalMoved: Int = .zero
+    var totalAdded: Int = .zero
+    
+    var removedPrefixSum: [UInt32] = []
+    var movedPrefixSum: [UInt32] = []
+    var addedPrefixSum: [UInt32] = []
+    
+    init(transaction: [Atoms.Transaction]) {
+      for taskID in transaction.indices {
+        let chunk = transaction[taskID]
+        
+        removedPrefixSum.append(UInt32(totalRemoved))
+        movedPrefixSum.append(UInt32(totalMoved))
+        addedPrefixSum.append(UInt32(totalAdded))
+        
+        totalRemoved += Int(chunk.removedCount)
+        totalMoved += Int(chunk.movedCount)
+        totalAdded += Int(chunk.addedCount)
+      }
+    }
+  }
+  
   // Upload the acceleration structure changes for every frame.
-  //
-  // TODO: Next, try multithreading the copying into the buffer.
   func upload(
     transaction: [Atoms.Transaction],
     commandList: CommandList,
     inFlightFrameID: Int
   ) {
-    // Reduce over all chunks of the transaction.
+    
     let checkpoint0 = Date()
-    var totalRemoved: Int = .zero
-    var totalMoved: Int = .zero
-    var totalAdded: Int = .zero
-    var removedPrefixSum: [UInt32] = []
-    var movedPrefixSum: [UInt32] = []
-    var addedPrefixSum: [UInt32] = []
-    for taskID in transaction.indices {
-      let chunk = transaction[taskID]
-      
-      removedPrefixSum.append(UInt32(totalRemoved))
-      movedPrefixSum.append(UInt32(totalMoved))
-      addedPrefixSum.append(UInt32(totalAdded))
-      
-      totalRemoved += Int(chunk.removedCount)
-      totalMoved += Int(chunk.movedCount)
-      totalAdded += Int(chunk.addedCount)
-    }
+    let reduction = TransactionReduction(
+      transaction: transaction)
     
     // Validate the sizes of the transaction components.
     let maxTransactionSize = AtomResources.maxTransactionSize
-    guard totalRemoved <= maxTransactionSize else {
+    guard reduction.totalRemoved <= maxTransactionSize else {
       fatalError("Removed atom count must not exceed \(maxTransactionSize).")
     }
-    guard totalMoved + totalAdded <= maxTransactionSize else {
+    guard reduction.totalMoved + reduction.totalAdded <= maxTransactionSize else {
       fatalError(
         "Moved and added atom count must not exceed \(maxTransactionSize).")
     }
@@ -46,8 +54,10 @@ extension BVHBuilder {
     let checkpoint1 = Date()
     do {
       #if os(macOS)
+      nonisolated(unsafe)
       let buffer = atoms.transactionIDs.nativeBuffers[inFlightFrameID]
       #else
+      nonisolated(unsafe)
       let buffer = atoms.transactionIDs.inputBuffers[inFlightFrameID]
       #endif
       
@@ -60,18 +70,18 @@ extension BVHBuilder {
         let addedPointer = UnsafeRawBufferPointer(
           start: chunk.addedIDs, count: Int(chunk.addedCount) * 4)
         
-        let removedOffset = Int(removedPrefixSum[taskID])
-        let movedOffset = Int(movedPrefixSum[taskID])
-        let addedOffset = Int(addedPrefixSum[taskID])
+        let removedOffset = Int(reduction.removedPrefixSum[taskID])
+        let movedOffset = Int(reduction.movedPrefixSum[taskID])
+        let addedOffset = Int(reduction.addedPrefixSum[taskID])
         buffer.write(
           input: removedPointer,
           offset: (removedOffset) * 4)
         buffer.write(
           input: movedPointer,
-          offset: (totalRemoved + movedOffset) * 4)
+          offset: (reduction.totalRemoved + movedOffset) * 4)
         buffer.write(
           input: addedPointer,
-          offset: (totalRemoved + totalMoved + addedOffset) * 4)
+          offset: (reduction.totalRemoved + reduction.totalMoved + addedOffset) * 4)
       }
     }
     
@@ -79,27 +89,31 @@ extension BVHBuilder {
     let checkpoint2 = Date()
     do {
       #if os(macOS)
+      nonisolated(unsafe)
       let buffer = atoms.transactionAtoms.nativeBuffers[inFlightFrameID]
       #else
+      nonisolated(unsafe)
       let buffer = atoms.transactionAtoms.inputBuffers[inFlightFrameID]
       #endif
       
+      nonisolated(unsafe)
+      let safeTransaction = transaction
       let taskCount = transaction.count
       DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
-        let chunk = transaction[taskID]
+        let chunk = safeTransaction[taskID]
         let movedPointer = UnsafeRawBufferPointer(
           start: chunk.movedPositions, count: Int(chunk.movedCount) * 16)
         let addedPointer = UnsafeRawBufferPointer(
           start: chunk.addedPositions, count: Int(chunk.addedCount) * 16)
         
-        let movedOffset = Int(movedPrefixSum[taskID])
-        let addedOffset = Int(addedPrefixSum[taskID])
+        let movedOffset = Int(reduction.movedPrefixSum[taskID])
+        let addedOffset = Int(reduction.addedPrefixSum[taskID])
         buffer.write(
           input: movedPointer,
           offset: (movedOffset) * 16)
         buffer.write(
           input: addedPointer,
-          offset: (totalMoved + addedOffset) * 16)
+          offset: (reduction.totalMoved + addedOffset) * 16)
       }
     }
     let checkpoint3 = Date()
@@ -120,13 +134,15 @@ extension BVHBuilder {
     #if os(Windows)
     // Dispatch the GPU commands to copy the PCIe data.
     do {
-      let idsCount = totalRemoved + totalMoved + totalAdded
+      let idsCount =
+      reduction.totalRemoved + reduction.totalMoved + reduction.totalAdded
       atoms.transactionIDs.copy(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         range: 0..<(idsCount * 4))
       
-      let atomsCount = totalMoved + totalAdded
+      let atomsCount =
+      reduction.totalMoved + reduction.totalAdded
       atoms.transactionAtoms.copy(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
@@ -137,9 +153,9 @@ extension BVHBuilder {
     // Set the transactionArgs.
     do {
       var transactionArgs = TransactionArgs()
-      transactionArgs.removedCount = UInt32(totalRemoved)
-      transactionArgs.movedCount = UInt32(totalMoved)
-      transactionArgs.addedCount = UInt32(totalAdded)
+      transactionArgs.removedCount = UInt32(reduction.totalRemoved)
+      transactionArgs.movedCount = UInt32(reduction.totalMoved)
+      transactionArgs.addedCount = UInt32(reduction.totalAdded)
       self.transactionArgs = transactionArgs
     }
   }
