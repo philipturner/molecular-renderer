@@ -184,7 +184,6 @@ class BVHBuilder {
       totalMoved += Int(chunk.movedCount)
       totalAdded += Int(chunk.addedCount)
     }
-    print(totalRemoved, totalMoved, totalAdded)
     
     // Validate the sizes of the transaction components.
     let maxTransactionSize = AtomResources.maxTransactionSize
