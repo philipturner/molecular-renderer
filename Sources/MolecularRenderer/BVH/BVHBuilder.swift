@@ -227,22 +227,6 @@ class BVHBuilder {
         movedOffset += Int(chunk.movedCount)
         addedOffset += Int(chunk.addedCount)
       }
-      
-//      transaction.removedIDs.withUnsafeBytes { bufferPointer in
-//        buffer.write(
-//          input: bufferPointer,
-//          offset: 0)
-//      }
-//      transaction.movedIDs.withUnsafeBytes { bufferPointer in
-//        buffer.write(
-//          input: bufferPointer,
-//          offset: removedCount * 4)
-//      }
-//      transaction.addedIDs.withUnsafeBytes { bufferPointer in
-//        buffer.write(
-//          input: bufferPointer,
-//          offset: (removedCount + movedCount) * 4)
-//      }
     }
     
     // Write to the atoms buffer.
@@ -271,17 +255,6 @@ class BVHBuilder {
         movedOffset += Int(chunk.movedCount)
         addedOffset += Int(chunk.addedCount)
       }
-      
-//      transaction.movedPositions.withUnsafeBytes { bufferPointer in
-//        buffer.write(
-//          input: bufferPointer,
-//          offset: 0)
-//      }
-//      transaction.addedPositions.withUnsafeBytes { bufferPointer in
-//        buffer.write(
-//          input: bufferPointer,
-//          offset: movedCount * 16)
-//      }
     }
     
     #if os(Windows)

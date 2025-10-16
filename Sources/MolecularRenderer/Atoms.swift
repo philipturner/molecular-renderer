@@ -199,6 +199,8 @@ public class Atoms {
       modifiedBlockIDs.append(UInt32(blockID))
     }
     
+    // On single-core, we reach the lowest latency for 30 x 512 (macOS),
+    // 200 x 512 (Windows).
     let taskSize: Int = 10
     let taskCount = (modifiedBlockIDs.count + taskSize - 1) / taskSize
     
@@ -212,7 +214,6 @@ public class Atoms {
     }
     
     for taskID in 0..<taskCount {
-      print("task ID:", taskID)
       let chunk = output[taskID]
       
       let start = taskID * taskSize
