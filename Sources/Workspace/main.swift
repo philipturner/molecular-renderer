@@ -305,36 +305,14 @@ application.run {
 }
 #else
 
-@MainActor
-func analyzeGeneralCounters() {
-  let output = application.downloadGeneralCounters()
-  
-  print("atoms removed voxel count:", output[0])
-  guard output[1] == 1,
-        output[2] == 1 else {
-    fatalError("Indirect dispatch arguments were malformatted.")
-  }
-  print("vacant slot count:", output[4])
-  print("allocated slot count:", output[5])
-  print("rebuilt voxel count:", output[6])
-  guard output[7] == 1,
-        output[8] == 1 else {
-    fatalError("Indirect dispatch arguments were malformatted.")
-  }
-}
-
 for frameID in 0..<16 {
-  print()
-  
   addRotatedBeam(frameID: frameID)
   
   application.checkCrashBuffer(frameID: frameID)
   application.checkExecutionTime(frameID: frameID)
   application.updateBVH(inFlightFrameID: frameID % 3)
   application.forgetIdleState(inFlightFrameID: frameID % 3)
-  
   print()
-  analyzeGeneralCounters()
 }
 
 #endif
