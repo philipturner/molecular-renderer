@@ -299,14 +299,14 @@ for atomID in cross.atoms.indices {
   application.atoms[atomID] = atom
 }
 
-for frameID in 0..<16 {
-//   print()
-//   print("===============")
-//   print("=== frame \(frameID) ===")
-//   print("===============")
+for frameID in 0..<100 {
+  print()
+  print("===============")
+  print("=== frame \(frameID) ===")
+  print("===============")
 
-  // print()
-  // print("rotation: \(frameID * 3) degrees")
+  print()
+  print("rotation: \(frameID * 3) degrees")
   
   print()
   
@@ -322,8 +322,8 @@ for frameID in 0..<16 {
   application.updateBVH(inFlightFrameID: frameID % 3)
   application.forgetIdleState(inFlightFrameID: frameID % 3)
   
-//   print()
-//   analyzeGeneralCounters()
+  print()
+  analyzeGeneralCounters()
 }
 
 #endif
