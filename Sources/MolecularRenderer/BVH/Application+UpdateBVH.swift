@@ -67,8 +67,10 @@ extension Application {
       }
       #endif
       
-      print("update BVH:", updateBVHLatency, "μs")
-      print("render:", renderLatency, "μs")
+      _ = updateBVHLatency
+      _ = renderLatency
+      // print("update BVH:", updateBVHLatency, "μs")
+      // print("render:", renderLatency, "μs")
     }
   }
   
