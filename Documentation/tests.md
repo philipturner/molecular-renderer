@@ -44,6 +44,10 @@ Reference video: [YouTube](https://www.youtube.com/shorts/rV1UGau20xQ)
 
 ## Rotating Beam
 
+> TODO: Improve the explanation for this test.
+
+Objective is to reach as many atoms as possible, until the Metal Performance HUD shows the FPS dropping below the display's native refresh rate. Windows users can detect the drop by observing stuttering in the animation.
+
 Test at least one case of a skinny, rotating rod where the total number of cells swept vastly exceeds the number of memory slots. The rod's atom count is less than 1 million, and every atom moves every frame. Use this as a benchmark for the true maximum atoms/frame in a practical setting.
 
 Also include some stationary atoms nearby, which you can guarantee fall into some of the same cells. The test is scaleable, just like the long distances test.
@@ -52,6 +56,8 @@ Also include some stationary atoms nearby, which you can guarantee fall into som
 | ------------------ | -----------: | -------------: |
 | Theoretical        | 1,546,000    | 954,000        |
 | Actual             | 934,000      | TBD            |
+
+_For more detailed explanation of the benchmarked hardware, study the source code in "Sources/MolecularRenderer/Atoms.swift"._
 
 ## Long Distances
 

@@ -284,25 +284,9 @@ func addRotatedBeam(frameID: Int) {
   }
 }
 
-#if false
 application.run {
-  print()
-  
   addRotatedBeam(frameID: application.clock.frames)
   
   let image = application.render()
   application.present(image: image)
 }
-#else
-
-for frameID in 0..<16 {
-  addRotatedBeam(frameID: frameID)
-  
-  application.checkCrashBuffer(frameID: frameID)
-  application.checkExecutionTime(frameID: frameID)
-  application.updateBVH(inFlightFrameID: frameID % 3)
-  application.forgetIdleState(inFlightFrameID: frameID % 3)
-  print()
-}
-
-#endif

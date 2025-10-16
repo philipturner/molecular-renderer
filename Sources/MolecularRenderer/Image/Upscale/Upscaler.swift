@@ -65,11 +65,4 @@ class Upscaler {
     self.ffxContext = FFXContext(descriptor: ffxContextDesc)
     #endif
   }
-  
-  // TODO: Expose a method to the public API, where the upscaler can be reset
-  // by something other than frameID being 0.
-  //
-  // This may have some relation to the reactive mask texture, where the
-  // accumulation history for certain pixels should reset after certain abrupt
-  // changes.
 }

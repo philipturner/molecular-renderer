@@ -3,10 +3,8 @@ import SwiftCOM
 import WinSDK
 #endif
 
-// TODO: Before finishing the acceleration structure PR, remove the public
-// modifier for the functions in this extension.
 extension Application {
-  public func checkCrashBuffer(frameID: Int) {
+  func checkCrashBuffer(frameID: Int) {
     if frameID >= 3 {
       let elementCount = CounterResources.crashBufferSize / 4
       var output = [UInt32](repeating: .zero, count: elementCount)
@@ -29,7 +27,7 @@ extension Application {
     }
   }
   
-  public func checkExecutionTime(frameID: Int) {
+  func checkExecutionTime(frameID: Int) {
     if frameID >= 3 {
       #if os(Windows)
       let destinationBuffer = bvhBuilder.counters
@@ -69,7 +67,7 @@ extension Application {
     }
   }
   
-  public func updateBVH(inFlightFrameID: Int) {
+  func updateBVH(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
     
     device.commandQueue.withCommandList { commandList in
@@ -156,7 +154,7 @@ extension Application {
     }
   }
   
-  public func forgetIdleState(inFlightFrameID: Int) {
+  func forgetIdleState(inFlightFrameID: Int) {
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
       #if os(Windows)
