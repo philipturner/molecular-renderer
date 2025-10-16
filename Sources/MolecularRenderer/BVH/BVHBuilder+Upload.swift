@@ -45,8 +45,14 @@ extension BVHBuilder {
         "Moved and added atom count must not exceed \(maxTransactionSize).")
     }
     
-    // TODO: Specify the benchmark conditions so we can preserve these
-    // stats in the future, as justification for the design choice.
+    // Benchmark conditions:
+    // - rotating beam test
+    //   - cross thickness: 16
+    //   - cross size: 120
+    //   - beam width: 48
+    //   - world dimension: 96
+    // - atom count: 788,149
+    // - task size: 50,000 atoms (~100 blocks)
     
     // Serial copying of IDs and positions
     //
@@ -61,8 +67,8 @@ extension BVHBuilder {
     // Concurrent / simultaneous copying of IDs and positions
     //
     // macOS:
-    //   single-threaded:
-    //   multi-threaded:
+    //   single-threaded: 441 μs
+    //   multi-threaded: 239 μs
     //
     // Windows:
     //   single-threaded: 1623 μs
@@ -83,8 +89,7 @@ extension BVHBuilder {
     nonisolated(unsafe)
     let safeTransaction = transaction
     let taskCount = transaction.count
-    // DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
-    for taskID in 0..<taskCount {
+    DispatchQueue.concurrentPerform(iterations: taskCount) { taskID in
       let chunk = safeTransaction[taskID]
       let removedOffset = Int(reduction.removedPrefixSum[taskID])
       let movedOffset = Int(reduction.movedPrefixSum[taskID])
