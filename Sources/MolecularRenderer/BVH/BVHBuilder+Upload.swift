@@ -11,6 +11,7 @@ extension BVHBuilder {
     inFlightFrameID: Int
   ) {
     // Reduce over all chunks of the transaction.
+    let checkpoint0 = Date()
     var totalRemoved: Int = .zero
     var totalMoved: Int = .zero
     var totalAdded: Int = .zero
@@ -40,7 +41,7 @@ extension BVHBuilder {
     }
     
     // Write to the IDs buffer.
-    // TODO: Break down the latency of upload into 3 major parts.
+    let checkpoint1 = Date()
     do {
       #if os(macOS)
       let buffer = atoms.transactionIDs.nativeBuffers[inFlightFrameID]
@@ -73,6 +74,7 @@ extension BVHBuilder {
     }
     
     // Write to the atoms buffer.
+    let checkpoint2 = Date()
     do {
       #if os(macOS)
       let buffer = atoms.transactionAtoms.nativeBuffers[inFlightFrameID]
@@ -97,6 +99,20 @@ extension BVHBuilder {
           offset: (totalMoved + addedOffset) * 16)
       }
     }
+    let checkpoint3 = Date()
+    
+    func displayLatency(
+      _ start: Date,
+      _ end: Date,
+      name: String
+    ) {
+      let latency = end.timeIntervalSince(start)
+      let latencyMicroseconds = Int(latency * 1e6)
+      print("upload.\(name):", latencyMicroseconds, "μs")
+    }
+    displayLatency(checkpoint0, checkpoint1, name: "latency01")
+    displayLatency(checkpoint1, checkpoint2, name: "latency12")
+    displayLatency(checkpoint2, checkpoint3, name: "latency23")
     
     #if os(Windows)
     // Dispatch the GPU commands to copy the PCIe data.
