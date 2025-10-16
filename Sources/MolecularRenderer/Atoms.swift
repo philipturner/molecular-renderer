@@ -99,28 +99,31 @@ public class Atoms {
     }
   }
   
-  // TODO: Attempt to optimize this with multithreading + merging the memory
-  // allocations for movedAtoms and addedAtoms + writing positions directly to
-  // the GPU buffer. It consumes up to 57% of the CPU-side latency per atom per
-  // frame.
+  // Originally, this function created the majority of the CPU-side latency.
+  // In the rotating beam benchmark, its contribution was 42%. If the rendering
+  // cost is zero, CPU-side latency/atom/frame would be the bottleneck holding
+  // back the entire application's performance.
   //
-  // In the rotating beam benchmark, the cost of animating the beam on a single
-  // CPU core drives the contribution down to 42%. Still, it is worthwhile to
-  // optimize the latency as much as possible. Assuming the rendering cost
-  // is zero, CPU-side latency/atom/frame is the bottleneck holding back the
-  // entire application's performance.
+  // Therefore, I spent an extra day during the acceleration structure PR,
+  // optimizing the latency of 'registerChanges()' and 'upload(transaction:)'.
+  // Here are the results of the development time invested.
   
   // macOS system:
   // - M1 Max (10-core CPU, 32-core GPU)
   // - 120 Hz display
-  // - limited to 0.9M atoms/frame @ 120 Hz if 9.25 ns/atom latency
+  // - original latency estimate: 9.25 nm/atom
+  //   - limited to 0.9M atoms/frame @ 120 Hz,
   //   - GPU time predicted to be ~1.5 ms / 8.3 ms
-  // - limited to 1.6M atoms/frame @ 120 Hz if 5.35 ns/atom latency
-  //   - GPU time predicted to be ~2.7 ms / 8.3 ms
+  // - optimized latency estimate:
   //
   // Windows system:
   // - Intel Core i5-4460, GTX 970
   // - 60 Hz display
+  // - original latency estimate: 21.13 ns/atom
+  //   - limited to 0.8M atoms/frame @ 60 Hz
+  //   - GPU time predicted to be
+  
+  
   // - limited to 0.8M atoms/frame @ 60 Hz if 21.13 ns/atom latency
   //   - GPU time predicted to be ~7.1 ms / 16.7 ms
   // - limited to 1.2M atoms/frame @ 60 Hz if 13.42 ns/atom latency
@@ -129,10 +132,6 @@ public class Atoms {
   // Real-world performance can probably come very close to the limits stated
   // above. While the GPU is occupied with a second demanding task besides
   // updating the BVH, the CPU is not.
-  //
-  // The second (better) limit is overly optimistic because it models the cost
-  // of registering a transaction as 0.00 ns/atom. Real-world results could be
-  // expected to be a fraction of the current latency, hopefully under 50%.
   
   // 0.1M atoms/frame
   //
@@ -150,7 +149,7 @@ public class Atoms {
   // |                      | ns/atom | ns/atom |
   // | PCIe transfer        |    0.00 |    1.61 |
   // | update BVH           |    2.75 |    7.08 |
-  // | total                |    2.75 |    8.69 |
+  // | total                |    2.75 |    7.08 |
   
   // 1M atoms/frame
   //
@@ -168,7 +167,7 @@ public class Atoms {
   // |                      | ns/atom | ns/atom |
   // | PCIe transfer        |    0.00 |    1.59 |
   // | update BVH           |    1.69 |    7.33 |
-  // | total                |    1.69 |    8.92 |
+  // | total                |    1.69 |    7.33 |
   
   // 100M address space size
   //
