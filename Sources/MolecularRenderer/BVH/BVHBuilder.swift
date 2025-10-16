@@ -168,6 +168,8 @@ class BVHBuilder {
   }
   
   // Upload the acceleration structure changes for every frame.
+  //
+  // TODO: Next, try multithreading the copying into the buffer.
   func upload(
     transaction: [Atoms.Transaction],
     commandList: CommandList,

@@ -205,9 +205,7 @@ public class Atoms {
     }
     let modifiedBlockIDs = createModifiedBlockIDs()
     
-    // On single-core, we reach the lowest latency for 30 x 512 (macOS),
-    // 200 x 512 (Windows).
-    let taskSize: Int = 10
+    let taskSize: Int = 100
     let taskCount = (modifiedBlockIDs.count + taskSize - 1) / taskSize
     
     func createChunks() -> [Transaction] {
