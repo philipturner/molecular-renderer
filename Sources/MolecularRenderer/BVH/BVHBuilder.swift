@@ -169,13 +169,20 @@ class BVHBuilder {
   
   // Upload the acceleration structure changes for every frame.
   func upload(
-    transaction: Atoms.Transaction,
+    transaction: [Atoms.Transaction],
     commandList: CommandList,
     inFlightFrameID: Int
   ) {
-    let removedCount = Int(transaction.removedCount)
-    let movedCount = Int(transaction.movedCount)
-    let addedCount = Int(transaction.addedCount)
+    // Reduce over all chunks of the transaction.
+    var removedCount: Int = .zero
+    var movedCount: Int = .zero
+    var addedCount: Int = .zero
+    for chunk in transaction {
+      removedCount += Int(chunk.removedCount)
+      movedCount += Int(chunk.movedCount)
+      addedCount += Int(chunk.addedCount)
+    }
+    print(removedCount, movedCount, addedCount)
     
     // Validate the sizes of the transaction components.
     let maxTransactionSize = AtomResources.maxTransactionSize
@@ -196,11 +203,11 @@ class BVHBuilder {
       #endif
       
       let removedPointer = UnsafeRawBufferPointer(
-        start: transaction.removedIDs, count: removedCount * 4)
+        start: transaction[0].removedIDs, count: removedCount * 4)
       let movedPointer = UnsafeRawBufferPointer(
-        start: transaction.movedIDs, count: movedCount * 4)
+        start: transaction[0].movedIDs, count: movedCount * 4)
       let addedPointer = UnsafeRawBufferPointer(
-        start: transaction.addedIDs, count: addedCount * 4)
+        start: transaction[0].addedIDs, count: addedCount * 4)
       
       buffer.write(
         input: removedPointer,
@@ -238,9 +245,9 @@ class BVHBuilder {
       #endif
       
       let movedPointer = UnsafeRawBufferPointer(
-        start: transaction.movedPositions, count: movedCount * 16)
+        start: transaction[0].movedPositions, count: movedCount * 16)
       let addedPointer = UnsafeRawBufferPointer(
-        start: transaction.addedPositions, count: addedCount * 16)
+        start: transaction[0].addedPositions, count: addedCount * 16)
       
       buffer.write(
         input: movedPointer,

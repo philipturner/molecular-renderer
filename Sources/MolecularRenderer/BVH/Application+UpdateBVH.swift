@@ -75,7 +75,6 @@ extension Application {
   public func updateBVH(inFlightFrameID: Int) {
     let start = Date()
     let transaction = atoms.registerChanges()
-    print(transaction.removedCount, transaction.addedCount, transaction.movedCount)
     let end = Date()
     let registerLatency = end.timeIntervalSince(start)
     let registerLatencyMicroseconds = Int(registerLatency * 1e6)

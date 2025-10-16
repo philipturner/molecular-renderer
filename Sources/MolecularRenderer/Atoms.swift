@@ -189,7 +189,7 @@ public class Atoms {
   // GPU is reaching 78-80% PCIe utilization, with PCIe 3 x16 = 15.76 GB/s.
   // That means 1.61 ns/atom (0.1M atoms), 1.59 ns/atom (1M atoms) on the GPU
   // timeline.
-  func registerChanges() -> Transaction {
+  func registerChanges() -> [Transaction] {
     let checkpoint0 = Date()
     var modifiedBlockIDs: [UInt32] = []
     for blockID in 0..<(addressSpaceSize / Self.blockSize) {
@@ -265,6 +265,6 @@ public class Atoms {
     latency23Microseconds
     print("register.total:", total, "μs")
     
-    return output
+    return [output]
   }
 }
