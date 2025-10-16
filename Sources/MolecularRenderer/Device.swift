@@ -24,7 +24,7 @@ public class Device {
   
   // This option can double the CPU-side command encoding latency.
   // TODO: Turn it off before merging the acceleration structure PR.
-  private static var enableDebug: Bool { true }
+  private static var enableDebug: Bool { false }
   
   // Stored properties for the debug layer.
   var d3d12Debug: SwiftCOM.ID3D12Debug?
