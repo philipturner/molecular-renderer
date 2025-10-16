@@ -64,10 +64,10 @@ extension Application {
   // modifier for this.
   public func updateBVH(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
-    // print()
-    // print("removed:", transaction.removedIDs.count)
-    // print("moved:", transaction.movedIDs.count)
-    // print("added:", transaction.addedIDs.count)
+//     print()
+//     print("removed:", transaction.removedIDs.count)
+//     print("moved:", transaction.movedIDs.count)
+//     print("added:", transaction.addedIDs.count)
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)

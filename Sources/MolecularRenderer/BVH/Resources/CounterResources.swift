@@ -1,4 +1,6 @@
-#if os(Windows)
+#if os(macOS)
+import class Dispatch.DispatchQueue
+#else
 import SwiftCOM
 import WinSDK
 #endif
@@ -12,7 +14,14 @@ class CounterResources {
   let crashBuffer: CrashBuffer // initialize at startup
   static var crashBufferSize: Int { 64 * 4 }
   
-  #if os(Windows)
+  #if os(macOS)
+  // Accesses to these are synchronized by the MTLCommandBuffer waiting
+  // mechanism in CrashBuffer. The crash buffer must be checked before querying
+  // performance counters.
+  let queue: DispatchQueue
+  var updateBVHLatencies: [Int] = [0, 0, 0]
+  var renderLatencies: [Int] = [0, 0, 0]
+  #else
   let queryHeap: SwiftCOM.ID3D12QueryHeap
   var queryDestinationBuffers: [Buffer] = []
   #endif
@@ -33,7 +42,10 @@ class CounterResources {
     crashBufferDesc.size = Self.crashBufferSize
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
     
-    #if os(Windows)
+    #if os(macOS)
+    let label = "com.philipturner.MolecularRenderer.CounterResources.queue"
+    self.queue = DispatchQueue(label: label)
+    #else
     self.queryHeap = Self.createQueryHeap(device: device)
     for _ in 0..<3 {
       let buffer = Self
