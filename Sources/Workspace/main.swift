@@ -13,12 +13,10 @@ import QuaternionModule
 //
 // Current task:
 // - Gather this final round of benchmark data.
-// - Archive the code for the last benchmark ("main.swift" and
-//   "Application+UpdateBVH.swift") on GitHub gist.
-// - Test the rotating beam benchmark on macOS with the Metal performance HUD
-//   showing where it breaks down.
-// - Save the current state of the rotating beam benchmark in Tests.
-// - Update the performance documentation in 'Atoms.swift'
+// - Update the performance documentation in 'Atoms.swift'.
+// - Save the current 'main.swift' and 'Application+UpdateBVH.swift' to a
+//   GitHub gist for traceability.
+// - Clean up the CPU-side profiling, save the rotating beam test to Tests.
 
 // MARK: - Compile Structures
 
@@ -61,7 +59,7 @@ func passivate(topology: inout Topology) {
 
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 48
+let beamDepth: Int = 57
 let worldDimension: Float = 96
 
 func createCross() -> Topology {

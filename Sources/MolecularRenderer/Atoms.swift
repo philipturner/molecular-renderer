@@ -128,6 +128,15 @@ public class Atoms {
   // Real-world performance can probably come very close to the limits stated
   // above. While the GPU is occupied with a second demanding task besides
   // updating the BVH, the CPU is not.
+  //
+  // On macOS, I ran a test of actual performance with an empty render kernel.
+  // The Metal Performance HUD showed the 120 FPS target could be sustained at
+  // up to beamDepth = 57, or 933,742 atoms/frame. The lower bound to the time
+  // reported for the GPU timeline was 3.39 ms. The GPU time is not reliable
+  // because the GPU was underclocking. Powermetrics showed 77% duty cycle at
+  // the 389 MHz mode and 0% for the other modes, up to 1296 MHz. Power
+  // consumption was 2.05 W, but the maximum power I've ever recorded for this
+  // chip is ~52 W.
   
   // 0.1M atoms/frame
   //
