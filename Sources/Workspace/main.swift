@@ -55,7 +55,7 @@ func passivate(topology: inout Topology) {
 
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 2
+let beamDepth: Int = 24
 let worldDimension: Float = 96
 
 func createCross() -> Topology {
@@ -236,7 +236,7 @@ func createRotatedBeam(frameID: Int) -> Topology {
   return topology
 }
 
-exit(0)
+// exit(0)
 
 // MARK: - Launch Application
 
@@ -261,7 +261,7 @@ func createApplication() -> Application {
   applicationDesc.upscaleFactor = 1
   
   applicationDesc.addressSpaceSize = 2_000_000
-  applicationDesc.voxelAllocationSize = 200_000_000
+  applicationDesc.voxelAllocationSize = 500_000_000
   applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
   
