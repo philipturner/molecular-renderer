@@ -272,6 +272,7 @@ func addRotatedBeam(frameID: Int) {
 
 application.run {
   addRotatedBeam(frameID: application.clock.frames)
+  application.camera.position = SIMD3(0, 0, (worldDimension / 2) - 8)
   
   let image = application.render()
   application.present(image: image)

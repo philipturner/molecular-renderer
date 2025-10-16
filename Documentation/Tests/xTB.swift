@@ -1,5 +1,4 @@
 import HDL
-import MolecularRenderer
 import xTB
 
 let system: [Atom] = [

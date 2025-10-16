@@ -18,7 +18,6 @@ func createApplication() -> Application {
   
   // Set up the application.
   var applicationDesc = ApplicationDescriptor()
-  applicationDesc.allocationSize = 10_000
   applicationDesc.device = device
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 3

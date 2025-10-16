@@ -232,10 +232,13 @@ func createApplication() -> Application {
   
   // Set up the application.
   var applicationDesc = ApplicationDescriptor()
-  applicationDesc.allocationSize = 10_000
   applicationDesc.device = device
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 3
+  
+  applicationDesc.addressSpaceSize = 4_000_000
+  applicationDesc.voxelAllocationSize = 500_000_000
+  applicationDesc.worldDimension = 32
   let application = Application(descriptor: applicationDesc)
   
   return application
