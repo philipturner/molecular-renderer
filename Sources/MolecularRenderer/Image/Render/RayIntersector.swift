@@ -91,9 +91,15 @@ func createRayIntersector(worldDimension: Float) -> String {
     uint getSlotID(float3 largeLowerCorner) {
       float3 coordinates = largeLowerCorner + \(worldDimension / 2);
       coordinates /= 2;
-      float address =
-      \(VoxelResources.generate("coordinates", worldDimension / 2));
-      return assignedSlotIDs[uint(address)];
+      
+      // Compute address in UInt32 because world dimensions over 512 nm reach
+      // the limit of FP32 mantissa. Now the limit is 2048 nm, set by both the
+      // precision of UInt32 and the precision of FP32 when computing addresses
+      // for 8 nm voxel groups.
+      uint3 coordinatesInt = uint3(coordinates);
+      uint address =
+      \(VoxelResources.generate("coordinatesInt", worldDimension / 2));
+      return assignedSlotIDs[address];
     }
     
     uint getSmallHeader(uint smallHeaderBase,
@@ -167,6 +173,8 @@ func createRayIntersector(worldDimension: Float) -> String {
             // Set the loop bounds register.
             uint referenceCursor = smallHeader & 0xFFFF;
             uint referenceEnd = smallHeader >> 16;
+            referenceCursor += listAddress16;
+            referenceEnd += listAddress16;
             
             // Prevent infinite loops from corrupted BVH data.
             referenceEnd = min(referenceEnd, referenceCursor + 128);
