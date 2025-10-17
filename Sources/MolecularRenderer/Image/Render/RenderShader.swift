@@ -316,11 +316,12 @@ struct RenderShader {
         // carbon: expect 59 px
         // silicon: expect 69 px
         
+        
         // Pick the number of AO samples.
         uint sampleCount = 15;
         
         // Prevent infinite loops from corrupted constant data.
-        // TODO
+        // TODO: If AO is enabled, clamp the sample count to 3...100
         
         // Create a generation context.
         GenerationContext generationContext;

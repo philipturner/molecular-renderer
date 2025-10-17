@@ -62,6 +62,7 @@ func createRayGeneration() -> String {
       return output;
     }
     
+    // Create an argument for primary ray Z before the rotation.
     float3 primaryRayDirection(uint2 pixelCoords,
                                uint2 screenDimensions,
                                float2 jitterOffset,
