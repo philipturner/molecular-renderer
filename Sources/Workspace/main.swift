@@ -3,10 +3,9 @@ import MolecularRenderer
 import QuaternionModule
 
 // Remaining tasks of this PR:
-// - Implement a kernel that intersects primary rays with atoms.
-// - Before implementing AO, implement a scheme where the atom's pixel count is
-//   diagnosed in the on-screen texture. Confirm that upscale factors don't
-//   change this (backend code has properly corrected for the upscale factor).
+// - Implement ambient occlusion.
+// - Attempt to render objects far enough to apply to critical pixel count
+//   heuristic.
 // - Implement fully optimized primary ray intersector from main-branch-backup.
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
 //   Then, see whether this can benefit the primary ray intersector for large
@@ -112,7 +111,6 @@ func modifyCamera() {
   application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
   application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
   application.camera.fovAngleVertical = Float.pi / 180 * 60
-  application.camera.secondaryRayCount = nil
   
   let latticeConstant = Constant(.square) {
     .checkerboard(.silicon, .carbon)
