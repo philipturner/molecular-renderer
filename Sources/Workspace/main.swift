@@ -27,18 +27,18 @@ func createApplication() -> Application {
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 2
+  applicationDesc.upscaleFactor = 1
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
-  applicationDesc.worldDimension = 448
+  applicationDesc.worldDimension = 32
   let application = Application(descriptor: applicationDesc)
   
   return application
 }
 let application = createApplication()
 
-// // 8631 atoms
+// 8631 atoms
 let lattice = Lattice<Cubic> { h, k, l in
   Bounds { 10 * (h + k + l) }
   Material { .checkerboard(.silicon, .carbon) }
@@ -60,7 +60,6 @@ application.run {
     2 * halfSize + 2 * halfSize)
   application.camera.fovAngleVertical = Float.pi / 180 * 60
   
-  var image = application.render()
-  image = application.upscale(image: image)
+  let image = application.render()
   application.present(image: image)
 }

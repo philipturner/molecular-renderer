@@ -94,7 +94,7 @@ The scene will take some time to design correctly. Expect it to hit challenging 
 
 ---
 
-Make the entire thing parameterizable and scalable. Then, work on two variations with world volume proportional to atom count. One is for 150M atoms, the other is for 500M atoms. The cost of per-dense-voxel operations during BVH construction starts to become non-negligible here.
+Make the entire thing parameterizable and scalable. Then, work on two variations with world volume proportional to atom count. One is for 150M atoms, the other is for 500M atoms. The cost of per-dense-voxel operations during the BVH update starts to become non-negligible here.
 
 | Chip            | RAM    | Theoretical Max Atoms | Target Variation |
 | --------------- | -----: | --------------------: | ---------------: |
