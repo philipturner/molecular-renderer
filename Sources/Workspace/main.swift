@@ -128,7 +128,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1400, 1400)
+  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   

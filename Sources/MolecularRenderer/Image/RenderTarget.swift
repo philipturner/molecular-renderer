@@ -158,6 +158,10 @@ class RenderTarget {
   
   func intermediateSize(display: Display) -> SIMD2<Int> {
     var output = display.frameBufferSize
+    guard output[0] % Int(upscaleFactor) == 0,
+          output[1] % Int(upscaleFactor) == 0 else {
+      fatalError("Frame buffer size was not divisible by upscale factor.")
+    }
     
     switch upscaleFactor {
     case 1:
