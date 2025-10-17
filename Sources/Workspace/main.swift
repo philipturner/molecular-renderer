@@ -8,6 +8,9 @@ import QuaternionModule
 //   diagnosed in the on-screen texture. Confirm that upscale factors don't
 //   change this (backend code has properly corrected for the upscale factor).
 // - Implement fully optimized primary ray intersector from main-branch-backup.
+// - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
+//   Then, see whether this can benefit the primary ray intersector for large
+//   distances.
 
 @MainActor
 func createApplication() -> Application {
@@ -31,14 +34,22 @@ func createApplication() -> Application {
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
-  applicationDesc.worldDimension = 512
+  applicationDesc.worldDimension = 32
   let application = Application(descriptor: applicationDesc)
   
   return application
 }
 let application = createApplication()
 
-#if false
+let lattice = Lattice<Cubic> { h, k, l in
+  Bounds { 10 * (h + k + l) }
+  Material { .checkerboard(.silicon, .carbon) }
+}
+
+for atomID in lattice.atoms.indices {
+  let atom = lattice.atoms[atomID]
+  application.atoms[atomID] = atom
+}
 
 application.run {
   let latticeConstant = Constant(.square) {
@@ -54,14 +65,3 @@ application.run {
   let image = application.render()
   application.present(image: image)
 }
-
-#else
-
-for frameID in 0..<64 {
-  application.checkCrashBuffer(frameID: frameID)
-  application.checkExecutionTime(frameID: frameID)
-  application.updateBVH(inFlightFrameID: frameID % 3)
-  application.forgetIdleState(inFlightFrameID: frameID % 3)
-}
-
-#endif

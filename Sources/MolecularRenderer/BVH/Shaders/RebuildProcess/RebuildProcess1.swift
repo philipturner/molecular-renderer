@@ -3,9 +3,7 @@ extension RebuildProcess {
   // dispatch threads SIMD3(repeating: worldDimension / 2)
   // dispatch groups  SIMD3(repeating: worldDimension / 8)
   //
-  // TODO: Rearrange so this component of the kernel happens after
-  // rebuildProcess2. Thus, we don't even need a renaming of kernels. Add
-  // debugging utility functions that inspect the contents of the marks buffers.
+  // TODO: Rearrange so the creation of occupiedMarks happens after process2.
   //
   // read from dense.assignedSlotIDs
   //   do not use any optimizations to reduce the bandwidth cost

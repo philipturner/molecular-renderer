@@ -96,6 +96,8 @@ The scene will take some time to design correctly. Expect it to hit challenging 
 
 Make the entire thing parameterizable and scalable. Then, work on two variations with world volume proportional to atom count. One is for 150M atoms, the other is for 500M atoms. The cost of per-dense-voxel operations during the BVH update starts to become non-negligible here.
 
+> Re-evaluate the need for these two variations when the per-dense-voxel cost is optimized better.
+
 | Chip            | RAM    | Theoretical Max Atoms | Target Variation |
 | --------------- | -----: | --------------------: | ---------------: |
 | GTX 970         | 3.5 GB | 33M   | 150M |
