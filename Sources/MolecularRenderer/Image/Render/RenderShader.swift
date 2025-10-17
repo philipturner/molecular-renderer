@@ -189,7 +189,7 @@ struct RenderShader {
         float3 currentHitPoint = query.rayOrigin;
         currentHitPoint += intersect.distance * query.rayDirection;
         
-        float3 atomMotionVector = float4(motionVectors[intersect.atomID]).xyz;
+        float3 atomMotionVector = 0;//float4(motionVectors[intersect.atomID]).xyz;
         float3 previousHitPoint = currentHitPoint + atomMotionVector;
         
         // Invert mapping: ray intersection -> primary ray direction
@@ -214,7 +214,7 @@ struct RenderShader {
         
         // Compare against current coordinates.
         float2 currentPixelCoords = float2(pixelCoords) + 0.5;
-        currentPixelCoords += renderArgs.jitterOffset;
+        currentPixelCoords += jitterOffset;
         
         // FidelityFX docs: encode motion from current frame to previous frame
         float2 motionVector = previousPixelCoords - currentPixelCoords;
@@ -222,6 +222,7 @@ struct RenderShader {
         // Guarantee this doesn't cause issues from exceeding the dynamic
         // range of FP16.
         motionVector = clamp(motionVector, float(-65000), float(65000));
+        motionVector = float2(0, 0);
         \(write("float4(motionVector, 0, 0)", texture: "motionTexture"))
       } else {
         float2 motionVector = 0;
@@ -265,6 +266,10 @@ struct RenderShader {
         return;
       }
       
+      float2 jitterOffset;
+      jitterOffset.x = renderArgs.jitterOffsetX;
+      jitterOffset.y = renderArgs.jitterOffsetY;
+      
       // Prepare the ray intersector.
       RayIntersector rayIntersector;
       rayIntersector.atoms = atoms;
@@ -280,7 +285,7 @@ struct RenderShader {
       RayGeneration::primaryRayDirection(dzdt,
                                          pixelCoords,
                                          screenDimensions,
-                                         renderArgs.jitterOffset,
+                                         jitterOffset,
                                          cameraArgs.data[0].tangentFactor,
                                          cameraArgs.data[0].basis);
       

@@ -1,5 +1,6 @@
 struct RenderArgs {
-  var jitterOffset: SIMD2<Float> = .zero
+  var jitterOffsetX: Float = .zero
+  var jitterOffsetY: Float = .zero
   var frameSeed: UInt32 = .zero
   var upscaleFactor: Float = .zero
   var secondaryRayCount: UInt32 = .zero
@@ -8,7 +9,8 @@ struct RenderArgs {
   static var shaderDeclaration: String {
     """
     struct RenderArgs {
-      float2 jitterOffset;
+      float jitterOffsetX;
+      float jitterOffsetY;
       uint frameSeed;
       float upscaleFactor;
       uint secondaryRayCount;
