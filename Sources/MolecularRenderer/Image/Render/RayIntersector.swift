@@ -39,6 +39,34 @@ func createRayIntersector(worldDimension: Float) -> String {
     #endif
   }
   
+  func cutoffAO() -> Float {
+    Float(1) + 0.25 * Float(3).squareRoot()
+  }
+  
+  func outOfBoundsStatement(
+    argument: String,
+    minimum: String,
+    maximum: String
+  ) -> String {
+    let lhs = "\(argument) < \(minimum)"
+    let rhs = "\(argument) >= \(maximum)"
+    return "any(\(Shader.or(lhs, rhs)))"
+  }
+  
+  func checkPrimary() -> String {
+    outOfBoundsStatement(
+      argument: "smallLowerCorner",
+      minimum: "\(-worldDimension / 2)",
+      maximum: "\(worldDimension / 2)")
+  }
+  
+  func checkAO() -> String {
+    outOfBoundsStatement(
+      argument: "smallLowerCorner",
+      minimum: "\(-worldDimension / 2)",
+      maximum: "\(worldDimension / 2)")
+  }
+  
   return """
   \(createDDAUtility(worldDimension: worldDimension))
   
@@ -143,10 +171,7 @@ func createRayIntersector(worldDimension: Float) -> String {
         
         // Check whether the DDA has gone out of bounds.
         float3 smallLowerCorner = dda.cellLowerCorner(smallCellBorder);
-        bool3 breakLoop = smallLowerCorner < \(-worldDimension / 2);
-        breakLoop =
-        \(Shader.or("breakLoop", "smallLowerCorner >= \(worldDimension / 2)"));
-        if (any(breakLoop)) {
+        if (\(checkPrimary())) {
           break;
         }
         
@@ -222,14 +247,12 @@ func createRayIntersector(worldDimension: Float) -> String {
       // Prepare the intersection result.
       IntersectionResult result;
       result.accept = false;
-      result.atomID = \(UInt32.max);
-      result.distance = 1e38;
       
       uint loopIterationCount = 0;
       while (!result.accept) {
         // Prevent infinite loops from corrupted BVH data.
         loopIterationCount += 1;
-        if (loopIterationCount >= 256) {
+        if (loopIterationCount >= 20) {
           break;
         }
         
@@ -241,10 +264,7 @@ func createRayIntersector(worldDimension: Float) -> String {
         
         // Check whether the DDA has gone out of bounds.
         float3 smallLowerCorner = dda.cellLowerCorner(smallCellBorder);
-        bool3 breakLoop = smallLowerCorner < \(-worldDimension / 2);
-        breakLoop =
-        \(Shader.or("breakLoop", "smallLowerCorner >= \(worldDimension / 2)"));
-        if (any(breakLoop)) {
+        if (voxelMaximumHitTime > \(cutoffAO()) || \(checkAO())) {
           break;
         }
         
