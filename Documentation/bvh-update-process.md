@@ -28,6 +28,8 @@ Motion vectors are held in the active state by referring to the transaction sent
 
 Bandwidth-intensive atomic counters are optimized by tagging 8 nm "voxel groups". Only if a voxel group is tagged, will future kernels inspect its 2 nm voxels for modifications. Kernels scoped at the 2 nm level still dispatch one thread per 2 nm voxel in the world volume. However, they use 4x4x4 threadgroups and thus are naturally scoped at 8 nm. The kernels return early when they don't need to perform bandwidth-intensive operations.
 
+Some compute work is scoped at 32 nm to further reduce costs.
+
 ## Stages
 
 Remove Process
