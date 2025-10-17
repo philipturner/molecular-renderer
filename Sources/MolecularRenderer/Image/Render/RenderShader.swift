@@ -230,6 +230,10 @@ struct RenderShader {
       """
     }
     
+    func atomicNumber(_ input: String) -> String {
+      "\(Shader.asuint)(\(input)) & 0xFF"
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -323,7 +327,7 @@ struct RenderShader {
         
         // Prepare the ambient occlusion.
         AmbientOcclusion ambientOcclusion;
-        ambientOcclusion.diffuseAtomicNumber = uint(hitAtom[3]);
+        ambientOcclusion.diffuseAtomicNumber = \(atomicNumber("hitAtom[3]"));
         ambientOcclusion.diffuseAccumulator = 0;
         ambientOcclusion.specularAccumulator = 0;
         
@@ -343,6 +347,7 @@ struct RenderShader {
             .secondaryRayDirection(i, sampleCount, hitPoint, hitNormal);
           
           // Deactivate ray tracing for AO.
+          // WARNING: Properly decode the atomic number for the hit atom.
           ambientOcclusion.addAmbientContribution(0, 1e38);
         }
         

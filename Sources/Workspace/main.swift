@@ -43,7 +43,7 @@ let application = createApplication()
 
 let lattice = Lattice<Cubic> { h, k, l in
   Bounds { 10 * (h + k + l) }
-  Material { .checkerboard(.silicon, .carbon) }
+  Material { .checkerboard(.carbon, .silicon) }
 }
 
 for atomID in lattice.atoms.indices {
