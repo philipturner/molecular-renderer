@@ -189,7 +189,7 @@ struct RenderShader {
         float3 currentHitPoint = query.rayOrigin;
         currentHitPoint += intersect.distance * query.rayDirection;
         
-        float3 atomMotionVector = 0;//float4(motionVectors[intersect.atomID]).xyz;
+        float3 atomMotionVector = float4(motionVectors[intersect.atomID]).xyz;
         float3 previousHitPoint = currentHitPoint + atomMotionVector;
         
         // Invert mapping: ray intersection -> primary ray direction
@@ -222,7 +222,6 @@ struct RenderShader {
         // Guarantee this doesn't cause issues from exceeding the dynamic
         // range of FP16.
         motionVector = clamp(motionVector, float(-65000), float(65000));
-        motionVector = float2(0, 0);
         \(write("float4(motionVector, 0, 0)", texture: "motionTexture"))
       } else {
         float2 motionVector = 0;
@@ -327,9 +326,6 @@ struct RenderShader {
         pixelCount *= float(screenDimensions.y);
         pixelCount /= 2 * cameraArgs.data[0].tangentFactor;
         pixelCount *= renderArgs.upscaleFactor;
-        if (pixelCount > 61 && pixelCount < 64) {
-          ambientOcclusion.diffuseAtomicNumber = 7;
-        }
         
         // Pick the number of AO samples.
         uint sampleCount = 15;
