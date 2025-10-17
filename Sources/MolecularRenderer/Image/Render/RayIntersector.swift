@@ -88,7 +88,7 @@ func createRayIntersector(worldDimension: Float) -> String {
     \(bvhBuffers())
     \(memoryTapeArgument())
     
-    uint largeSlotID(float3 largeLowerCorner) {
+    uint getSlotID(float3 largeLowerCorner) {
       float3 coordinates = largeLowerCorner + \(worldDimension / 2);
       coordinates /= 2;
       float address =
@@ -96,10 +96,13 @@ func createRayIntersector(worldDimension: Float) -> String {
       return assignedSlotIDs[uint(address)];
     }
     
-    uint smallHeader(uint smallHeaderBase,
-                     float3 relativeSmallLowerCorner)
+    uint getSmallHeader(uint smallHeaderBase,
+                        float3 relativeSmallLowerCorner)
     {
-    
+      float3 coordinates = relativeSmallLowerCorner / 0.25;
+      float address =
+      \(VoxelResources.generate("coordinates", 8));
+      return memorySlots32[smallHeaderBase + uint(address)];
     }
     
     IntersectionResult intersect(IntersectionQuery query) {
@@ -140,7 +143,7 @@ func createRayIntersector(worldDimension: Float) -> String {
         
         // Retrieve the slot ID.
         float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-        uint slotID = largeSlotID(largeLowerCorner);
+        uint slotID = getSlotID(largeLowerCorner);
         
         // If the large cell has small cells, proceed.
         if (slotID != \(UInt32.max)) {
@@ -153,9 +156,10 @@ func createRayIntersector(worldDimension: Float) -> String {
           \(MemorySlot.offset(.referenceSmall) / 2);
           
           float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
-          ushort2 smallMetadata = this->smallMetadata(relativeSmallLowerCorner,
-                                                      largeCellOffset);
+          uint smallHeader = getSmallHeader(smallHeaderBase,
+                                            relativeSmallLowerCorner);
           
+          /*
           if (smallMetadata[1] > 0) {
             // Set the origin register.
             float3 shiftedRayOrigin = intersectionQuery.rayOrigin;
@@ -179,6 +183,7 @@ func createRayIntersector(worldDimension: Float) -> String {
               result.accept = true;
             }
           }
+          */
         }
         
         // Increment to the next small voxel.
