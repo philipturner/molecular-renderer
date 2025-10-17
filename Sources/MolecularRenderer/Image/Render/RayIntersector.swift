@@ -204,7 +204,6 @@ func createRayIntersector(worldDimension: Float) -> String {
         smallCellBorder = dda.nextBorder(smallCellBorder, nextTimes);
       }
       
-      // result.accept = false;
       return result;
     }
   };

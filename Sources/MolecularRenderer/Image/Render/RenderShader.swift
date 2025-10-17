@@ -288,28 +288,6 @@ struct RenderShader {
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
       
-      /*
-      // Access the crash buffer for convenient debugging. Crash if the
-      // atom ID is nonzero and waveIsFirstLane().
-      if (intersect.atomID != \(UInt32.max)) {
-        if (\(Reduction.waveIsFirstLane())) {
-          bool acquiredLock = false;
-          \(CrashBuffer.acquireLock(errorCode: 3))
-          if (acquiredLock) {
-            crashBuffer[1] = 0;
-            crashBuffer[2] = 0;
-            crashBuffer[3] = 0;
-            crashBuffer[4] = intersect.atomID;
-            crashBuffer[5] = 0;
-            crashBuffer[6] = 0;
-          }
-        }
-        
-        \(write("float4(0, 0, 0, 0)", texture: "colorTexture"))
-        return;
-      }
-      */
-      
       // Write the depth and motion vector ASAP, reducing register pressure.
       \(computeDepth())
       \(computeMotionVector())
