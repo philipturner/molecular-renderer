@@ -7,17 +7,6 @@ func createRayGeneration() -> String {
     #endif
   }
   
-  func mul(
-    _ lhs: String,
-    _ rhs: String
-  ) -> String {
-    #if os(macOS)
-    "\(lhs) * \(rhs)"
-    #else
-    "mul(\(lhs), \(rhs))"
-    #endif
-  }
-  
   return """
   \(createSamplingUtility())
   
@@ -52,7 +41,18 @@ func createRayGeneration() -> String {
       }
       y = normalize(y);
       
-      // Compute the X axis through Gram-Schmidt orthogonalization.
+      // Compute the x axis through Gram-Schmidt orthogonalization.
+      //
+      // If you do the math, the Y and Z axis are guaranteed to be
+      // perpendicular. Prior to normalizing y, the dot product of z and y
+      // would be:
+      //
+      // abs(z.z) >  0.999 | y(-x^2 + 1 - y^2 - z^2)
+      // abs(z.z) <= 0.999 | z(-x^2 - y^2 + 1 - z^2)
+      //
+      // Where x, y, and z in this expression are the x/y/z components of the
+      // Z axis. Y is generated from the Z axis's vector components. If the
+      // Z axis is a normal vector, then x^2 + y^2 + z^2 sums to 1.
       float3 x = cross(y, z);
       
       Matrix3x3 output;
