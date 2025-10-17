@@ -27,7 +27,7 @@ func createApplication() -> Application {
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 3
+  applicationDesc.upscaleFactor = 1
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
@@ -49,7 +49,7 @@ for atomID in lattice.atoms.indices {
   application.atoms[atomID] = atom
 }
 
-#if true
+#if false
 application.run {
   let latticeConstant = Constant(.square) {
     .checkerboard(.silicon, .carbon)
@@ -61,14 +61,13 @@ application.run {
     2 * halfSize + 2 * halfSize)
   application.camera.fovAngleVertical = Float.pi / 180 * 60
   
-  var image = application.render()
-  image = application.upscale(image: image)
+  let image = application.render()
   application.present(image: image)
 }
 
 #else
 
-for frameID in 0..<30 {
+for frameID in 0..<100 {
   application.checkCrashBuffer(frameID: frameID)
   application.checkExecutionTime(frameID: frameID)
   application.updateBVH(inFlightFrameID: frameID % 3)
