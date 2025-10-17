@@ -312,9 +312,15 @@ struct RenderShader {
         // TODO: Change color of the atom to easily identify different tiers
         // of pixel count, and ensure they don't change when upscaling is
         // enabled.
+        //
+        // carbon: expect 59 px
+        // silicon: expect 69 px
         
         // Pick the number of AO samples.
         uint sampleCount = 15;
+        
+        // Prevent infinite loops from corrupted constant data.
+        // TODO
         
         // Create a generation context.
         GenerationContext generationContext;
