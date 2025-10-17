@@ -1,4 +1,18 @@
 func createLightingUtility() -> String {
+  func ambientArguments() -> String {
+    #if os(macOS)
+    """
+    thread float &diffuseAmbient,
+    thread float &specularAmbient,
+    """
+    #else
+    """
+    inout float diffuseAmbient,
+    inout float specularAmbient,
+    """
+    #endif
+  }
+  
   return """
   struct AmbientOcclusion {
     // WARNING: Explicitly initialize all of these to 0.
@@ -6,51 +20,51 @@ func createLightingUtility() -> String {
     float diffuseAccumulator;
     float specularAccumulator;
     
-    void addAmbientContribution(uint atomicNumber, float distance) {
-      if (atomicNumber > 0 && distance < 1.000) {
-        // Gaussians function always returns something between 0 and 1.
-        // With the distance cutoff, it maps [0 nm, 1 nm] to [1.000, 0.135].
-        float occlusion = exp(-2 * distance * distance);
-        
-        // A simple implementation is 'diffuseAmbient = 1 - occlusion'.
-        // This implementation would map [1.000, 0.135] to [0.000, 0.865].
-        //
-        // A complex implementation imposes a minimum ambient illumination.
-        // The actual implementation maps [1.000, 0.135] to [0.070, 0.874].
-        diffuseAmbient = 1 - 0.93 * occlusion;
-        specularAmbient = 1 - 0.93 * occlusion;
-        
-        // Color at the primary hit point.
-        float3 primaryHitColor = atomColors[diffuseAtomicNumber];
-        
-        // Color at the secondary hit point.
-        float3 secondaryHitColor = atomColors[atomicNumber];
-        
-        // Take the dot product of the color with the gamut.
-        // - Parameters taken from the sRGB/Rec.709 standard.
-        // - RGB (0.00, 0.00, 0.00) maps to luminance = 0.
-        // - RGB (1.00, 1.00, 1.00) maps to luminance = 1.
-        // - Other colors fall somewhere in between.
-        float3 gamut = float3(0.212671, 0.715160, 0.072169);
-        float primaryHitLuminance = dot(primaryHitColor, gamut);
-        float secondaryHitLuminance = dot(secondaryHitColor, gamut);
-        
-        // Average the luminance at the primary and secondary hit points.
-        // - This implementation uses the arithmetic mean.
-        // - The original text used geometric mean, but arithmetic mean appears
-        //   to work just as well.
-        float averageLuminance = 0;
-        averageLuminance += primaryHitLuminance;
-        averageLuminance += secondaryHitLuminance;
-        averageLuminance /= 2;
-        
-        // Luminance [0, 1] maps to rho [0, 0.5].
-        float rho = 0.5 * averageLuminance;
-        
-        // Adjust the diffuse AO term, to simulate diffuse interreflectance
-        // between the primary and secondary hit point.
-        diffuseAmbient = diffuseAmbient / (1 - rho * (1 - diffuseAmbient));
-      }
+    void computeAmbientContribution(\(ambientArguments())
+                                    uint atomicNumber,
+                                    float distance) {
+      // Gaussians function always returns something between 0 and 1.
+      // With the distance cutoff, it maps [0 nm, 1 nm] to [1.000, 0.135].
+      float occlusion = exp(-2 * distance * distance);
+      
+      // A simple implementation is 'diffuseAmbient = 1 - occlusion'.
+      // This implementation would map [1.000, 0.135] to [0.000, 0.865].
+      //
+      // A complex implementation imposes a minimum ambient illumination.
+      // The actual implementation maps [1.000, 0.135] to [0.070, 0.874].
+      diffuseAmbient = 1 - 0.93 * occlusion;
+      specularAmbient = 1 - 0.93 * occlusion;
+      
+      // Color at the primary hit point.
+      float3 primaryHitColor = atomColors[diffuseAtomicNumber];
+      
+      // Color at the secondary hit point.
+      float3 secondaryHitColor = atomColors[atomicNumber];
+      
+      // Take the dot product of the color with the gamut.
+      // - Parameters taken from the sRGB/Rec.709 standard.
+      // - RGB (0.00, 0.00, 0.00) maps to luminance = 0.
+      // - RGB (1.00, 1.00, 1.00) maps to luminance = 1.
+      // - Other colors fall somewhere in between.
+      float3 gamut = float3(0.212671, 0.715160, 0.072169);
+      float primaryHitLuminance = dot(primaryHitColor, gamut);
+      float secondaryHitLuminance = dot(secondaryHitColor, gamut);
+      
+      // Average the luminance at the primary and secondary hit points.
+      // - This implementation uses the arithmetic mean.
+      // - The original text used geometric mean, but arithmetic mean appears
+      //   to work just as well.
+      float averageLuminance = 0;
+      averageLuminance += primaryHitLuminance;
+      averageLuminance += secondaryHitLuminance;
+      averageLuminance /= 2;
+      
+      // Luminance [0, 1] maps to rho [0, 0.5].
+      float rho = 0.5 * averageLuminance;
+      
+      // Adjust the diffuse AO term, to simulate diffuse interreflectance
+      // between the primary and secondary hit point.
+      diffuseAmbient = diffuseAmbient / (1 - rho * (1 - diffuseAmbient));
     }
   };
   

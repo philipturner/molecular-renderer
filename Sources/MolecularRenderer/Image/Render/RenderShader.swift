@@ -348,6 +348,8 @@ struct RenderShader {
             // WARNING: Properly decode the atomic number for the hit atom.
             // TODO
             
+            // if (atomicNumber > 0 && distance < 1.000) {
+            
             // Accumulate into the sum of AO samples.
             ambientOcclusion.diffuseAccumulator += diffuseAmbient;
             ambientOcclusion.specularAccumulator += specularAmbient;
