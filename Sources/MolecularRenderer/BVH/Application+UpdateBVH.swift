@@ -4,7 +4,7 @@ import WinSDK
 #endif
 
 extension Application {
-  func checkCrashBuffer(frameID: Int) {
+  public func checkCrashBuffer(frameID: Int) {
     if frameID >= 3 {
       let elementCount = CounterResources.crashBufferSize / 4
       var output = [UInt32](repeating: .zero, count: elementCount)
@@ -27,7 +27,7 @@ extension Application {
     }
   }
   
-  func checkExecutionTime(frameID: Int) {
+  public func checkExecutionTime(frameID: Int) {
     if frameID >= 3 {
       #if os(Windows)
       let destinationBuffer = bvhBuilder.counters
@@ -62,13 +62,12 @@ extension Application {
       #endif
       
       // Edit this code to inspect GPU-side performance.
-      print()
       print(updateBVHLatency)
-      print(renderLatency)
+      _ = renderLatency
     }
   }
   
-  func updateBVH(inFlightFrameID: Int) {
+  public func updateBVH(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
     
     device.commandQueue.withCommandList { commandList in
@@ -151,7 +150,7 @@ extension Application {
     }
   }
   
-  func forgetIdleState(inFlightFrameID: Int) {
+  public func forgetIdleState(inFlightFrameID: Int) {
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
       #if os(Windows)

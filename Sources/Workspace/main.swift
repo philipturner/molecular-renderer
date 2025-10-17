@@ -49,6 +49,7 @@ for atomID in lattice.atoms.indices {
   application.atoms[atomID] = atom
 }
 
+#if false
 application.run {
   let latticeConstant = Constant(.square) {
     .checkerboard(.silicon, .carbon)
@@ -63,3 +64,14 @@ application.run {
   let image = application.render()
   application.present(image: image)
 }
+
+#else
+
+for frameID in 0..<30 {
+  application.checkCrashBuffer(frameID: frameID)
+  application.checkExecutionTime(frameID: frameID)
+  application.updateBVH(inFlightFrameID: frameID % 3)
+  application.forgetIdleState(inFlightFrameID: frameID % 3)
+}
+
+#endif
