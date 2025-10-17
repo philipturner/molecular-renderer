@@ -30,7 +30,7 @@ func createApplication() -> Application {
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 1
+  applicationDesc.upscaleFactor = 3
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
@@ -126,6 +126,7 @@ application.run {
   modifyAtoms()
   modifyCamera()
   
-  let image = application.render()
+  var image = application.render()
+  image = application.upscale(image: image)
   application.present(image: image)
 }
