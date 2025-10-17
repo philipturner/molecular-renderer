@@ -309,6 +309,10 @@ struct RenderShader {
         ambientOcclusion.diffuseAccumulator = 0;
         ambientOcclusion.specularAccumulator = 0;
         
+        // TODO: Change color of the atom to easily identify different tiers
+        // of pixel count, and ensure they don't change when upscaling is
+        // enabled.
+        
         // Pick the number of AO samples.
         uint sampleCount = 15;
         

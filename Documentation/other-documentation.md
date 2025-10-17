@@ -84,14 +84,16 @@ A default of 7 or 15 secondary rays results in sufficient quality for any genera
 
 A simple heuristic reduces the number of secondary rays, at a certain distance from the user. When atoms are small, they are harder to clearly see, and therefore can afford less rendering quality. The reduction in sample count cancels the increase in divergence, leading to consistent rendering speed in all use cases.
 
-TODO: Implement and document the heuristic.
-- No need for a complex Google Sheet to model multiple coupled variables, combined with subjectiveness of specific data points harming sensible quantitative analysis.
+| element | radius    | pixels @ 7 samples | pixels @ 3 samples |
+| :-----: | --------: | -----------------: | -----------------: |
+| H       | 0.0930 nm | 28 | 12 |
+| C       | 0.1426 nm | 43 | 18 |
+| Si      | 0.1744 nm | 52 | 22 |
+| Au      | 0.2371 nm | 71 | 30 |
 
-Realization: test this by rendering an `.elemental` material, seeing how a single atom looks when it gets very small. Go by the need for AO quality in the intermediate texture, prior to upscaling. Therefore, 3x upscale factor tends to _reduce_ the AO sample count with the critical distance heuristic. 1x upscale is rendered at many more pixels, thus AO sample count is higher. We can use data gathered at 1x upscale, and it will generalize to 3x upscale without quality degradation. Problem solved! Go by quality in the final texture.
+_Critical pixel count with the old code base._
 
-Project the atom's radius onto the screen. Figure out how many pixels it spans after upscaling. Use that calculated pixel count as input for the heuristic. Different elements will have different pixel counts because their atoms are larger.
-
-We can now specify a better API:
+TODO: Implement this API, then remove the code snippet from this documentation page.
 
 ```swift
 struct Camera {
@@ -111,6 +113,7 @@ struct Camera {
 ```
 
 In the backend, encode these settings in `RenderArgs` instead of `CameraArgs`.
+
 
 ## MetalFX Latency Issues
 
