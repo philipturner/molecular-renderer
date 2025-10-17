@@ -324,8 +324,8 @@ struct RenderShader {
           // TODO: Actually apply the heuristic.
           
           // Prevent infinite loops from corrupted constant data.
-          sampleCount = max(sampleCount, 3);
-          sampleCount = min(sampleCount, 100);
+          sampleCount = max(sampleCount, uint(3));
+          sampleCount = min(sampleCount, uint(100));
           
           // Create a generation context.
           GenerationContext generationContext;
