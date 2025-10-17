@@ -27,11 +27,11 @@ func createApplication() -> Application {
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 1
+  applicationDesc.upscaleFactor = 2
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
-  applicationDesc.worldDimension = 384
+  applicationDesc.worldDimension = 448
   let application = Application(descriptor: applicationDesc)
   
   return application
@@ -39,17 +39,16 @@ func createApplication() -> Application {
 let application = createApplication()
 
 // // 8631 atoms
-// let lattice = Lattice<Cubic> { h, k, l in
-//   Bounds { 10 * (h + k + l) }
-//   Material { .checkerboard(.silicon, .carbon) }
-// }
+let lattice = Lattice<Cubic> { h, k, l in
+  Bounds { 10 * (h + k + l) }
+  Material { .checkerboard(.silicon, .carbon) }
+}
 
-// for atomID in lattice.atoms.indices {
-//   let atom = lattice.atoms[atomID]
-//   application.atoms[atomID] = atom
-// }
+for atomID in lattice.atoms.indices {
+  let atom = lattice.atoms[atomID]
+  application.atoms[atomID] = atom
+}
 
-#if false
 application.run {
   let latticeConstant = Constant(.square) {
     .checkerboard(.silicon, .carbon)
@@ -61,17 +60,7 @@ application.run {
     2 * halfSize + 2 * halfSize)
   application.camera.fovAngleVertical = Float.pi / 180 * 60
   
-  let image = application.render()
+  var image = application.render()
+  image = application.upscale(image: image)
   application.present(image: image)
 }
-
-#else
-
-for frameID in 0..<100 {
-  application.checkCrashBuffer(frameID: frameID)
-  application.checkExecutionTime(frameID: frameID)
-  application.updateBVH(inFlightFrameID: frameID % 3)
-  application.forgetIdleState(inFlightFrameID: frameID % 3)
-}
-
-#endif

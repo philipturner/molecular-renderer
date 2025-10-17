@@ -81,13 +81,11 @@ extension RebuildProcess {
       uint voxelID =
       \(VoxelResources.generate("globalID", worldDimension / 2));
       
-      #if 1
       // read from dense.assignedSlotIDs
       uint assignedSlotID = assignedSlotIDs[voxelID];
       if (assignedSlotID != \(UInt32.max)) {
         voxelGroupOccupiedMarks[voxelGroupID] = 1;
       }
-      #endif
       
       if (voxelGroupRebuiltMarks[voxelGroupID] == 0) {
         return;

@@ -92,16 +92,18 @@ Get this working at the very end of the PR. Make a YouTube video of ~70M atoms o
 
 The scene will take some time to design correctly. Expect it to hit challenging pain points for performance. It is a rigorous proof that I have achieved the ultimate goal of computer graphics.
 
-Make the entire thing parameterizable and scalable. Then, fix the parameters at a set that theoretically scales to a scene with 500M atoms.
+---
 
-| Chip     | RAM    | Theoretical Max Atoms |
-| -------- | -----: | --------------------: |
-| GTX 970  | 3.5 GB | 33M   |
-| M1       |   8 GB | 75M   |
-| M1 Pro   |  16 GB | 150M  |
-| 7900 XTX |  24 GB | 225M  |
-| RTX 4090 |  24 GB | 225M  |
-| M1 Max   |  32 GB | 300M  |
-| RTX 5090 |  32 GB | 300M  |
-| M3 Max   | 128 GB | 1200M |
-| M3 Ultra | 512 GB | 4800M |
+Make the entire thing parameterizable and scalable. Then, work on two variations with world volume proportional to atom count. One is for 100M atoms, the other is for 500M atoms. The cost of per-dense-voxel operations during BVH construction starts to become non-negligible here.
+
+| Chip     | RAM    | Theoretical Max Atoms | Target Variation |
+| -------- | -----: | --------------------: | ---------------: |
+| GTX 970  | 3.5 GB | 33M   | 100M |
+| M1       |   8 GB | 75M   | 100M |
+| M1 Pro   |  16 GB | 150M  | 500M |
+| 7900 XTX |  24 GB | 225M  | 500M |
+| RTX 4090 |  24 GB | 225M  | 500M |
+| M1 Max   |  32 GB | 300M  | 500M |
+| RTX 5090 |  32 GB | 300M  | 500M |
+| M3 Max   | 128 GB | 1200M | 500M |
+| M3 Ultra | 512 GB | 4800M | 500M |

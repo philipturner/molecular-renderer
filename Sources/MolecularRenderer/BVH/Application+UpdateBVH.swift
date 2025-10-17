@@ -156,6 +156,12 @@ extension Application {
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
       
+      // Encode the rebuild process.
+      bvhBuilder.rebuildProcess1(
+        commandList: commandList)
+      bvhBuilder.rebuildProcess2(
+        commandList: commandList)
+      
       #if os(Windows)
       try! commandList.d3d12CommandList.EndQuery(
         bvhBuilder.counters.queryHeap,
@@ -183,55 +189,6 @@ extension Application {
           let latencyMicroseconds = Int(executionTime * 1e6)
           selfReference.bvhBuilder.counters
             .updateLatencies[inFlightFrameID] = latencyMicroseconds
-        }
-      }
-      #endif
-    }
-      
-    device.commandQueue.withCommandList { commandList in
-      #if os(Windows)
-      try! commandList.d3d12CommandList.EndQuery(
-        bvhBuilder.counters.queryHeap,
-        D3D12_QUERY_TYPE_TIMESTAMP,
-        2)
-      
-      // Bind the descriptor heap.
-      commandList.setDescriptorHeap(descriptorHeap)
-      #endif
-      
-      // Encode the rebuild process.
-      bvhBuilder.rebuildProcess1(
-        commandList: commandList)
-      bvhBuilder.rebuildProcess2(
-        commandList: commandList)
-      
-      #if os(Windows)
-      try! commandList.d3d12CommandList.EndQuery(
-        bvhBuilder.counters.queryHeap,
-        D3D12_QUERY_TYPE_TIMESTAMP,
-        3)
-      
-      let destinationBuffer = bvhBuilder.counters
-        .queryDestinationBuffers[inFlightFrameID]
-      try! commandList.d3d12CommandList.ResolveQueryData(
-        bvhBuilder.counters.queryHeap,
-        D3D12_QUERY_TYPE_TIMESTAMP,
-        2,
-        2,
-        destinationBuffer.d3d12Resource,
-        16)
-      #endif
-      
-      #if os(macOS)
-      nonisolated(unsafe)
-      let selfReference = self
-      commandList.mtlCommandBuffer.addCompletedHandler { commandBuffer in
-        selfReference.bvhBuilder.counters.queue.sync {
-          var executionTime = commandBuffer.gpuEndTime
-          executionTime -= commandBuffer.gpuStartTime
-          let latencyMicroseconds = Int(executionTime * 1e6)
-          selfReference.bvhBuilder.counters
-            .renderLatencies[inFlightFrameID] = latencyMicroseconds
         }
       }
       #endif
