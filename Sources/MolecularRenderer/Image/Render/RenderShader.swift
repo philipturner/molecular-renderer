@@ -339,6 +339,12 @@ struct RenderShader {
             float3 secondaryRayDirection = generationContext
               .secondaryRayDirection(i, sampleCount, hitPoint, hitNormal);
             
+            // Intersect the secondary ray.
+            IntersectionQuery query;
+            query.rayOrigin = secondaryRayOrigin;
+            query.rayDirection = secondaryRayDirection;
+            IntersectionResult intersect = rayIntersector.intersectAO(query);
+            
             // Deactivate ray tracing for AO.
             
             // WARNING: Properly decode the atomic number for the hit atom.
