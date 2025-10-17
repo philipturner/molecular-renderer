@@ -46,12 +46,56 @@ let lattice = Lattice<Cubic> { h, k, l in
   Material { .checkerboard(.carbon, .silicon) }
 }
 
-for atomID in lattice.atoms.indices {
-  let atom = lattice.atoms[atomID]
-  application.atoms[atomID] = atom
+@MainActor
+func createTime() -> Float {
+  let elapsedFrames = application.clock.frames
+  let frameRate = application.display.frameRate
+  let seconds = Float(elapsedFrames) / Float(frameRate)
+  return seconds
+}
+
+@MainActor
+func modifyAtoms() {
+  // 0.2 Hz rotation rate
+  let time = createTime()
+  let angleDegrees = 0.2 * time * 360
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * angleDegrees,
+    axis: SIMD3(0, 1, 0))
+  
+  // Circumvent a massive CPU-side bottleneck from 'rotation.act()'.
+  let basis0 = rotation.act(on: SIMD3<Float>(1, 0, 0))
+  let basis1 = rotation.act(on: SIMD3<Float>(0, 1, 0))
+  let basis2 = rotation.act(on: SIMD3<Float>(0, 0, 1))
+  
+  let latticeConstant = Constant(.square) {
+    .checkerboard(.silicon, .carbon)
+  }
+  let halfSize = latticeConstant * 5
+  let rotationCenter = SIMD3<Float>(repeating: halfSize)
+  
+  // Circumvent a massive CPU-side bottleneck from @MainActor referencing to
+  // things from the global scope.
+  let latticeCopy = lattice
+  let applicationCopy = application
+  
+  for atomID in lattice.atoms.indices {
+    var atom = latticeCopy.atoms[atomID]
+    let originalDelta = atom.position - rotationCenter
+    
+    var rotatedDelta: SIMD3<Float> = .zero
+    rotatedDelta += basis0 * originalDelta[0]
+    rotatedDelta += basis1 * originalDelta[1]
+    rotatedDelta += basis2 * originalDelta[2]
+    
+    atom.position = rotationCenter + rotatedDelta
+    applicationCopy.atoms[atomID] = atom
+  }
 }
 
 application.run {
+  modifyAtoms()
+  
   let latticeConstant = Constant(.square) {
     .checkerboard(.silicon, .carbon)
   }
