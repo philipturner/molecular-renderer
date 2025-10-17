@@ -13,7 +13,7 @@ import QuaternionModule
 
 // MARK: - Compile Structure
 
-let latticeSizeXY: Float = 32
+let latticeSizeXY: Float = 128
 let latticeSizeZ: Float = 2
 let worldDimension: Float = 256
 do {
@@ -128,7 +128,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1080, 1080)
+  displayDesc.frameBufferSize = SIMD2<Int>(1400, 1400)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
