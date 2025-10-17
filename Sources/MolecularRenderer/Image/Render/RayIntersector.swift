@@ -96,6 +96,12 @@ func createRayIntersector(worldDimension: Float) -> String {
       return assignedSlotIDs[uint(address)];
     }
     
+    uint smallHeader(uint smallHeaderBase,
+                     float3 relativeSmallLowerCorner)
+    {
+    
+    }
+    
     IntersectionResult intersect(IntersectionQuery query) {
       // Initialize the DDA.
       float3 smallCellBorder;
@@ -137,15 +143,19 @@ func createRayIntersector(worldDimension: Float) -> String {
         uint slotID = largeSlotID(largeLowerCorner);
         
         // If the large cell has small cells, proceed.
-        /*
-        if (largeCellOffset > 0) {
+        if (slotID != \(UInt32.max)) {
+          uint headerAddress = slotID * \(MemorySlot.totalSize / 4);
+          uint smallHeaderBase = headerAddress +
+          \(MemorySlot.offset(.headerSmall) / 4);
+          uint listAddress = headerAddress +
+          \(MemorySlot.offset(.referenceLarge) / 4);
+          uint listAddress16 = headerAddress * 2 +
+          \(MemorySlot.offset(.referenceSmall) / 2);
+          
           float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
           ushort2 smallMetadata = this->smallMetadata(relativeSmallLowerCorner,
                                                       largeCellOffset);
           
-          // The ray-sphere intersection tests may be highly divergent. All
-          // measures to reduce divergence backfired, causing a significant
-          // increase to execution time.
           if (smallMetadata[1] > 0) {
             // Set the origin register.
             float3 shiftedRayOrigin = intersectionQuery.rayOrigin;
@@ -170,7 +180,6 @@ func createRayIntersector(worldDimension: Float) -> String {
             }
           }
         }
-        */
         
         // Increment to the next small voxel.
         smallCellBorder = dda.nextBorder(smallCellBorder, nextTimes);
