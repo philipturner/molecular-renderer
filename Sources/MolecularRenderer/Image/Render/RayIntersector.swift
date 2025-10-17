@@ -89,21 +89,31 @@ func createRayIntersector(worldDimension: Float) -> String {
     \(memoryTapeArgument())
     
     IntersectionResult intersect(IntersectionQuery query) {
+      // Initialize the DDA.
+      float3 smallCellBorder;
+      DDA dda;
+      dda.initialize(smallCellBorder,
+                     query.rayOrigin,
+                     query.rayDirection);
+      
       // Prepare the intersection result.
-      IntersectionResult intersect;
-      intersect.accept = false;
-      intersect.atomID = \(UInt32.max);
-      intersect.distance = 1e38;
+      IntersectionResult result;
+      result.accept = false;
+      result.atomID = \(UInt32.max);
+      result.distance = 1e38;
       
-      // Deactivate ray tracing for primary ray.
-      intersect.atomID = 5;
-      
-      // Check whether we found a hit.
-      if (intersect.distance < 1e38) {
-        intersect.accept = true;
+      uint loopIterationCount = 0;
+      while (!result.accept) {
+        loopIterationCount += 1;
+        if (loopIterationCount >= 256) {
+          break;
+        }
       }
       
-      return intersect;
+      if (loopIterationCount > 1) {
+        result.atomID = loopIterationCount;
+      }
+      return result;
     }
   };
   """
