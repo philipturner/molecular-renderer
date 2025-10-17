@@ -111,7 +111,107 @@ func createRayIntersector(worldDimension: Float) -> String {
       return memorySlots32[smallHeaderBase + uint(address)];
     }
     
-    IntersectionResult intersect(IntersectionQuery query) {
+    // BVH traversal algorithm for primary rays. These rays must jump very
+    // large distances, but have minimal divergence.
+    IntersectionResult intersectPrimary(IntersectionQuery query) {
+      // Initialize the DDA.
+      float3 smallCellBorder;
+      DDA dda;
+      dda.initialize(smallCellBorder,
+                     query.rayOrigin,
+                     query.rayDirection);
+      
+      // Prepare the intersection result.
+      IntersectionResult result;
+      result.accept = false;
+      result.atomID = \(UInt32.max);
+      result.distance = 1e38;
+      
+      uint loopIterationCount = 0;
+      while (!result.accept) {
+        // Prevent infinite loops from corrupted BVH data.
+        loopIterationCount += 1;
+        if (loopIterationCount >= 256) {
+          break;
+        }
+        
+        // Compute the voxel maximum time.
+        float3 nextTimes = dda
+          .nextTimes(smallCellBorder, query.rayOrigin);
+        float voxelMaximumHitTime = dda
+          .voxelMaximumHitTime(smallCellBorder, nextTimes);
+        
+        // Check whether the DDA has gone out of bounds.
+        float3 smallLowerCorner = dda.cellLowerCorner(smallCellBorder);
+        bool3 breakLoop = smallLowerCorner < \(-worldDimension / 2);
+        breakLoop =
+        \(Shader.or("breakLoop", "smallLowerCorner >= \(worldDimension / 2)"));
+        if (any(breakLoop)) {
+          break;
+        }
+        
+        // Retrieve the slot ID.
+        float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
+        uint slotID = getSlotID(largeLowerCorner);
+        
+        // If the large cell has small cells, proceed.
+        if (slotID != \(UInt32.max)) {
+          uint headerAddress = slotID * \(MemorySlot.totalSize / 4);
+          uint smallHeaderBase = headerAddress +
+          \(MemorySlot.offset(.headerSmall) / 4);
+          uint listAddress = headerAddress +
+          \(MemorySlot.offset(.referenceLarge) / 4);
+          uint listAddress16 = headerAddress * 2 +
+          \(MemorySlot.offset(.referenceSmall) / 2);
+          
+          float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
+          uint smallHeader = getSmallHeader(smallHeaderBase,
+                                            relativeSmallLowerCorner);
+          
+          if (smallHeader > 0) {
+            // Set the distance register.
+            result.distance = voxelMaximumHitTime;
+            
+            // Set the loop bounds register.
+            uint referenceCursor = smallHeader & 0xFFFF;
+            uint referenceEnd = smallHeader >> 16;
+            referenceCursor += listAddress16;
+            referenceEnd += listAddress16;
+            
+            // Prevent infinite loops from corrupted BVH data.
+            referenceEnd = min(referenceEnd, referenceCursor + 128);
+            
+            // Test every atom in the voxel.
+            while (referenceCursor < referenceEnd) {
+              uint reference16 = memorySlots16[referenceCursor];
+              uint atomID = memorySlots32[listAddress + reference16];
+              float4 atom = atoms[atomID];
+              
+              intersectAtom(result,
+                            query,
+                            atom,
+                            atomID);
+              
+              referenceCursor += 1;
+            }
+            
+            // Check whether we found a hit.
+            if (result.distance < voxelMaximumHitTime) {
+              result.accept = true;
+            }
+          }
+        }
+        
+        // Increment to the next small voxel.
+        smallCellBorder = dda.nextBorder(smallCellBorder, nextTimes);
+      }
+      
+      return result;
+    }
+    
+    // BVH traversal algorithm for AO rays. These rays terminate after
+    // traveling 1 nm, but their divergence can be extremely high.
+    IntersectionResult intersectAO(IntersectionQuery query) {
       // Initialize the DDA.
       float3 smallCellBorder;
       DDA dda;

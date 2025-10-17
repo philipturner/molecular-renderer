@@ -6,6 +6,8 @@ import QuaternionModule
 // - Implement ambient occlusion.
 // - Attempt to render objects far enough to apply to critical pixel count
 //   heuristic.
+//   - Archive the current contents of 'main.swift' on a GitHub gist, then
+//     implement the long distances test.
 // - Implement fully optimized primary ray intersector from main-branch-backup.
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
 //   Then, see whether this can benefit the primary ray intersector for large

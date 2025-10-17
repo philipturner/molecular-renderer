@@ -288,7 +288,7 @@ struct RenderShader {
       IntersectionQuery query;
       query.rayOrigin = cameraArgs.data[0].position;
       query.rayDirection = primaryRayDirection;
-      IntersectionResult intersect = rayIntersector.intersect(query);
+      IntersectionResult intersect = rayIntersector.intersectPrimary(query);
       
       // Write the depth and motion vector ASAP, reducing register pressure.
       \(computeDepth())
