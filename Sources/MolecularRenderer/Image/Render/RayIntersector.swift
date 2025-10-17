@@ -159,7 +159,7 @@ func createRayIntersector(worldDimension: Float) -> String {
       while (!result.accept) {
         // Prevent infinite loops from corrupted BVH data.
         loopIterationCount += 1;
-        if (loopIterationCount >= 2048) {
+        if (loopIterationCount >= 4096) {
           break;
         }
         

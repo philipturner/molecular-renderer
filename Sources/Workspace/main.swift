@@ -13,10 +13,10 @@ import QuaternionModule
 
 // MARK: - Compile Structure
 
-let latticeSizeXY: Float = 512
+let latticeSizeXY: Float = 8
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
-let worldDimension: Float = 384
+let worldDimension: Float = 32
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
@@ -169,7 +169,7 @@ func modifyCamera() {
   application.camera.secondaryRayCount = nil
   
   let time = createTime()
-  let angleDegrees = 0.001 * time * 360
+  let angleDegrees = 0.1 * time * 360
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * -angleDegrees,
     axis: SIMD3(0, 0, 1))
@@ -179,6 +179,7 @@ func modifyCamera() {
 }
 
 application.run {
+  #if false
   modifyCamera()
   
   var startIndex = application.frameID * 1_000_000
@@ -193,6 +194,7 @@ application.run {
     let atom = topology.atoms[atomID]
     application.atoms[atomID] = atom
   }
+  #endif
   
   var image = application.render()
   image = application.upscale(image: image)
