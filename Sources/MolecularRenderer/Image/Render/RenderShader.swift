@@ -275,8 +275,10 @@ struct RenderShader {
       \(bindMemoryTape())
       
       // Prepare the ray direction.
+      float dzdt;
       float3 primaryRayDirection =
-      RayGeneration::primaryRayDirection(pixelCoords,
+      RayGeneration::primaryRayDirection(dzdt,
+                                         pixelCoords,
                                          screenDimensions,
                                          renderArgs.jitterOffset,
                                          cameraArgs.data[0].tangentFactor,

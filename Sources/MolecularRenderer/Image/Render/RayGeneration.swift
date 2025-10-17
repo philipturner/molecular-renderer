@@ -1,4 +1,12 @@
 func createRayGeneration() -> String {
+  func dzdtArgument() -> String {
+    #if os(macOS)
+    "thread float &dzdt"
+    #else
+    "inout float dzdt"
+    #endif
+  }
+  
   func lerp() -> String {
     #if os(macOS)
     "mix"
@@ -63,7 +71,8 @@ func createRayGeneration() -> String {
     }
     
     // Create an argument for primary ray Z before the rotation.
-    float3 primaryRayDirection(uint2 pixelCoords,
+    float3 primaryRayDirection(\(dzdtArgument()),
+                               uint2 pixelCoords,
                                uint2 screenDimensions,
                                float2 jitterOffset,
                                float tangentFactor,
@@ -83,6 +92,8 @@ func createRayGeneration() -> String {
       // Prepare the ray direction.
       float3 rayDirection = float3(screenCoords, -1);
       rayDirection = normalize(rayDirection);
+      dzdt = rayDirection.z;
+      
       rayDirection = cameraBasis.multiply(rayDirection);
       return rayDirection;
     }
