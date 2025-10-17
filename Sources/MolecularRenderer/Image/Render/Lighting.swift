@@ -75,6 +75,7 @@ func createLightingUtility() -> String {
     // WARNING: Explicitly initialize all of these to 0.
     float lambertianAccumulator;
     float specularAccumulator;
+    bool enableAO;
     
     // Add the contributions from a single light (this function allows for a
     // scene to have many).
@@ -110,8 +111,7 @@ func createLightingUtility() -> String {
       float diffuseTerm = 1;
       float specularTerm = 1;
       
-      // Disabled for now because the sample count is 0.
-      if (true) {
+      if (enableAO) {
         diffuseTerm = ambientOcclusion.diffuseAccumulator;
         
         // This seems to only be applied to a "specular ambient" term, not the

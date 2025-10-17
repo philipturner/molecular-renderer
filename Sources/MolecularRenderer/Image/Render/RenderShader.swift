@@ -311,51 +311,49 @@ struct RenderShader {
         ambientOcclusion.diffuseAccumulator = 0;
         ambientOcclusion.specularAccumulator = 0;
         
-        // Change color of the atom to easily identify different tiers
-        // of pixel count, and ensure they don't change when upscaling is
-        // enabled.
-        //
-        // carbon: expected 59 px, got 61-64 px
-        // silicon: expected 69 px, got 74-76 px
-        float pixelCount = 2 * sqrt(hitAtom[3]);
-        pixelCount /= (-dzdt * intersect.distance);
-        pixelCount *= float(screenDimensions.y);
-        pixelCount /= 2 * cameraArgs.data[0].tangentFactor;
-        pixelCount *= renderArgs.upscaleFactor;
-        
         // Pick the number of AO samples.
-        uint sampleCount = 15;
-        
-        // Prevent infinite loops from corrupted constant data.
-        // TODO: If AO is enabled, clamp the sample count to 3...100
-        
-        // Create a generation context.
-        GenerationContext generationContext;
-        generationContext.seed = RayGeneration::createSeed(
-          pixelCoords, renderArgs.frameSeed);
-        
-        // Iterate over the AO samples.
-        for (uint i = 0; i < sampleCount; ++i) {
-          // Spawn a secondary ray.
-          float3 secondaryRayOrigin = hitPoint + 1e-4 * float3(hitNormal);
-          float3 secondaryRayDirection = generationContext
-            .secondaryRayDirection(i, sampleCount, hitPoint, hitNormal);
+        if (renderArgs.secondaryRayCount > 0) {
+          uint sampleCount = renderArgs.secondaryRayCount;
           
-          // Deactivate ray tracing for AO.
-          // TODO: Run dummy AO where all atoms are very dark, but only if AO
-          // is enabled.
+          // Apply the critical pixel count heuristic.
+          float pixelCount = 2 * sqrt(hitAtom[3]);
+          pixelCount /= (-dzdt * intersect.distance);
+          pixelCount *= float(screenDimensions.y);
+          pixelCount /= 2 * cameraArgs.data[0].tangentFactor;
+          pixelCount *= renderArgs.upscaleFactor;
+          // TODO: Actually apply the heuristic.
           
-          // WARNING: Properly decode the atomic number for the hit atom.
-          ambientOcclusion.addAmbientContribution(0, 1e38);
+          // Prevent infinite loops from corrupted constant data.
+          sampleCount = max(sampleCount, 3);
+          sampleCount = min(sampleCount, 100);
+          
+          // Create a generation context.
+          GenerationContext generationContext;
+          generationContext.seed = RayGeneration::createSeed(
+            pixelCoords, renderArgs.frameSeed);
+          
+          // Iterate over the AO samples.
+          for (uint i = 0; i < sampleCount; ++i) {
+            // Spawn a secondary ray.
+            float3 secondaryRayOrigin = hitPoint + 1e-4 * float3(hitNormal);
+            float3 secondaryRayDirection = generationContext
+              .secondaryRayDirection(i, sampleCount, hitPoint, hitNormal);
+            
+            // Deactivate ray tracing for AO.
+            
+            // WARNING: Properly decode the atomic number for the hit atom.
+            ambientOcclusion.addAmbientContribution(6, 0.5);
+          }
+          
+          // Tell the context how many AO samples were taken.
+          ambientOcclusion.finishAmbientContributions(sampleCount);
         }
-        
-        // Tell the context how many AO samples were taken.
-        ambientOcclusion.finishAmbientContributions(sampleCount);
         
         // Prepare the Blinn-Phong lighting.
         BlinnPhongLighting blinnPhong;
         blinnPhong.lambertianAccumulator = 0;
         blinnPhong.specularAccumulator = 0;
+        blinnPhong.enableAO = (renderArgs.secondaryRayCount > 0);
         
         // Apply the camera position.
         blinnPhong.addLightContribution(hitPoint,

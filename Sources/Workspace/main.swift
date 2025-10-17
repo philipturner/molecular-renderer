@@ -112,6 +112,7 @@ func modifyCamera() {
   application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
   application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
   application.camera.fovAngleVertical = Float.pi / 180 * 60
+  application.camera.secondaryRayCount = nil
   
   let latticeConstant = Constant(.square) {
     .checkerboard(.silicon, .carbon)
