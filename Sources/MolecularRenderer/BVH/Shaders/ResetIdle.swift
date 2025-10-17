@@ -68,7 +68,6 @@ struct ResetIdle {
         device uchar *atomsRemovedMarks [[buffer(4)]],
         device uchar *rebuiltMarks [[buffer(5)]],
         device uint4 *atomicCounters [[buffer(6)]],
-        device uint *assignedSlotIDs [[buffer(7)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
@@ -81,7 +80,6 @@ struct ResetIdle {
       RWBuffer<uint> atomsRemovedMarks : register(u4);
       RWBuffer<uint> rebuiltMarks : register(u5);
       RWStructuredBuffer<uint4> atomicCounters : register(u6);
-      RWStructuredBuffer<uint> assignedSlotIDs : register(u7);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
@@ -92,7 +90,6 @@ struct ResetIdle {
         "DescriptorTable(UAV(u4, numDescriptors = 1)),"
         "DescriptorTable(UAV(u5, numDescriptors = 1)),"
         "UAV(u6),"
-        "UAV(u7),"
       )]
       void resetVoxelMarks(
         uint3 globalID : SV_DispatchThreadID,
@@ -196,10 +193,6 @@ extension BVHBuilder {
       #endif
       commandList.setBuffer(
         voxels.dense.atomicCounters, index: 6)
-      
-      // Currently bound for debugging purposes.
-      commandList.setBuffer(
-        voxels.dense.assignedSlotIDs, index: 7)
       
       let gridSize = Int(voxels.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(

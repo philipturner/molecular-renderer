@@ -3,8 +3,6 @@ import SwiftCOM
 import WinSDK
 #endif
 
-import Foundation
-
 extension Application {
   func checkCrashBuffer(frameID: Int) {
     if frameID >= 3 {
@@ -64,8 +62,6 @@ extension Application {
       #endif
       
       // Edit this code to inspect GPU-side performance.
-      _ = updateBVHLatency
-      _ = renderLatency
       print()
       print(updateBVHLatency)
       print(renderLatency)
@@ -75,7 +71,6 @@ extension Application {
   func updateBVH(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
     
-    let start = Date()
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
       try! commandList.d3d12CommandList.EndQuery(
@@ -154,16 +149,9 @@ extension Application {
       }
       #endif
     }
-    device.commandQueue.flush()
-    
-    let end = Date()
-    let latency = end.timeIntervalSince(start)
-    let latencyMicroseconds = Int(latency * 1e6)
-    print("updateBVH:", latencyMicroseconds)
   }
   
   func forgetIdleState(inFlightFrameID: Int) {
-    let start = Date()
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
       #if os(Windows)
@@ -183,12 +171,6 @@ extension Application {
       bvhBuilder.computeUAVBarrier(commandList: commandList)
       #endif
     }
-    device.commandQueue.flush()
-    
-    let end = Date()
-    let latency = end.timeIntervalSince(start)
-    let latencyMicroseconds = Int(latency * 1e6)
-    print("forgetIdleState:", latencyMicroseconds)
     
     // Delete the transactionArgs state variable.
     bvhBuilder.transactionArgs = nil

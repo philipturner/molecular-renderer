@@ -31,7 +31,7 @@ func createApplication() -> Application {
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
-  applicationDesc.worldDimension = 512
+  applicationDesc.worldDimension = 384
   let application = Application(descriptor: applicationDesc)
   
   return application
@@ -44,10 +44,10 @@ let lattice = Lattice<Cubic> { h, k, l in
   Material { .checkerboard(.silicon, .carbon) }
 }
 
-// for atomID in lattice.atoms.indices {
-//   let atom = lattice.atoms[atomID]
-//   application.atoms[atomID] = atom
-// }
+for atomID in lattice.atoms.indices {
+  let atom = lattice.atoms[atomID]
+  application.atoms[atomID] = atom
+}
 
 application.run {
   let latticeConstant = Constant(.square) {
