@@ -5,8 +5,7 @@ import QuaternionModule
 // Remaining tasks of this PR:
 // - Attempt to render objects far enough to apply to critical pixel count
 //   heuristic.
-//   - Archive the current contents of 'main.swift' on a GitHub gist, then
-//     implement the long distances test.
+//   - Implement the long distances test now.
 // - Implement fully optimized primary ray intersector from main-branch-backup.
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
 //   Then, see whether this can benefit the primary ray intersector for large
@@ -54,25 +53,17 @@ func passivate(topology: inout Topology) {
 func createTopology() -> Topology {
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 10 * (h + k + l) }
-    Material { .checkerboard(.carbon, .silicon) }
+    Material { .elemental(.silicon) }
   }
   
   var reconstruction = Reconstruction()
   reconstruction.atoms = lattice.atoms
-  reconstruction.material = .checkerboard(.silicon, .carbon)
+  reconstruction.material = .elemental(.silicon)
   var topology = reconstruction.compile()
   passivate(topology: &topology)
   return topology
 }
 let topology = createTopology()
-
-func createRotationCenter() -> SIMD3<Float> {
-  let latticeConstant = Constant(.square) {
-    .checkerboard(.silicon, .carbon)
-  }
-  let halfSize = latticeConstant * 5
-  return SIMD3<Float>(repeating: halfSize)
-}
 
 // MARK: - Launch Application
 
@@ -114,67 +105,33 @@ func createTime() -> Float {
 }
 
 @MainActor
-func modifyAtoms() {
-  // 0.2 Hz rotation rate
-  let time = createTime()
-  let angleDegrees = 0.2 * time * 360
-  let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * angleDegrees,
-    axis: SIMD3(0, 1, 0))
-  
-  // Circumvent a massive CPU-side bottleneck from 'rotation.act()'.
-  let basis0 = rotation.act(on: SIMD3<Float>(1, 0, 0))
-  let basis1 = rotation.act(on: SIMD3<Float>(0, 1, 0))
-  let basis2 = rotation.act(on: SIMD3<Float>(0, 0, 1))
-  
-  let rotationCenter = createRotationCenter()
-  
-  // Circumvent a massive CPU-side bottleneck from @MainActor referencing to
-  // things from the global scope.
-  let topologyCopy = topology
-  let applicationCopy = application
-  
-  for atomID in topology.atoms.indices {
-    var atom = topologyCopy.atoms[atomID]
-    let originalDelta = atom.position - rotationCenter
-    
-    var rotatedDelta: SIMD3<Float> = .zero
-    rotatedDelta += basis0 * originalDelta[0]
-    rotatedDelta += basis1 * originalDelta[1]
-    rotatedDelta += basis2 * originalDelta[2]
-    
-    atom.position = rotationCenter + rotatedDelta
-    applicationCopy.atoms[atomID] = atom
-  }
-}
-
-@MainActor
 func modifyCamera() {
-  // 0.04 Hz rotation rate
-  let time = createTime()
-  let angleDegrees = 0.04 * time * 360
-  let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * angleDegrees,
-    axis: SIMD3(-1, 0, 0))
+  let latticeConstant = Constant(.square) {
+    .elemental(.silicon)
+  }
+  let halfSize = latticeConstant * 5
+  application.camera.position = SIMD3<Float>(
+    halfSize,
+    halfSize,
+    halfSize + 3 * halfSize)
+  application.camera.fovAngleVertical = Float.pi / 180 * 90
   
+  let time = createTime()
+  let angleDegrees = 0.1 * time * 360
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * -angleDegrees,
+    axis: SIMD3(0, 0, 1))
   application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
   application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
   application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
-  application.camera.fovAngleVertical = Float.pi / 180 * 60
-  
-  let latticeConstant = Constant(.square) {
-    .checkerboard(.silicon, .carbon)
-  }
-  let halfSize = latticeConstant * 5
-  var cameraDelta = SIMD3<Float>(0, 0, 3 * halfSize)
-  cameraDelta = rotation.act(on: cameraDelta)
-  
-  let rotationCenter = createRotationCenter()
-  application.camera.position = rotationCenter + cameraDelta
+}
+
+for atomID in topology.atoms.indices {
+  let atom = topology.atoms[atomID]
+  application.atoms[atomID] = atom
 }
 
 application.run {
-  modifyAtoms()
   modifyCamera()
   
   var image = application.render()
