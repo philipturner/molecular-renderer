@@ -345,10 +345,17 @@ struct RenderShader {
             query.rayDirection = secondaryRayDirection;
             IntersectionResult intersect = rayIntersector.intersectAO(query);
             
-            // WARNING: Properly decode the atomic number for the hit atom.
-            // TODO
-            
-            // if (atomicNumber > 0 && distance < 1.000) {
+            float diffuseAmbient = 1;
+            float specularAmbient = 1;
+            if (intersect.accept && intersect.distance < 1) {
+              float4 atom = atoms[intersect.atomID];
+              uint atomicNumber = \(atomicNumber("atom[3]"));
+              ambientOcclusion.computeAmbientContribution(
+                diffuseAmbient,
+                specularAmbient,
+                atomicNumber,
+                intersect.distance);
+            }
             
             // Accumulate into the sum of AO samples.
             ambientOcclusion.diffuseAccumulator += diffuseAmbient;
