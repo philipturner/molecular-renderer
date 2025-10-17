@@ -40,6 +40,26 @@ extension Application {
     var renderArgs = RenderArgs()
     renderArgs.jitterOffset = createJitterOffset()
     renderArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
+    renderArgs.upscaleFactor = imageResources.renderTarget.upscaleFactor
+    
+    if let secondaryRayCount = camera.secondaryRayCount {
+      guard secondaryRayCount >= 3 else {
+        fatalError("Secondary ray count must be at least 3.")
+      }
+      renderArgs.secondaryRayCount = UInt32(secondaryRayCount)
+    } else {
+      renderArgs.secondaryRayCount = UInt32(0)
+    }
+    
+    if let criticalPixelCount = camera.criticalPixelCount {
+      guard criticalPixelCount >= 1 else {
+        fatalError("Critical pixel count must be at least 1.")
+      }
+      renderArgs.criticalPixelCount = criticalPixelCount
+    } else {
+      renderArgs.criticalPixelCount = Float(0)
+    }
+    
     return renderArgs
   }
   
