@@ -181,6 +181,15 @@ func createRayIntersector(worldDimension: Float) -> String {
             
             // Test every atom in the voxel.
             while (referenceCursor < referenceEnd) {
+              uint reference16 = memorySlots16[referenceCursor];
+              uint atomID = memorySlots32[listAddress + reference16];
+              float4 atom = atoms[atomID];
+              
+              intersectAtom(result,
+                            query,
+                            atom,
+                            atomID);
+              
               referenceCursor += 1;
             }
             
@@ -195,11 +204,7 @@ func createRayIntersector(worldDimension: Float) -> String {
         smallCellBorder = dda.nextBorder(smallCellBorder, nextTimes);
       }
       
-      result.accept = false;
-      result.atomID = \(UInt32.max);
-      if (loopIterationCount > 1) {
-        result.atomID = loopIterationCount;
-      }
+      // result.accept = false;
       return result;
     }
   };
