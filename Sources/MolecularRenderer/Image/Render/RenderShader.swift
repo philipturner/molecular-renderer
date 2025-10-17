@@ -311,13 +311,20 @@ struct RenderShader {
         ambientOcclusion.diffuseAccumulator = 0;
         ambientOcclusion.specularAccumulator = 0;
         
-        // TODO: Change color of the atom to easily identify different tiers
+        // Change color of the atom to easily identify different tiers
         // of pixel count, and ensure they don't change when upscaling is
         // enabled.
         //
-        // carbon: expect 59 px
-        // silicon: expect 69 px
-        
+        // carbon: expected 59 px, got 61-64 px
+        // silicon: expected 69 px, got 74-76 px
+        float pixelCount = 2 * sqrt(hitAtom[3]);
+        pixelCount /= (-dzdt * intersect.distance);
+        pixelCount *= float(screenDimensions.y);
+        pixelCount /= 2 * cameraArgs.data[0].tangentFactor;
+        pixelCount *= renderArgs.upscaleFactor;
+        if (pixelCount > 61 && pixelCount < 64) {
+          ambientOcclusion.diffuseAtomicNumber = 7;
+        }
         
         // Pick the number of AO samples.
         uint sampleCount = 15;
@@ -338,6 +345,9 @@ struct RenderShader {
             .secondaryRayDirection(i, sampleCount, hitPoint, hitNormal);
           
           // Deactivate ray tracing for AO.
+          // TODO: Run dummy AO where all atoms are very dark, but only if AO
+          // is enabled.
+          
           // WARNING: Properly decode the atomic number for the hit atom.
           ambientOcclusion.addAmbientContribution(0, 1e38);
         }
