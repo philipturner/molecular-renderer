@@ -107,10 +107,10 @@ extension Application {
       
       // Insert code here to gather diagnostics about performance.
       print(
-        PerformanceMeter.pad(updateLatency),
-        PerformanceMeter.pad(renderLatency),
-        PerformanceMeter.pad(forgetLatency),
-        PerformanceMeter.pad(upscaleLatency))
+        PerformanceMeter.pad(Self.updateMeter.minimum),
+        PerformanceMeter.pad(Self.renderMeter.minimum),
+        PerformanceMeter.pad(Self.forgetMeter.minimum),
+        PerformanceMeter.pad(Self.upscaleMeter.minimum))
     }
   }
   
