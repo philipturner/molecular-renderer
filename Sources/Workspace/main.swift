@@ -61,7 +61,8 @@ application.run {
     2 * halfSize + 2 * halfSize)
   application.camera.fovAngleVertical = Float.pi / 180 * 60
   
-  let image = application.render()
+  var image = application.render()
+  image = application.upscale(image: image)
   application.present(image: image)
 }
 
