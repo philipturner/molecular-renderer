@@ -13,7 +13,7 @@ import QuaternionModule
 
 // MARK: - Compile Structure
 
-let latticeSizeXY: Float = 10
+let latticeSizeXY: Float = 30
 let latticeSizeZ: Float = 2
 
 func passivate(topology: inout Topology) {
@@ -129,11 +129,10 @@ func modifyCamera() {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
   }
-  let halfSize = latticeConstant * 5
   application.camera.position = SIMD3<Float>(
-    halfSize,
-    halfSize,
-    halfSize + 2 * halfSize)
+    0,
+    0,
+    (latticeSizeXY / 3) * latticeConstant)
   application.camera.fovAngleVertical = Float.pi / 180 * 90
   
   let time = createTime()
