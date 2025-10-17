@@ -13,10 +13,10 @@ import QuaternionModule
 
 // MARK: - Compile Structure
 
-let latticeSizeXY: Float = 32
+let latticeSizeXY: Float = 512
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
-let worldDimension: Float = 256
+let worldDimension: Float = 384
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
@@ -139,8 +139,8 @@ func createApplication() -> Application {
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 3
   
-  applicationDesc.addressSpaceSize = 4_000_000
-  applicationDesc.voxelAllocationSize = 2_000_000_000
+  applicationDesc.addressSpaceSize = 6_000_000
+  applicationDesc.voxelAllocationSize = 3_000_000_000
   applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
   
@@ -169,7 +169,7 @@ func modifyCamera() {
   application.camera.secondaryRayCount = nil
   
   let time = createTime()
-  let angleDegrees = 0.1 * time * 360
+  let angleDegrees = 0.001 * time * 360
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * -angleDegrees,
     axis: SIMD3(0, 0, 1))
@@ -186,6 +186,10 @@ application.run {
   startIndex = min(startIndex, topology.atoms.count)
   endIndex = min(endIndex, topology.atoms.count)
   for atomID in startIndex..<endIndex {
+    guard atomID < application.atoms.addressSpaceSize else {
+      fatalError("Exceeded address space size.")
+    }
+    
     let atom = topology.atoms[atomID]
     application.atoms[atomID] = atom
   }
