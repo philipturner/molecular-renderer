@@ -2,6 +2,8 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
+import Foundation
+
 // Remaining tasks of this PR:
 // - Attempt to render objects far enough to apply to critical pixel count
 //   heuristic.
@@ -13,8 +15,21 @@ import QuaternionModule
 
 // MARK: - Compile Structure
 
-let latticeSizeXY: Float = 30
+let latticeSizeXY: Float = 192
 let latticeSizeZ: Float = 2
+let worldDimension: Float = 128
+do {
+  let latticeConstant = Constant(.square) {
+    .elemental(.silicon)
+  }
+  
+  // The lattice is not rotating; the camera is. No need to increase this
+  // by a factor of sqrt(2).
+  let latticeSpan = latticeSizeXY * latticeConstant
+  guard latticeSpan < 0.9 * worldDimension else {
+    fatalError("Lattice was too large for the world.")
+  }
+}
 
 func passivate(topology: inout Topology) {
   func createHydrogen(
@@ -83,7 +98,26 @@ func createTopology() -> Topology {
   
   return topology
 }
+
+func analyze(topology: Topology) {
+  print()
+  print("atom count:", topology.atoms.count)
+  do {
+    var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
+    var maximum = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
+    for atom in topology.atoms {
+      let position = atom.position
+      minimum.replace(with: position, where: position .< minimum)
+      maximum.replace(with: position, where: position .> maximum)
+    }
+    print("minimum:", minimum)
+    print("maximum:", maximum)
+  }
+}
+
 let topology = createTopology()
+analyze(topology: topology)
+exit(0)
 
 // MARK: - Launch Application
 
@@ -109,7 +143,7 @@ func createApplication() -> Application {
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
-  applicationDesc.worldDimension = 32
+  applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
   
   return application
@@ -134,6 +168,7 @@ func modifyCamera() {
     0,
     (latticeSizeXY / 3) * latticeConstant)
   application.camera.fovAngleVertical = Float.pi / 180 * 90
+  application.camera.secondaryRayCount = nil
   
   let time = createTime()
   let angleDegrees = 0.1 * time * 360
