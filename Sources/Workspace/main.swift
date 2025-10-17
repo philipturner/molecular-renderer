@@ -3,10 +3,8 @@ import MolecularRenderer
 import QuaternionModule
 
 // Remaining tasks of this PR:
-// - Attempt to render objects far enough to apply to critical pixel count
-//   heuristic.
-//   - Implement the long distances test now.
-// - Implement fully optimized primary ray intersector from main-branch-backup.
+// - Implement 8 nm scoped primary ray intersector from main-branch-backup.
+// - Implement the critical pixel count heuristic.
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
 //   Then, see whether this can benefit the primary ray intersector for large
 //   distances.
