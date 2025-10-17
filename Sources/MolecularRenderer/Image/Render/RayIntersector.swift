@@ -92,9 +92,11 @@ func createRayIntersector(worldDimension: Float) -> String {
       // Prepare the intersection result.
       IntersectionResult intersect;
       intersect.accept = false;
+      intersect.atomID = \(UInt32.max);
       intersect.distance = 1e38;
       
       // Deactivate ray tracing for primary ray.
+      intersect.atomID = 5;
       
       // Check whether we found a hit.
       if (intersect.distance < 1e38) {
