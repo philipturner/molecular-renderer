@@ -46,6 +46,14 @@ let lattice = Lattice<Cubic> { h, k, l in
   Material { .checkerboard(.carbon, .silicon) }
 }
 
+func createRotationCenter() -> SIMD3<Float> {
+  let latticeConstant = Constant(.square) {
+    .checkerboard(.silicon, .carbon)
+  }
+  let halfSize = latticeConstant * 5
+  return SIMD3<Float>(repeating: halfSize)
+}
+
 @MainActor
 func createTime() -> Float {
   let elapsedFrames = application.clock.frames
@@ -68,11 +76,7 @@ func modifyAtoms() {
   let basis1 = rotation.act(on: SIMD3<Float>(0, 1, 0))
   let basis2 = rotation.act(on: SIMD3<Float>(0, 0, 1))
   
-  let latticeConstant = Constant(.square) {
-    .checkerboard(.silicon, .carbon)
-  }
-  let halfSize = latticeConstant * 5
-  let rotationCenter = SIMD3<Float>(repeating: halfSize)
+  let rotationCenter = createRotationCenter()
   
   // Circumvent a massive CPU-side bottleneck from @MainActor referencing to
   // things from the global scope.
@@ -93,18 +97,34 @@ func modifyAtoms() {
   }
 }
 
-application.run {
-  modifyAtoms()
+@MainActor
+func modifyCamera() {
+  // 0.04 Hz rotation rate
+  let time = createTime()
+  let angleDegrees = 0.04 * time * 360
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * angleDegrees,
+    axis: SIMD3(-1, 0, 0))
+  
+  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
+  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
+  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
+  application.camera.fovAngleVertical = Float.pi / 180 * 60
   
   let latticeConstant = Constant(.square) {
     .checkerboard(.silicon, .carbon)
   }
   let halfSize = latticeConstant * 5
-  application.camera.position = SIMD3(
-    halfSize,
-    halfSize,
-    2 * halfSize + 2 * halfSize)
-  application.camera.fovAngleVertical = Float.pi / 180 * 60
+  var cameraDelta = SIMD3<Float>(0, 0, 3 * halfSize)
+  cameraDelta = rotation.act(on: cameraDelta)
+  
+  let rotationCenter = createRotationCenter()
+  application.camera.position = rotationCenter + cameraDelta
+}
+
+application.run {
+  modifyAtoms()
+  modifyCamera()
   
   let image = application.render()
   application.present(image: image)
