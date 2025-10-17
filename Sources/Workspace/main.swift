@@ -131,11 +131,11 @@ func modifyAtoms() {
   
   // Circumvent a massive CPU-side bottleneck from @MainActor referencing to
   // things from the global scope.
-  let latticeCopy = lattice
+  let topologyCopy = topology
   let applicationCopy = application
   
-  for atomID in lattice.atoms.indices {
-    var atom = latticeCopy.atoms[atomID]
+  for atomID in topology.atoms.indices {
+    var atom = topologyCopy.atoms[atomID]
     let originalDelta = atom.position - rotationCenter
     
     var rotatedDelta: SIMD3<Float> = .zero

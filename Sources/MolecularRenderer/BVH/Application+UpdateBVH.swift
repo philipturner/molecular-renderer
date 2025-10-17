@@ -104,11 +104,13 @@ extension Application {
       Self.renderMeter.integrate(renderLatency)
       Self.forgetMeter.integrate(forgetLatency)
       Self.upscaleMeter.integrate(upscaleLatency)
+      
+      // Insert code here to gather diagnostics about performance.
       print(
-        PerformanceMeter.pad(Self.updateMeter.minimum),
-        PerformanceMeter.pad(Self.renderMeter.minimum),
-        PerformanceMeter.pad(Self.forgetMeter.minimum),
-        PerformanceMeter.pad(Self.upscaleMeter.minimum))
+        PerformanceMeter.pad(updateLatency),
+        PerformanceMeter.pad(renderLatency),
+        PerformanceMeter.pad(forgetLatency),
+        PerformanceMeter.pad(upscaleLatency))
     }
   }
   
