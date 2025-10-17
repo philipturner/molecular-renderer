@@ -38,16 +38,16 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-// 8631 atoms
-let lattice = Lattice<Cubic> { h, k, l in
-  Bounds { 10 * (h + k + l) }
-  Material { .checkerboard(.silicon, .carbon) }
-}
+// // 8631 atoms
+// let lattice = Lattice<Cubic> { h, k, l in
+//   Bounds { 10 * (h + k + l) }
+//   Material { .checkerboard(.silicon, .carbon) }
+// }
 
-for atomID in lattice.atoms.indices {
-  let atom = lattice.atoms[atomID]
-  application.atoms[atomID] = atom
-}
+// for atomID in lattice.atoms.indices {
+//   let atom = lattice.atoms[atomID]
+//   application.atoms[atomID] = atom
+// }
 
 #if false
 application.run {
