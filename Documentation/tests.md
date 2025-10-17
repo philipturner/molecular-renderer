@@ -109,3 +109,5 @@ Make the entire thing parameterizable and scalable. Then, work on two variations
 | RTX 5090        |  32 GB | 300M  | 500M |
 | M3 Max          | 128 GB | 1200M | 500M |
 | M3 Ultra        | 512 GB | 4800M | 500M |
+
+A large number of 100k atom cubes, each with a random orientation. All packed in a grid, with a spacing to ensure they don't overlap.
