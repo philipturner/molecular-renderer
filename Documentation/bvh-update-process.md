@@ -30,6 +30,8 @@ Bandwidth-intensive atomic counters are optimized by tagging 8 nm "voxel groups"
 
 Some compute work is scoped at 32 nm to further reduce costs.
 
+> Implement this change after a basic render kernel is working. That makes the validation process much easier.
+
 ## Stages
 
 Remove Process

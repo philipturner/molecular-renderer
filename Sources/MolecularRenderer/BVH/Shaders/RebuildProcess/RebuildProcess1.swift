@@ -76,6 +76,7 @@ extension RebuildProcess {
     
     \(functionSignature())
     {
+      // TODO: When the kernel is migrated, do not check the crash buffer.
       if (crashBuffer[0] != 1) {
         return;
       }
