@@ -93,28 +93,6 @@ A simple heuristic reduces the number of secondary rays, at a certain distance f
 
 _Critical pixel count with the old code base._
 
-TODO: Implement this API, then remove the code snippet from this documentation page.
-
-```swift
-struct Camera {
-  /// The number of AO rays for ambient occlusion. Must be at least 3.
-  ///
-  /// Defaults to 15. Change to `nil` to disable ambient occlusion.
-  var secondaryRayCount: Int?
-  
-  /// The number of pixels an atom spans on-screen, before the secondary ray
-  /// count starts dropping off with the reciprocal of distance. The secondary
-  /// ray count will never drop below 3.
-  ///
-  /// Defaults to TBD. Change to `nil` to disable the critical pixel count
-  /// heuristic.
-  var criticalPixelCount: Float?
-}
-```
-
-In the backend, encode these settings in `RenderArgs` instead of `CameraArgs`.
-
-
 ## MetalFX Latency Issues
 
 On macOS, there is a problem with the MetalFX framework that may lead to massive program startup times. These appear as if Swift switched from `-Xswiftc -Ounchecked` to true release mode, making the user wait up to 10 seconds to compile after the tiniest change to the code.

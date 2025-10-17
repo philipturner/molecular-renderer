@@ -36,16 +36,18 @@ extension Application {
     return JitterOffset.create(descriptor: jitterOffsetDesc)
   }
   
+  private func createRenderArgs() -> RenderArgs {
+    var renderArgs = RenderArgs()
+    renderArgs.jitterOffset = createJitterOffset()
+    renderArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
+    return renderArgs
+  }
+  
   public func render() -> Image {
     checkCrashBuffer(frameID: frameID)
     checkExecutionTime(frameID: frameID)
     updateBVH(inFlightFrameID: frameID % 3)
     writeCameraArgs()
-    
-    // Create the render arguments.
-    var renderArgs = RenderArgs()
-    renderArgs.jitterOffset = createJitterOffset()
-    renderArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
@@ -68,10 +70,12 @@ extension Application {
         bvhBuilder.counters.crashBuffer.setBufferBindings(
           commandList: commandList)
         
-        let cameraArgsBuffer = imageResources.cameraArgsBuffer
-          .nativeBuffers[frameID % 3]
+        let renderArgs = createRenderArgs()
         commandList.set32BitConstants(
           renderArgs, index: RenderShader.renderArgs)
+        
+        let cameraArgsBuffer = imageResources.cameraArgsBuffer
+          .nativeBuffers[frameID % 3]
         commandList.setBuffer(
           cameraArgsBuffer, index: RenderShader.cameraArgs)
         commandList.setBuffer(
