@@ -13,6 +13,9 @@ import QuaternionModule
 
 // MARK: - Compile Structure
 
+let latticeSizeXY: Float = 10
+let latticeSizeZ: Float = 2
+
 func passivate(topology: inout Topology) {
   func createHydrogen(
     atomID: UInt32,
@@ -52,7 +55,11 @@ func passivate(topology: inout Topology) {
 
 func createTopology() -> Topology {
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 10 * (h + k + l) }
+    Bounds {
+      latticeSizeXY * h +
+      latticeSizeXY * k +
+      latticeSizeZ * l
+    }
     Material { .elemental(.silicon) }
   }
   
@@ -61,6 +68,19 @@ func createTopology() -> Topology {
   reconstruction.material = .elemental(.silicon)
   var topology = reconstruction.compile()
   passivate(topology: &topology)
+  
+  // Shift the lattice so it's centered in XY and flush with Z = 0.
+  let latticeConstant = Constant(.square) {
+    .elemental(.silicon)
+  }
+  for atomID in topology.atoms.indices {
+    var atom = topology.atoms[atomID]
+    atom.position.x -= (latticeSizeXY / 2) * latticeConstant
+    atom.position.y -= (latticeSizeXY / 2) * latticeConstant
+    atom.position.z -= latticeSizeZ * latticeConstant
+    topology.atoms[atomID] = atom
+  }
+  
   return topology
 }
 let topology = createTopology()
@@ -113,7 +133,7 @@ func modifyCamera() {
   application.camera.position = SIMD3<Float>(
     halfSize,
     halfSize,
-    halfSize + 3 * halfSize)
+    halfSize + 2 * halfSize)
   application.camera.fovAngleVertical = Float.pi / 180 * 90
   
   let time = createTime()
