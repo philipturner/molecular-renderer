@@ -214,7 +214,7 @@ struct RenderShader {
         
         // Compare against current coordinates.
         float2 currentPixelCoords = float2(pixelCoords) + 0.5;
-        currentPixelCoords += jitterOffset;
+        currentPixelCoords += renderArgs.jitterOffset;
         
         // FidelityFX docs: encode motion from current frame to previous frame
         float2 motionVector = previousPixelCoords - currentPixelCoords;
@@ -265,10 +265,6 @@ struct RenderShader {
         return;
       }
       
-      float2 jitterOffset;
-      jitterOffset.x = renderArgs.jitterOffsetX;
-      jitterOffset.y = renderArgs.jitterOffsetY;
-      
       // Prepare the ray intersector.
       RayIntersector rayIntersector;
       rayIntersector.atoms = atoms;
@@ -284,7 +280,7 @@ struct RenderShader {
       RayGeneration::primaryRayDirection(dzdt,
                                          pixelCoords,
                                          screenDimensions,
-                                         jitterOffset,
+                                         renderArgs.jitterOffset,
                                          cameraArgs.data[0].tangentFactor,
                                          cameraArgs.data[0].basis);
       

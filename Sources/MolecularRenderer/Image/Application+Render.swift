@@ -37,11 +37,8 @@ extension Application {
   }
   
   private func createRenderArgs() -> RenderArgs {
-    let jitterOffset = createJitterOffset()
-    
     var renderArgs = RenderArgs()
-    renderArgs.jitterOffsetX = jitterOffset[0]
-    renderArgs.jitterOffsetY = jitterOffset[1]
+    renderArgs.jitterOffset = createJitterOffset()
     renderArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
     renderArgs.upscaleFactor = imageResources.renderTarget.upscaleFactor
     
