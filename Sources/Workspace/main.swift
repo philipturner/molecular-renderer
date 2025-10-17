@@ -2,8 +2,6 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
-import Foundation
-
 // Remaining tasks of this PR:
 // - Attempt to render objects far enough to apply to critical pixel count
 //   heuristic.
@@ -15,9 +13,9 @@ import Foundation
 
 // MARK: - Compile Structure
 
-let latticeSizeXY: Float = 192
+let latticeSizeXY: Float = 32
 let latticeSizeZ: Float = 2
-let worldDimension: Float = 128
+let worldDimension: Float = 256
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
@@ -117,7 +115,6 @@ func analyze(topology: Topology) {
 
 let topology = createTopology()
 analyze(topology: topology)
-exit(0)
 
 // MARK: - Launch Application
 
@@ -142,7 +139,7 @@ func createApplication() -> Application {
   applicationDesc.upscaleFactor = 3
   
   applicationDesc.addressSpaceSize = 4_000_000
-  applicationDesc.voxelAllocationSize = 500_000_000
+  applicationDesc.voxelAllocationSize = 2_000_000_000
   applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
   
@@ -180,13 +177,17 @@ func modifyCamera() {
   application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
 }
 
-for atomID in topology.atoms.indices {
-  let atom = topology.atoms[atomID]
-  application.atoms[atomID] = atom
-}
-
 application.run {
   modifyCamera()
+  
+  var startIndex = application.frameID * 1_000_000
+  var endIndex = startIndex + 1_000_000
+  startIndex = min(startIndex, topology.atoms.count)
+  endIndex = min(endIndex, topology.atoms.count)
+  for atomID in startIndex..<endIndex {
+    let atom = topology.atoms[atomID]
+    application.atoms[atomID] = atom
+  }
   
   var image = application.render()
   image = application.upscale(image: image)
