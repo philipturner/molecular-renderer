@@ -67,7 +67,6 @@ extension Application {
       _ = updateBVHLatency
       _ = renderLatency
       print()
-      print(output)
       print(updateBVHLatency)
       print(renderLatency)
     }

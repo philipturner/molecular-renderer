@@ -49,10 +49,10 @@ extension Application {
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
-      // try! commandList.d3d12CommandList.EndQuery(
-      //   bvhBuilder.counters.queryHeap,
-      //   D3D12_QUERY_TYPE_TIMESTAMP,
-      //   4)
+      try! commandList.d3d12CommandList.EndQuery(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        2)
       
       // Bind the descriptor heap.
       commandList.setDescriptorHeap(descriptorHeap)
@@ -159,20 +159,20 @@ extension Application {
       #if os(Windows)
       bvhBuilder.computeUAVBarrier(commandList: commandList)
       
-      // try! commandList.d3d12CommandList.EndQuery(
-      //   bvhBuilder.counters.queryHeap,
-      //   D3D12_QUERY_TYPE_TIMESTAMP,
-      //   5)
+      try! commandList.d3d12CommandList.EndQuery(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        3)
       
-      // let destinationBuffer = bvhBuilder.counters
-      //   .queryDestinationBuffers[frameID % 3]
-      // try! commandList.d3d12CommandList.ResolveQueryData(
-      //   bvhBuilder.counters.queryHeap,
-      //   D3D12_QUERY_TYPE_TIMESTAMP,
-      //   4,
-      //   2,
-      //   destinationBuffer.d3d12Resource,
-      //   0)
+      let destinationBuffer = bvhBuilder.counters
+        .queryDestinationBuffers[frameID % 3]
+      try! commandList.d3d12CommandList.ResolveQueryData(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        2,
+        2,
+        destinationBuffer.d3d12Resource,
+        16)
       #endif
       
       #if os(macOS)
