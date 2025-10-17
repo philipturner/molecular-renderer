@@ -108,6 +108,62 @@ func createRayIntersector(worldDimension: Float) -> String {
         if (loopIterationCount >= 256) {
           break;
         }
+        
+        // Compute the voxel maximum time.
+        float3 nextTimes = dda
+          .nextTimes(smallCellBorder, intersectionQuery.rayOrigin);
+        float voxelMaximumHitTime = dda
+          .voxelMaximumHitTime(smallCellBorder, nextTimes);
+        
+        // Check whether the DDA has gone out of bounds.
+        float3 smallLowerCorner = dda.cellLowerCorner(smallCellBorder);
+        bool3 breakLoop = smallLowerCorner < \(-worldDimension / 2);
+        breakLoop =
+        \(Shader.or("breakLoop", "smallLowerCorner >= \(worldDimension / 2)"));
+        if (any(breakLoop)) {
+          return;
+        }
+        
+        // Retrieve the large cell offset.
+        float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
+        uint largeCellOffset = this->largeCellOffset(largeLowerCorner);
+        
+        // If the large cell has small cells, proceed.
+        if (largeCellOffset > 0) {
+          float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
+          ushort2 smallMetadata = this->smallMetadata(relativeSmallLowerCorner,
+                                                      largeCellOffset);
+          
+          // The ray-sphere intersection tests may be highly divergent. All
+          // measures to reduce divergence backfired, causing a significant
+          // increase to execution time.
+          if (smallMetadata[1] > 0) {
+            // Set the origin register.
+            float3 shiftedRayOrigin = intersectionQuery.rayOrigin;
+            shiftedRayOrigin -= largeLowerCorner;
+            
+            // Set the distance register.
+            result.distance = voxelMaximumHitTime;
+            
+            // Retrieve the large-cell metadata.
+            uint4 largeMetadata = compactedLargeCellMetadata[largeCellOffset];
+            
+            // Test the atoms in the accepted voxel.
+            testCell(result,
+                    shiftedRayOrigin,
+                    intersectionQuery.rayDirection,
+                    largeMetadata,
+                    smallMetadata);
+            
+            // Check whether we found a hit.
+            if (result.distance < voxelMaximumHitTime) {
+              result.accept = true;
+            }
+          }
+        }
+        
+        // Increment to the next small voxel.
+        smallCellBorder = dda.nextBorder(smallCellBorder, nextTimes);
       }
       
       if (loopIterationCount > 1) {
