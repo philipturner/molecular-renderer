@@ -121,6 +121,7 @@ func createRayIntersector(worldDimension: Float) -> String {
       
       uint loopIterationCount = 0;
       while (!result.accept) {
+        // Prevent infinite loops from corrupted BVH data.
         loopIterationCount += 1;
         if (loopIterationCount >= 256) {
           break;
@@ -159,31 +160,27 @@ func createRayIntersector(worldDimension: Float) -> String {
           uint smallHeader = getSmallHeader(smallHeaderBase,
                                             relativeSmallLowerCorner);
           
-          /*
-          if (smallMetadata[1] > 0) {
-            // Set the origin register.
-            float3 shiftedRayOrigin = intersectionQuery.rayOrigin;
-            shiftedRayOrigin -= largeLowerCorner;
-            
+          if (smallHeader > 0) {
             // Set the distance register.
             result.distance = voxelMaximumHitTime;
             
-            // Retrieve the large-cell metadata.
-            uint4 largeMetadata = compactedLargeCellMetadata[largeCellOffset];
+            // Set the loop bounds register.
+            uint referenceCursor = smallHeader & 0xFFFF;
+            uint referenceEnd = smallHeader >> 16;
             
-            // Test the atoms in the accepted voxel.
-            testCell(result,
-                    shiftedRayOrigin,
-                    intersectionQuery.rayDirection,
-                    largeMetadata,
-                    smallMetadata);
+            // Prevent infinite loops from corrupted BVH data.
+            referenceEnd = min(referenceEnd, referenceCursor + 128);
+            
+            // Test every atom in the voxel.
+            while (referenceCursor < referenceEnd) {
+              referenceCursor += 1;
+            }
             
             // Check whether we found a hit.
             if (result.distance < voxelMaximumHitTime) {
               result.accept = true;
             }
           }
-          */
         }
         
         // Increment to the next small voxel.
