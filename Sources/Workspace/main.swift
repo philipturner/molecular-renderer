@@ -31,23 +31,14 @@ func createApplication() -> Application {
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
-  applicationDesc.worldDimension = 32
+  applicationDesc.worldDimension = 256
   let application = Application(descriptor: applicationDesc)
   
   return application
 }
 let application = createApplication()
 
-// 8631 atoms
-let lattice = Lattice<Cubic> { h, k, l in
-  Bounds { 10 * (h + k + l) }
-  Material { .checkerboard(.silicon, .carbon) }
-}
-
-for atomID in lattice.atoms.indices {
-  let atom = lattice.atoms[atomID]
-  application.atoms[atomID] = atom
-}
+#if false
 
 application.run {
   let latticeConstant = Constant(.square) {
@@ -63,3 +54,14 @@ application.run {
   let image = application.render()
   application.present(image: image)
 }
+
+#else
+
+for frameID in 0..<64 {
+  application.checkCrashBuffer(frameID: frameID)
+  application.checkExecutionTime(frameID: frameID)
+  application.updateBVH(inFlightFrameID: frameID % 3)
+  application.forgetIdleState(inFlightFrameID: frameID % 3)
+}
+
+#endif
