@@ -88,6 +88,14 @@ func createRayIntersector(worldDimension: Float) -> String {
     \(bvhBuffers())
     \(memoryTapeArgument())
     
+    uint largeSlotID(float3 largeLowerCorner) {
+      float3 coordinates = largeLowerCorner + \(worldDimension / 2);
+      coordinates /= 2;
+      float address =
+      \(VoxelResources.generate("coordinates", worldDimension / 2));
+      return assignedSlotIDs[uint(address)];
+    }
+    
     IntersectionResult intersect(IntersectionQuery query) {
       // Initialize the DDA.
       float3 smallCellBorder;
@@ -111,7 +119,7 @@ func createRayIntersector(worldDimension: Float) -> String {
         
         // Compute the voxel maximum time.
         float3 nextTimes = dda
-          .nextTimes(smallCellBorder, intersectionQuery.rayOrigin);
+          .nextTimes(smallCellBorder, query.rayOrigin);
         float voxelMaximumHitTime = dda
           .voxelMaximumHitTime(smallCellBorder, nextTimes);
         
@@ -121,14 +129,15 @@ func createRayIntersector(worldDimension: Float) -> String {
         breakLoop =
         \(Shader.or("breakLoop", "smallLowerCorner >= \(worldDimension / 2)"));
         if (any(breakLoop)) {
-          return;
+          break;
         }
         
-        // Retrieve the large cell offset.
+        // Retrieve the slot ID.
         float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-        uint largeCellOffset = this->largeCellOffset(largeLowerCorner);
+        uint slotID = largeSlotID(largeLowerCorner);
         
         // If the large cell has small cells, proceed.
+        /*
         if (largeCellOffset > 0) {
           float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
           ushort2 smallMetadata = this->smallMetadata(relativeSmallLowerCorner,
@@ -161,11 +170,14 @@ func createRayIntersector(worldDimension: Float) -> String {
             }
           }
         }
+        */
         
         // Increment to the next small voxel.
         smallCellBorder = dda.nextBorder(smallCellBorder, nextTimes);
       }
       
+      result.accept = false;
+      result.atomID = \(UInt32.max);
       if (loopIterationCount > 1) {
         result.atomID = loopIterationCount;
       }
