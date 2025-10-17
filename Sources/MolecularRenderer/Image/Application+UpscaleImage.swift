@@ -208,7 +208,8 @@ extension Application {
       dispatch.value.renderSize = createFFXDimensions(renderSize)
       dispatch.value.upscaleSize = createFFXDimensions(upscaleSize)
       
-      // Could not detect a major quality improvement with sharpening enabled.
+      // Sharpening harms the quality of bright shiny light reflections
+      // (specular effect), making it look pixelated instead of smooth.
       dispatch.value.enableSharpening = false
       dispatch.value.sharpness = 0
       dispatch.value.frameTimeDelta = 2 // this doesn't do anything
