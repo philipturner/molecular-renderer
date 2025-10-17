@@ -28,6 +28,8 @@ public struct PerformanceMeter {
 extension Application {
   nonisolated(unsafe)
   static var updateMeter = PerformanceMeter()
+  nonisolated(unsafe)
+  static var renderMeter = PerformanceMeter()
   
   public func checkCrashBuffer(frameID: Int) {
     if frameID >= 3 {
@@ -88,8 +90,10 @@ extension Application {
       
       // Edit this code to inspect GPU-side performance.
       Self.updateMeter.integrate(updateBVHLatency)
-      print(Self.updateMeter.minimum)
-      _ = renderLatency
+      Self.renderMeter.integrate(renderLatency)
+      print(
+        PerformanceMeter.pad(Self.updateMeter.minimum),
+        PerformanceMeter.pad(Self.renderMeter.minimum))
     }
   }
   
@@ -178,8 +182,13 @@ extension Application {
   
   public func forgetIdleState(inFlightFrameID: Int) {
     device.commandQueue.withCommandList { commandList in
-      // Bind the descriptor heap.
       #if os(Windows)
+      try! commandList.d3d12CommandList.EndQuery(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        2)
+      
+      // Bind the descriptor heap.
       commandList.setDescriptorHeap(descriptorHeap)
       #endif
       
@@ -194,6 +203,35 @@ extension Application {
       
       #if os(Windows)
       bvhBuilder.computeUAVBarrier(commandList: commandList)
+      
+      try! commandList.d3d12CommandList.EndQuery(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        3)
+      
+      let destinationBuffer = bvhBuilder.counters
+        .queryDestinationBuffers[inFlightFrameID]
+      try! commandList.d3d12CommandList.ResolveQueryData(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        2,
+        2,
+        destinationBuffer.d3d12Resource,
+        16)
+      #endif
+      
+      #if os(macOS)
+      nonisolated(unsafe)
+      let selfReference = self
+      commandList.mtlCommandBuffer.addCompletedHandler { commandBuffer in
+        selfReference.bvhBuilder.counters.queue.sync {
+          var executionTime = commandBuffer.gpuEndTime
+          executionTime -= commandBuffer.gpuStartTime
+          let latencyMicroseconds = Int(executionTime * 1e6)
+          selfReference.bvhBuilder.counters
+            .renderLatencies[inFlightFrameID] = latencyMicroseconds
+        }
+      }
       #endif
     }
     
