@@ -106,6 +106,7 @@ extension Application {
     return JitterOffset.create(descriptor: jitterOffsetDesc)
   }
   
+  // TODO: Add a performance meter for upscaling.
   public func upscale(image: Image) -> Image {
     guard imageResources.renderTarget.upscaleFactor > 1 else {
       fatalError("Upscaling is not allowed.")

@@ -30,6 +30,8 @@ extension Application {
   static var updateMeter = PerformanceMeter()
   nonisolated(unsafe)
   static var renderMeter = PerformanceMeter()
+  nonisolated(unsafe)
+  static var forgetMeter = PerformanceMeter()
   
   public func checkCrashBuffer(frameID: Int) {
     if frameID >= 3 {
@@ -59,7 +61,7 @@ extension Application {
       #if os(Windows)
       let destinationBuffer = bvhBuilder.counters
         .queryDestinationBuffers[frameID % 3]
-      var output = [UInt64](repeating: .zero, count: 4)
+      var output = [UInt64](repeating: .zero, count: 6)
       output.withUnsafeMutableBytes { bufferPointer in
         destinationBuffer.read(output: bufferPointer)
       }
@@ -75,25 +77,30 @@ extension Application {
         return Int(elapsedTime * 1e6)
       }
       
-      let updateBVHLatency = latencyMicroseconds(startIndex: 0)
+      let updateLatency = latencyMicroseconds(startIndex: 0)
       let renderLatency = latencyMicroseconds(startIndex: 2)
+      let forgetLatency = latencyMicroseconds(startIndex: 4)
       #else
-      var updateBVHLatency: Int = 0
+      var updateLatency: Int = 0
       var renderLatency: Int = 0
+      var forgetLatency: Int = 0
       bvhBuilder.counters.queue.sync {
-        updateBVHLatency = bvhBuilder.counters
-          .updateBVHLatencies[frameID % 3]
+        updateLatency = bvhBuilder.counters
+          .updateLatencies[frameID % 3]
         renderLatency = bvhBuilder.counters
           .renderLatencies[frameID % 3]
+        forgetLatency = bvhBuilder.counters
+          .forgetLatencies[frameID % 3]
       }
       #endif
       
-      // Edit this code to inspect GPU-side performance.
-      Self.updateMeter.integrate(updateBVHLatency)
+      Self.updateMeter.integrate(updateLatency)
       Self.renderMeter.integrate(renderLatency)
+      Self.forgetMeter.integrate(forgetLatency)
       print(
         PerformanceMeter.pad(Self.updateMeter.minimum),
-        PerformanceMeter.pad(Self.renderMeter.minimum))
+        PerformanceMeter.pad(Self.renderMeter.minimum),
+        PerformanceMeter.pad(Self.forgetMeter.minimum))
     }
   }
   
