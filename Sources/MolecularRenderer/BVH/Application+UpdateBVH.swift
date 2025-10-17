@@ -32,6 +32,8 @@ extension Application {
   static var renderMeter = PerformanceMeter()
   nonisolated(unsafe)
   static var forgetMeter = PerformanceMeter()
+  nonisolated(unsafe)
+  static var upscaleMeter = PerformanceMeter()
   
   public func checkCrashBuffer(frameID: Int) {
     if frameID >= 3 {
@@ -61,7 +63,7 @@ extension Application {
       #if os(Windows)
       let destinationBuffer = bvhBuilder.counters
         .queryDestinationBuffers[frameID % 3]
-      var output = [UInt64](repeating: .zero, count: 6)
+      var output = [UInt64](repeating: .zero, count: 8)
       output.withUnsafeMutableBytes { bufferPointer in
         destinationBuffer.read(output: bufferPointer)
       }
@@ -80,10 +82,12 @@ extension Application {
       let updateLatency = latencyMicroseconds(startIndex: 0)
       let renderLatency = latencyMicroseconds(startIndex: 2)
       let forgetLatency = latencyMicroseconds(startIndex: 4)
+      let upscaleLatency = latencyMicroseconds(startIndex: 6)
       #else
       var updateLatency: Int = 0
       var renderLatency: Int = 0
       var forgetLatency: Int = 0
+      var upscaleLatency: Int = 0
       bvhBuilder.counters.queue.sync {
         updateLatency = bvhBuilder.counters
           .updateLatencies[frameID % 3]
@@ -91,16 +95,20 @@ extension Application {
           .renderLatencies[frameID % 3]
         forgetLatency = bvhBuilder.counters
           .forgetLatencies[frameID % 3]
+        upscaleLatency = bvhBuilder.counters
+          .upscaleLatencies[frameID % 3]
       }
       #endif
       
       Self.updateMeter.integrate(updateLatency)
       Self.renderMeter.integrate(renderLatency)
       Self.forgetMeter.integrate(forgetLatency)
+      Self.upscaleMeter.integrate(upscaleLatency)
       print(
         PerformanceMeter.pad(Self.updateMeter.minimum),
         PerformanceMeter.pad(Self.renderMeter.minimum),
-        PerformanceMeter.pad(Self.forgetMeter.minimum))
+        PerformanceMeter.pad(Self.forgetMeter.minimum),
+        PerformanceMeter.pad(Self.upscaleMeter.minimum))
     }
   }
   
@@ -180,7 +188,7 @@ extension Application {
           executionTime -= commandBuffer.gpuStartTime
           let latencyMicroseconds = Int(executionTime * 1e6)
           selfReference.bvhBuilder.counters
-            .updateBVHLatencies[inFlightFrameID] = latencyMicroseconds
+            .updateLatencies[inFlightFrameID] = latencyMicroseconds
         }
       }
       #endif
@@ -193,7 +201,7 @@ extension Application {
       try! commandList.d3d12CommandList.EndQuery(
         bvhBuilder.counters.queryHeap,
         D3D12_QUERY_TYPE_TIMESTAMP,
-        2)
+        4)
       
       // Bind the descriptor heap.
       commandList.setDescriptorHeap(descriptorHeap)
@@ -214,17 +222,17 @@ extension Application {
       try! commandList.d3d12CommandList.EndQuery(
         bvhBuilder.counters.queryHeap,
         D3D12_QUERY_TYPE_TIMESTAMP,
-        3)
+        5)
       
       let destinationBuffer = bvhBuilder.counters
         .queryDestinationBuffers[inFlightFrameID]
       try! commandList.d3d12CommandList.ResolveQueryData(
         bvhBuilder.counters.queryHeap,
         D3D12_QUERY_TYPE_TIMESTAMP,
-        2,
+        4,
         2,
         destinationBuffer.d3d12Resource,
-        16)
+        32)
       #endif
       
       #if os(macOS)
@@ -236,7 +244,7 @@ extension Application {
           executionTime -= commandBuffer.gpuStartTime
           let latencyMicroseconds = Int(executionTime * 1e6)
           selfReference.bvhBuilder.counters
-            .renderLatencies[inFlightFrameID] = latencyMicroseconds
+            .forgetLatencies[inFlightFrameID] = latencyMicroseconds
         }
       }
       #endif

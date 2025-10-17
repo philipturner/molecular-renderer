@@ -19,8 +19,10 @@ class CounterResources {
   // mechanism in CrashBuffer. The crash buffer must be checked before querying
   // performance counters.
   let queue: DispatchQueue
-  var updateBVHLatencies: [Int] = [0, 0, 0]
+  var updateLatencies: [Int] = [0, 0, 0]
   var renderLatencies: [Int] = [0, 0, 0]
+  var forgetLatencies: [Int] = [0, 0, 0]
+  var upscaleLatencies: [Int] = [0, 0, 0]
   #else
   let queryHeap: SwiftCOM.ID3D12QueryHeap
   var queryDestinationBuffers: [Buffer] = []

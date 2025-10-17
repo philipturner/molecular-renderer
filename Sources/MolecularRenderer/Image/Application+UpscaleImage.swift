@@ -106,7 +106,6 @@ extension Application {
     return JitterOffset.create(descriptor: jitterOffsetDesc)
   }
   
-  // TODO: Add a performance meter for upscaling.
   public func upscale(image: Image) -> Image {
     guard imageResources.renderTarget.upscaleFactor > 1 else {
       fatalError("Upscaling is not allowed.")
@@ -149,9 +148,27 @@ extension Application {
       
       commandList.mtlCommandEncoder =
       commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
+      
+      nonisolated(unsafe)
+      let selfReference = self
+      let inFlightFrameID = frameID % 3
+      commandList.mtlCommandBuffer.addCompletedHandler { commandBuffer in
+        selfReference.bvhBuilder.counters.queue.sync {
+          var executionTime = commandBuffer.gpuEndTime
+          executionTime -= commandBuffer.gpuStartTime
+          let latencyMicroseconds = Int(executionTime * 1e6)
+          selfReference.bvhBuilder.counters
+            .upscaleLatencies[inFlightFrameID] = latencyMicroseconds
+        }
+      }
     }
     #else
     device.commandQueue.withCommandList { commandList in
+      try! commandList.d3d12CommandList.EndQuery(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        6)
+      
       func createID3D12CommandList() -> UnsafeMutableRawPointer {
         let d3d12CommandList = commandList.d3d12CommandList
         let iid = SwiftCOM.ID3D12GraphicsCommandList.IID
@@ -211,6 +228,21 @@ extension Application {
       
       // Encode the GPU commands for upscaling.
       upscaler.ffxContext.dispatch(descriptor: dispatch)
+      
+      try! commandList.d3d12CommandList.EndQuery(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        7)
+      
+      let destinationBuffer = bvhBuilder.counters
+        .queryDestinationBuffers[frameID % 3]
+      try! commandList.d3d12CommandList.ResolveQueryData(
+        bvhBuilder.counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        6,
+        2,
+        destinationBuffer.d3d12Resource,
+        48)
     }
     #endif
     

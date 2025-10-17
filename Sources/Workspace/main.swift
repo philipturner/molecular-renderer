@@ -27,7 +27,7 @@ func createApplication() -> Application {
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 1
+  applicationDesc.upscaleFactor = 3
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
@@ -49,7 +49,7 @@ for atomID in lattice.atoms.indices {
   application.atoms[atomID] = atom
 }
 
-#if false
+#if true
 application.run {
   let latticeConstant = Constant(.square) {
     .checkerboard(.silicon, .carbon)
