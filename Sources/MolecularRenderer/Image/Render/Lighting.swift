@@ -7,10 +7,6 @@ func createLightingUtility() -> String {
     float specularAccumulator;
     
     void addAmbientContribution(uint atomicNumber, float distance) {
-      float diffuseAmbient;
-      float specularAmbient;
-      
-      // Branch on whether the secondary ray hit an atom.
       if (atomicNumber > 0 && distance < 1.000) {
         // Gaussians function always returns something between 0 and 1.
         // With the distance cutoff, it maps [0 nm, 1 nm] to [1.000, 0.135].
@@ -54,20 +50,7 @@ func createLightingUtility() -> String {
         // Adjust the diffuse AO term, to simulate diffuse interreflectance
         // between the primary and secondary hit point.
         diffuseAmbient = diffuseAmbient / (1 - rho * (1 - diffuseAmbient));
-      } else {
-        diffuseAmbient = 1.000;
-        specularAmbient = 1.000;
       }
-      
-      // Accumulate into the sum of AO samples.
-      diffuseAccumulator += diffuseAmbient;
-      specularAccumulator += specularAmbient;
-    }
-    
-    void finishAmbientContributions(uint sampleCount) {
-      // Divide the sum by the AO sample count.
-      diffuseAccumulator /= float(sampleCount);
-      specularAccumulator /= float(sampleCount);
     }
   };
   

@@ -345,14 +345,17 @@ struct RenderShader {
             query.rayDirection = secondaryRayDirection;
             IntersectionResult intersect = rayIntersector.intersectAO(query);
             
-            // Deactivate ray tracing for AO.
-            
             // WARNING: Properly decode the atomic number for the hit atom.
-            ambientOcclusion.addAmbientContribution(6, 0.5);
+            // TODO
+            
+            // Accumulate into the sum of AO samples.
+            ambientOcclusion.diffuseAccumulator += diffuseAmbient;
+            ambientOcclusion.specularAccumulator += specularAmbient;
           }
           
-          // Tell the context how many AO samples were taken.
-          ambientOcclusion.finishAmbientContributions(sampleCount);
+          // Divide the sum by the AO sample count.
+          ambientOcclusion.diffuseAccumulator /= float(sampleCount);
+          ambientOcclusion.specularAccumulator /= float(sampleCount);
         }
         
         // Prepare the Blinn-Phong lighting.
