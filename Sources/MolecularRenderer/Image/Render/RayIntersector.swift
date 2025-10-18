@@ -51,6 +51,20 @@ private func createIntersectAtom() -> String {
   """
 }
 
+private func createTestCell() -> String {
+  func resultArgument() -> String {
+    #if os(macOS)
+    "thread IntersectionResult &result"
+    #else
+    "inout IntersectionResult result"
+    #endif
+  }
+  
+  return """
+  void testCell(\(resultArgument()))
+  """
+}
+
 private func createFillMemoryTape(
   worldDimension: Float
 ) -> String {
