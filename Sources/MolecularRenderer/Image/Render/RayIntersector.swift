@@ -348,15 +348,15 @@ private func createIntersectAO(
       
       // Retrieve the slot ID.
       float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-      uint slotID = getSlotID(largeLowerCorner);
+      uint3 voxelCoords = getVoxelCoords(largeLowerCorner);
+      uint slotID = getSlotID(voxelCoords);
       
       // If the large cell has small cells, proceed.
       if (slotID != \(UInt32.max)) {
         uint headerAddress = slotID * \(MemorySlot.header.size / 4);
         uint smallHeaderBase = headerAddress +
         \(MemorySlot.smallHeadersOffset / 4);
-        uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
-        uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
+        
         
         float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
         uint smallHeader = getSmallHeader(smallHeaderBase,
@@ -365,6 +365,9 @@ private func createIntersectAO(
         if (smallHeader > 0) {
           // Set the distance register.
           result.distance = voxelMaximumHitTime;
+          
+          uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+          uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
           
           // Set the loop bounds register.
           uint referenceCursor = smallHeader & 0xFFFF;
