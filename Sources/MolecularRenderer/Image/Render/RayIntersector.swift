@@ -224,7 +224,10 @@ private func createIntersectPrimary(
     result.accept = false;
     bool outOfBounds = false;
     
+    uint loopIterationCount = 0;
     while (!outOfBounds) {
+      loopIterationCount += 1;
+      
       // Loop over ~8 large voxels.
       uint acceptedLargeVoxelCount = 0;
       fillMemoryTape(largeCellBorder,
@@ -233,6 +236,9 @@ private func createIntersectPrimary(
                      query,
                      largeDDA);
       
+      if (outOfBounds) {
+        loopIterationCount += acceptedLargeVoxelCount;
+      }
       
       \(Reduction.waveLocalBarrier())
       
@@ -342,6 +348,10 @@ private func createIntersectPrimary(
       }
     }
     
+    result.atomID = 0;
+    if (loopIterationCount > 1) {
+      result.atomID = loopIterationCount;
+    }
     return result;
   }
   """
