@@ -180,14 +180,14 @@ private func createIntersectPrimary(
     
     while (!outOfBounds) {
       // Loop over ~8 large voxels.
-      ushort acceptedLargeVoxelCount = 0;
+      uint acceptedLargeVoxelCount = 0;
       fillMemoryTape(largeCellBorder,
                      outOfBounds,
                      acceptedLargeVoxelCount,
                      intersectionQuery,
                      largeDDA);
       
-      simdgroup_barrier(mem_flags::mem_threadgroup);
+      \(Reduction.waveLocalBarrier())
       
       // Allocate the small DDA.
       float3 smallCellBorder;
@@ -195,9 +195,8 @@ private func createIntersectPrimary(
       bool initializedSmallDDA = false;
       
       // Allocate the large cell metadata.
-      ushort largeVoxelCursor = 0;
-      uint4 largeMetadata;
-      float3 shiftedRayOrigin;
+      uint largeVoxelCursor = 0;
+      // TODO
       
       // Loop over the few small voxels that are occupied.
       //
