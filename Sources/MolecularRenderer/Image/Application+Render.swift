@@ -119,16 +119,19 @@ extension Application {
           bvhBuilder.voxels.dense.assignedSlotIDs,
           index: RenderShader.assignedSlotIDs)
         commandList.setBuffer(
-          bvhBuilder.voxels.sparse.memorySlots,
-          index: RenderShader.memorySlots32)
+          bvhBuilder.voxels.sparse.headers,
+          index: RenderShader.headers)
+        commandList.setBuffer(
+          bvhBuilder.voxels.sparse.references32,
+          index: RenderShader.references32)
         #if os(macOS)
         commandList.setBuffer(
-          bvhBuilder.voxels.sparse.memorySlots,
-          index: RenderShader.memorySlots16)
+          bvhBuilder.voxels.sparse.references16,
+          index: RenderShader.references16)
         #else
         commandList.setDescriptor(
-          handleID: bvhBuilder.voxels.sparse.memorySlotsHandleID,
-          index: RenderShader.memorySlots16)
+          handleID: bvhBuilder.voxels.sparse.references16HandleID,
+          index: RenderShader.references16)
         #endif
         
         // Bind the color texture.
