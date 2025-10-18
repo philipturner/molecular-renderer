@@ -61,7 +61,37 @@ private func createTestCell() -> String {
   }
   
   return """
-  void testCell(\(resultArgument()))
+  void testCell(\(resultArgument()),
+                IntersectionQuery query,
+                uint slotID,
+                uint smallHeader)
+  {
+    uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+    uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
+    
+    // Set the loop bounds register.
+    uint referenceCursor = smallHeader & 0xFFFF;
+    uint referenceEnd = smallHeader >> 16;
+    referenceCursor += listAddress16;
+    referenceEnd += listAddress16;
+    
+    // Prevent infinite loops from corrupted BVH data.
+    referenceEnd = min(referenceEnd, referenceCursor + 128);
+    
+    // Test every atom in the voxel.
+    while (referenceCursor < referenceEnd) {
+      uint reference16 = references16[referenceCursor];
+      uint atomID = references32[listAddress + reference16];
+      float4 atom = atoms[atomID];
+      
+      intersectAtom(result,
+                    query,
+                    atom,
+                    atomID);
+      
+      referenceCursor += 1;
+    }
+  }
   """
 }
 
@@ -200,7 +230,7 @@ private func createIntersectPrimary(
       fillMemoryTape(largeCellBorder,
                      outOfBounds,
                      acceptedLargeVoxelCount,
-                     intersectionQuery,
+                     query,
                      largeDDA);
       
       
@@ -298,10 +328,9 @@ private func createIntersectPrimary(
           
           // Test the atoms in the accepted voxel.
           testCell(result,
-                   shiftedRayOrigin,
-                   intersectionQuery.rayDirection,
-                   largeMetadata,
-                   acceptedSmallMetadata);
+                   query,
+                   slotID,
+                   acceptedSmallHeader);
           
           // Check whether we found a hit.
           if (result.distance < acceptedVoxelMaximumHitTime) {
@@ -377,31 +406,11 @@ private func createIntersectAO(
           // Set the distance register.
           result.distance = voxelMaximumHitTime;
           
-          uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
-          uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
-          
-          // Set the loop bounds register.
-          uint referenceCursor = smallHeader & 0xFFFF;
-          uint referenceEnd = smallHeader >> 16;
-          referenceCursor += listAddress16;
-          referenceEnd += listAddress16;
-          
-          // Prevent infinite loops from corrupted BVH data.
-          referenceEnd = min(referenceEnd, referenceCursor + 128);
-          
-          // Test every atom in the voxel.
-          while (referenceCursor < referenceEnd) {
-            uint reference16 = references16[referenceCursor];
-            uint atomID = references32[listAddress + reference16];
-            float4 atom = atoms[atomID];
-            
-            intersectAtom(result,
-                          query,
-                          atom,
-                          atomID);
-            
-            referenceCursor += 1;
-          }
+          // Test the atoms in the accepted voxel.
+          testCell(result,
+                   query,
+                   slotID,
+                   smallHeader);
           
           // Check whether we found a hit.
           if (result.distance < voxelMaximumHitTime) {
@@ -491,6 +500,8 @@ func createRayIntersector(worldDimension: Float) -> String {
       \(VoxelResources.generate("coordinates", 8));
       return headers[smallHeaderBase + uint(address)];
     }
+    
+    \(createTestCell())
     
     \(createFillMemoryTape(worldDimension: worldDimension))
     
