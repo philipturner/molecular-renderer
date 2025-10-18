@@ -198,6 +198,10 @@ private func createIntersectPrimary(
       uint largeVoxelCursor = 0;
       // TODO
       
+      // Free to add a 'shifted ray origin' offset to the ray
+      // during every ray-sphere test. The dominant cost of the primary
+      // rays is not ray-sphere intersection, but DDA traversal.
+      
       // Loop over the few small voxels that are occupied.
       //
       // This is a measure to minimize the divergence of the ray-sphere
@@ -448,17 +452,19 @@ func createRayIntersector(worldDimension: Float) -> String {
     \(bvhBuffers())
     uint localID;
     
-    uint getVoxelID(float3 largeLowerCorner) {
+    // Compute address in UInt32 because world dimensions over 512 nm reach
+    // the limit of FP32 mantissa. Now the limit is 2048 nm, set by both the
+    // precision of UInt32 and the precision of FP32 when computing addresses
+    // for 8 nm voxel groups.
+    uint3 getVoxelCoords(float3 largeLowerCorner) {
       float3 coordinates = largeLowerCorner + \(worldDimension / 2);
       coordinates /= 2;
-      
-      // Compute address in UInt32 because world dimensions over 512 nm reach
-      // the limit of FP32 mantissa. Now the limit is 2048 nm, set by both the
-      // precision of UInt32 and the precision of FP32 when computing addresses
-      // for 8 nm voxel groups.
-      uint3 coordinatesInt = uint3(coordinates);
+      return uint3(coordinates);
+    }
+    
+    uint getSlotID(uint3 voxelCoords) {
       uint voxelID =
-      \(VoxelResources.generate("coordinatesInt", worldDimension / 2));
+      \(VoxelResources.generate("voxelCoords", worldDimension / 2));
       return voxelID;
     }
     
