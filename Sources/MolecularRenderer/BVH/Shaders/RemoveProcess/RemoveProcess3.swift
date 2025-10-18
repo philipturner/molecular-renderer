@@ -139,7 +139,7 @@ extension RemoveProcess {
       if (afterAtomCount > 0) {
         rebuiltMarks[voxelID] = 1;
       } else {
-        assignedVoxelCoords[assignedSlotID] = \(UInt32.max);
+        assignedVoxelCoords[slotID] = \(UInt32.max);
         assignedSlotIDs[voxelID] = \(UInt32.max);
       }
     }

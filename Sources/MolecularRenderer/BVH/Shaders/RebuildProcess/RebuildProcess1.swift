@@ -85,8 +85,8 @@ extension RebuildProcess {
       \(VoxelResources.generate("globalID", worldDimension / 2));
       
       // read from dense.assignedSlotIDs
-      uint assignedSlotID = assignedSlotIDs[voxelID];
-      if (assignedSlotID != \(UInt32.max)) {
+      uint slotID = assignedSlotIDs[voxelID];
+      if (slotID != \(UInt32.max)) {
         // TODO: When the kernel is migrated, avoid computation of the
         // voxel group ID until absolutely necessary.
         voxelGroupOccupiedMarks[voxelGroupID] = 1;
