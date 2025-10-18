@@ -10,6 +10,7 @@ enum MemorySlot {
   // 0.25 nm -> 2 nm references
   case reference16
   
+  // Size (in bytes) of the memory slot.
   var size: Int {
     switch self {
     case .header:
@@ -20,4 +21,7 @@ enum MemorySlot {
       return 20480 * 2
     }
   }
+  
+  // Offset (in bytes) of the small headers within a header slot.
+  static var smallHeadersOffset: Int { 8 }
 }

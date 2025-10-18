@@ -44,8 +44,9 @@ extension RebuildProcess {
         device float4 *atoms [[buffer(1)]],
         device uint *assignedSlotIDs [[buffer(2)]],
         device uint *rebuiltVoxelCoords [[buffer(3)]],
-        device uint *memorySlots32 [[buffer(4)]],
-        device ushort *memorySlots16 [[buffer(5)]],
+        device uint *headers [[buffer(4)]],
+        device uint *references32 [[buffer(5)]],
+        device ushort *references16 [[buffer(6)]],
         uint groupID [[threadgroup_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
       """
@@ -55,8 +56,9 @@ extension RebuildProcess {
       RWStructuredBuffer<float4> atoms : register(u1);
       RWStructuredBuffer<uint> assignedSlotIDs : register(u2);
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
-      RWStructuredBuffer<uint> memorySlots32 : register(u4);
-      RWBuffer<uint> memorySlots16 : register(u5);
+      RWStructuredBuffer<uint> headers : register(u4);
+      RWStructuredBuffer<uint> references32 : register(u5);
+      RWBuffer<uint> references16 : register(u6);
       groupshared uint threadgroupMemory[517];
       
       [numthreads(128, 1, 1)]
@@ -66,7 +68,8 @@ extension RebuildProcess {
         "UAV(u2),"
         "UAV(u3),"
         "UAV(u4),"
-        "DescriptorTable(UAV(u5, numDescriptors = 1)),"
+        "UAV(u5),"
+        "DescriptorTable(UAV(u6, numDescriptors = 1)),"
       )]
       void rebuildProcess2(
         uint groupID : SV_GroupID,
@@ -130,11 +133,10 @@ extension RebuildProcess {
       float3 lowerCorner = float3(voxelCoords) * 2;
       lowerCorner -= float(\(worldDimension / 2));
       
-      uint assignedSlotID = assignedSlotIDs[voxelID];
-      uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
-      uint listAddress = headerAddress;
-      listAddress += \(MemorySlot.offset(.referenceLarge) / 4);
-      uint atomCount = memorySlots32[headerAddress];
+      uint slotID = assignedSlotIDs[voxelID];
+      uint headerAddress = slotID * \(MemorySlot.header.size / 4);
+      uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+      uint atomCount = headers[headerAddress];
       
       \(Shader.unroll)
       for (uint i = 0; i < 4; ++i) {
@@ -148,7 +150,7 @@ extension RebuildProcess {
       // =======================================================================
       
       for (uint i = localID; i < atomCount; i += 128) {
-        uint atomID = memorySlots32[listAddress + i];
+        uint atomID = references32[listAddress + i];
         float4 atom = atoms[atomID];
         \(computeLoopBounds())
         
@@ -216,18 +218,17 @@ extension RebuildProcess {
         return;
       }
       if (localID == 0) {
-        memorySlots32[headerAddress + 1] = referenceCount;
+        headers[headerAddress + 1] = referenceCount;
       }
       
       // =======================================================================
       // ===                            Phase III                            ===
       // =======================================================================
       
-      uint listAddress16 = headerAddress * 2;
-      listAddress16 += \(MemorySlot.offset(.referenceSmall) / 2);
+      uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
       
       for (uint i = localID; i < atomCount; i += 128) {
-        uint atomID = memorySlots32[listAddress + i];
+        uint atomID = references32[listAddress + i];
         float4 atom = atoms[atomID];
         \(computeLoopBounds())
         
@@ -248,7 +249,7 @@ extension RebuildProcess {
                 uint offset;
                 \(atomicFetchAdd())
                 
-                memorySlots16[listAddress16 + offset] = \(castUShort("i"));
+                references16[listAddress16 + offset] = \(castUShort("i"));
               }
             }
           }
@@ -260,8 +261,7 @@ extension RebuildProcess {
       // ===                            Phase IV                             ===
       // =======================================================================
       
-      uint smallHeaderBase = headerAddress;
-      smallHeaderBase += \(MemorySlot.offset(.headerSmall) / 4);
+      uint smallHeaderBase = headerAddress + \(MemorySlot.smallHeadersOffset / 4);
       
       \(Shader.unroll)
       for (uint i = 0; i < 4; ++i) {
@@ -273,7 +273,7 @@ extension RebuildProcess {
         if (counterAfter > counterBefore) {
           headerValue = counterBefore | (counterAfter << 16);
         }
-        memorySlots32[smallHeaderBase + address] = headerValue;
+        headers[smallHeaderBase + address] = headerValue;
       }
     }
     """
@@ -293,13 +293,15 @@ extension BVHBuilder {
       commandList.setBuffer(
         voxels.sparse.rebuiltVoxelCoords, index: 3)
       commandList.setBuffer(
-        voxels.sparse.memorySlots, index: 4)
+        voxels.sparse.headers, index: 4)
+      commandList.setBuffer(
+        voxels.sparse.references32, index: 5)
       #if os(macOS)
       commandList.setBuffer(
-        voxels.sparse.memorySlots, index: 5)
+        voxels.sparse.references16, index: 6)
       #else
       commandList.setDescriptor(
-        handleID: voxels.sparse.memorySlotsHandleID, index: 5)
+        handleID: voxels.sparse.references16HandleID, index: 6)
       #endif
       
       let offset = GeneralCounters.offset(.rebuiltVoxelCount)
