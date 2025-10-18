@@ -94,6 +94,24 @@ private func createFillMemoryTape(
     
     while (acceptedLargeVoxelCount < 8) {
       // Check whether the DDA has gone out of bounds.
+      float3 largeLowerCorner = dda.cellLowerCorner(largeCellBorder);
+      if (\(checkMemoryTape())) {
+        outOfBounds = true;
+        break;
+      }
+      
+      // Read the 8 nm scoped mark.
+      
+      // Branch on the 8 nm scoped mark.
+      {
+        
+      }
+      
+      {
+        // If false, retrieve the 32 nm scoped mark.
+        
+        // Branch on the 32 nm scoped mark.
+      }
     }
   }
   """
