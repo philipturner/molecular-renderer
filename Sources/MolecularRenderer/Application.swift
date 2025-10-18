@@ -134,6 +134,7 @@ public class Application {
     // |              8.0 GB |       450 ms |       83 ms |         323 ms |
     // |             12.0 GB |       583 ms |       83 ms |         477 ms |
     // |             16.0 GB |       766 ms |       83 ms |         677 ms |
+    // |             18.0 GB |       842 ms |       83 ms |         705 ms |
     //
     // _Improvements to the 'clock.frames' jitter after implementing the queue
     // flush here._
@@ -145,7 +146,19 @@ public class Application {
     // - Sometimes happens at 14 GB, although the probability is ~10%.
     // - Probability at 16 GB is perhaps 75%.
     //
-    // TODO: Check whether the tipping point has changed.
+    // # After refactoring the memory scheme to break the 17.2 GB barrier
+    //
+    // 16.0 GB - stutter after application exit probably seen 33% of the time
+    // - occasionally see weird state where the application is nonresponsive
+    //   after closing window
+    // 18.9 GB - second massive series of stutters after startup
+    // 19.1 GB - second series grows to 1 second, 120 FPS attained at t = ~2 s
+    // 19.3 GB - stutters grow to several seconds, 120 FPS @ t = ~5 s
+    // - nonresponsive closing sequence is the norm
+    //
+    // MTLDevice.maxBufferSize = 17.2 GB                (16 * 1024^3)
+    // MTLDevice.recommendedMaxWorkingSetSize = 22.9 GB (21 * 1024^3)
+    // hw.memsize: 34359738368                          (32 * 1024^3)
     checkCrashBuffer(frameID: 0)
     checkExecutionTime(frameID: 0)
     updateBVH(inFlightFrameID: 0)
