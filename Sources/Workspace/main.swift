@@ -14,10 +14,10 @@ import QuaternionModule
 
 // Use these parameters to guarantee correct functioning of the 2 nm scoped
 // primary ray intersector.
-let latticeSizeXY: Float = 64
+let latticeSizeXY: Float = 512
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
-let worldDimension: Float = 256
+let worldDimension: Float = 384
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
@@ -190,7 +190,7 @@ func createApplication() -> Application {
   applicationDesc.upscaleFactor = 3
   
   applicationDesc.addressSpaceSize = 6_000_000
-  applicationDesc.voxelAllocationSize = 3_000_000_000
+  applicationDesc.voxelAllocationSize = 2_700_000_000
   applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
   
@@ -251,11 +251,11 @@ application.run {
   var endIndex = startIndex + 1_000_000
   startIndex = min(startIndex, topology.atoms.count)
   endIndex = min(endIndex, topology.atoms.count)
+  guard endIndex <= application.atoms.addressSpaceSize else {
+    fatalError("Exceeded address space size.")
+  }
+  
   for atomID in startIndex..<endIndex {
-    guard atomID < application.atoms.addressSpaceSize else {
-      fatalError("Exceeded address space size.")
-    }
-    
     let atom = topology.atoms[atomID]
     application.atoms[atomID] = atom
   }
