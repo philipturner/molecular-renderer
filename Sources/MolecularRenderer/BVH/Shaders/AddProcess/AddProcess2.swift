@@ -31,7 +31,6 @@ extension AddProcess {
     // voxels.sparse.assignedVoxelCoords
     // voxels.sparse.vacantSlotIDs
     // voxels.sparse.memorySlots.headerLarge
-    // voxels.sparse.memorySlots.referenceLarge
     func functionSignature() -> String {
       #if os(macOS)
       """
@@ -47,7 +46,6 @@ extension AddProcess {
         device uint *assignedVoxelCoords [[buffer(8)]],
         device uint *vacantSlotIDs [[buffer(9)]],
         device uint *headers [[buffer(10)]],
-        device uint *references32 [[buffer(11)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
@@ -63,7 +61,7 @@ extension AddProcess {
       RWStructuredBuffer<uint4> atomicCounters : register(u7);
       RWStructuredBuffer<uint> assignedVoxelCoords : register(u8);
       RWStructuredBuffer<uint> vacantSlotIDs : register(u9);
-      RWStructuredBuffer<uint> memorySlots : register(u10);
+      RWStructuredBuffer<uint> headers : register(u10);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
@@ -135,11 +133,10 @@ extension AddProcess {
       }
       
       // read from dense.assignedSlotIDs
-      uint assignedSlotID = assignedSlotIDs[voxelID];
+      uint slotID = assignedSlotIDs[voxelID];
       {
         bool needsNewSlot =
-        (assignedSlotID == \(UInt32.max)) &&
-        (addedAtomCount > 0);
+        (slotID == \(UInt32.max)) && (addedAtomCount > 0);
         
         uint countBitsResult =
         \(Reduction.waveActiveCountBits("needsNewSlot"));
@@ -171,32 +168,32 @@ extension AddProcess {
           
           allocatedOffset += \(Reduction.wavePrefixSum("uint(needsNewSlot)"));
           if (needsNewSlot) {
-            assignedSlotID = vacantSlotIDs[allocatedOffset];
+            slotID = vacantSlotIDs[allocatedOffset];
           }
         }
         
         // Register each added slot.
         if (needsNewSlot) {
-          assignedSlotIDs[voxelID] = assignedSlotID;
+          assignedSlotIDs[voxelID] = slotID;
           
           uint encoded = \(VoxelResources.encode("globalID"));
-          assignedVoxelCoords[assignedSlotID] = encoded;
+          assignedVoxelCoords[slotID] = encoded;
           
-          uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
-          memorySlots[headerAddress] = 0;
-          memorySlots[headerAddress + 1] = 0;
+          uint headerAddress = slotID * \(MemorySlot.header.size / 4);
+          headers[headerAddress] = 0;
+          headers[headerAddress + 1] = 0;
         }
       }
       \(Reduction.waveGlobalBarrier())
       
       // add existing atom count to prefix-summed 8 counters
-      if (assignedSlotID == \(UInt32.max)) {
+      if (slotID == \(UInt32.max)) {
         return;
       }
       uint existingAtomCount;
       {
-        uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
-        existingAtomCount = memorySlots[headerAddress];
+        uint headerAddress = slotID * \(MemorySlot.header.size / 4);
+        existingAtomCount = headers[headerAddress];
       }
       counters1 += existingAtomCount;
       counters2 += existingAtomCount;
@@ -219,9 +216,9 @@ extension AddProcess {
       }
       
       {
-        uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
-        memorySlots[headerAddress] = newAtomCount;
-        memorySlots[headerAddress + 1] = 0;
+        uint headerAddress = slotID * \(MemorySlot.header.size / 4);
+        headers[headerAddress] = newAtomCount;
+        headers[headerAddress + 1] = 0;
       }
     }
     """
@@ -264,7 +261,7 @@ extension BVHBuilder {
       commandList.setBuffer(
         voxels.sparse.vacantSlotIDs, index: 9)
       commandList.setBuffer(
-        voxels.sparse.memorySlots, index: 10)
+        voxels.sparse.headers, index: 10)
       
       let gridSize = Int(voxels.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(
