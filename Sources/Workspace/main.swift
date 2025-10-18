@@ -195,6 +195,21 @@ func createApplication() -> Application {
   // ~50 ms latency, O(1), probably from running out of memory and paging to
   // something slower. Surprisingly does not show up as abnormally bad
   // performance in rendering latency.
+  //
+  // Large memory allocations will also be a problem on macOS. The M1 Max has
+  // 32 GB of memory, but maximum buffer length is 16 GB and maximum
+  // recommended working set is 21 GB. We can partially solve this along two
+  // vectors. First, split the memory slots into 3 buffers: headers, 32-bit
+  // references, 16-bit references. Second, count on the future paradigm with
+  // multiple allocation tiers putting greater expense into the headers. Also
+  // factor in the address space consuming more memory with SiC and (maybe) less
+  // sparse occupation of the 2 nm voxels. Overall, we can exceed 75% of the
+  // RAM capacity without increasing instruction count of the shader code.
+  //
+  // Implement this optimization, test a before/after of achievable allocation
+  // size on macOS (double check that 18_000_000_000 crashes when run through
+  // this specific framework's initialization process), and revisit the massive
+  // slowdown between 2_350_000_000 and 2_400_000_000 on GTX 970.
   if latticeSizeXY <= 384 {
     applicationDesc.addressSpaceSize = 4_000_000
     applicationDesc.voxelAllocationSize = 1_500_000_000
