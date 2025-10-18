@@ -104,13 +104,27 @@ private func createFillMemoryTape(
       
       // Branch on the 8 nm scoped mark.
       {
+        float3 nextTimes = dda
+          .nextTimes(largeCellBorder, query.rayOrigin);
+        uint slotID = getSlotID(largeLowerCorner);
         
+        // Increment to the next large voxel.
+        largeCellBorder = dda.nextBorder(largeCellBorder, nextTimes);
       }
       
       {
         // If false, retrieve the 32 nm scoped mark.
         
-        // Branch on the 32 nm scoped mark.
+        // Set the group spacing to 8 nm or 32 nm based on the mark.
+        float groupSpacing = 8;
+        float groupSpacingRecip = \(Float(1) / 8);
+        
+        // Jump forward to the next cell group.
+        //
+        // Optimization:
+        // - Flip the negative-pointing axes upside down.
+        // - Reduces the divergence cost of the ceil/floor instructions by 2x.
+        // - Correct the final value upon exit.
       }
     }
   }

@@ -108,10 +108,11 @@ func createDDAUtility(worldDimension: Float) -> String {
     float3 nextCellGroup(float3 flippedCellBorder,
                          float3 flippedRayOrigin,
                          float3 flippedRayDirection,
-                         float groupSpacing) {
+                         float groupSpacing,
+                         float groupSpacingRecip) {
       // Round current coordinates down to the group spacing.
       float3 nextBorder = flippedCellBorder;
-      nextBorder /= groupSpacing;
+      nextBorder *= groupSpacingRecip;
       nextBorder = floor(nextBorder);
       nextBorder = nextBorder * groupSpacing;
       
