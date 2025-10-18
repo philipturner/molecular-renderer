@@ -22,7 +22,7 @@ extension AddProcess {
         \(AtomResources.functionArguments),
         device uint *assignedSlotIDs [[buffer(9)]],
         device uint *atomicCounters [[buffer(10)]],
-        device uint *memorySlots [[buffer(11)]],
+        device uint *references32 [[buffer(11)]],
         uint globalID [[thread_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
       """
@@ -32,7 +32,7 @@ extension AddProcess {
       \(AtomResources.functionArguments)
       RWStructuredBuffer<uint> assignedSlotIDs : register(u9);
       RWStructuredBuffer<uint> atomicCounters : register(u10);
-      RWStructuredBuffer<uint> memorySlots : register(u11);
+      RWStructuredBuffer<uint> references32 : register(u11);
       groupshared uint cachedRelativeOffsets[8 * 128];
       
       [numthreads(128, 1, 1)]
@@ -129,10 +129,9 @@ extension AddProcess {
               offset += atomicCounters[address];
             }
             
-            uint assignedSlotID = assignedSlotIDs[voxelID];
-            uint listAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
-            listAddress += \(MemorySlot.offset(.referenceLarge) / 4);
-            memorySlots[listAddress + offset] = atomID;
+            uint slotID = assignedSlotIDs[voxelID];
+            uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+            references32[listAddress + offset] = atomID;
           }
         }
       }
@@ -163,7 +162,7 @@ extension BVHBuilder {
       commandList.setBuffer(
         voxels.dense.atomicCounters, index: 10)
       commandList.setBuffer(
-        voxels.sparse.memorySlots, index: 11)
+        voxels.sparse.references32, index: 11)
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
