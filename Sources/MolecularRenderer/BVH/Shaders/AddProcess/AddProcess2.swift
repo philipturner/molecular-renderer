@@ -46,7 +46,8 @@ extension AddProcess {
         device uint4 *atomicCounters [[buffer(7)]],
         device uint *assignedVoxelCoords [[buffer(8)]],
         device uint *vacantSlotIDs [[buffer(9)]],
-        device uint *memorySlots [[buffer(10)]],
+        device uint *headers [[buffer(10)]],
+        device uint *references32 [[buffer(11)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
