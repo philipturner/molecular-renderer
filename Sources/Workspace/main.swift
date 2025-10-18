@@ -3,21 +3,9 @@ import MolecularRenderer
 import QuaternionModule
 
 // Remaining tasks of this PR:
-// - Implement the "rigorous test" described in the next section, prior to
-//   starting work on the better intersector.
-//   - Archive the current code somewhere. Perhaps the "LongDistances" file in
-//     the Tests directory of this repo.
 // - Implement 8 nm scoped primary ray intersector from main-branch-backup.
 //   - Start off with 2 nm scoped. Ensure correctness and gather perf data.
 //   - Then, implement the 8 nm skipping optimization.
-//   - Use a rotating lattice + rotating camera to rigorously assert
-//     correct behavior of the optimized primary ray intersector, prior to
-//     gathering benchmarks at any step of development. There could be
-//     a bug that treats different axes and directions differently.
-//   - The test should be run on a few permutations of quaternion directions,
-//     perhaps chosen at random and just tested multiple times. This test will
-//     be carefully set up and probably valuable to archive on a GitHub gist.
-// - Implement the critical pixel count heuristic.
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
 //   Then, see whether this can benefit the primary ray intersector for large
 //   distances.
@@ -130,6 +118,54 @@ func analyze(topology: Topology) {
 let topology = createTopology()
 analyze(topology: topology)
 
+// MARK: - Test for bugs from mishandling different axes
+
+enum Direction {
+  case positiveX
+  case positiveY
+  case positiveZ
+  case negativeX
+  case negativeY
+  case negativeZ
+  
+  // This one will also reverse the polarity of X and Y axes.
+  case negativeZInverse
+  
+  // Transform that moves positive Z to the desired direction.
+  var rotation: Quaternion<Float> {
+    switch self {
+    case .positiveX:
+      return Quaternion<Float>(
+        angle: Float.pi / 2,
+        axis: SIMD3(0, 1, 0))
+    case .positiveY:
+      return Quaternion<Float>(
+        angle: -Float.pi / 2,
+        axis: SIMD3(1, 0, 0))
+    case .positiveZ:
+      return Quaternion<Float>(
+        angle: 0,
+        axis: SIMD3(0, 1, 0))
+    case .negativeX:
+      return Quaternion<Float>(
+        angle: -Float.pi / 2,
+        axis: SIMD3(0, 1, 0))
+    case .negativeY:
+      return Quaternion<Float>(
+        angle: Float.pi / 2,
+        axis: SIMD3(1, 0, 0))
+    case .negativeZ:
+      return Quaternion<Float>(
+        angle: Float.pi / 2,
+        axis: SIMD3(0, 1, 0))
+    case .negativeZInverse:
+      return Quaternion<Float>(
+        angle: Float.pi / 2,
+        axis: SIMD3(1, 0, 0))
+    }
+  }
+}
+
 // MARK: - Launch Application
 
 @MainActor
@@ -176,10 +212,11 @@ func modifyCamera() {
   }
   application.camera.position = SIMD3<Float>(
     0,
-    0,
+    latticeConstant,
     (latticeSizeXY / 3) * latticeConstant)
   application.camera.fovAngleVertical = Float.pi / 180 * 90
   application.camera.secondaryRayCount = nil
+  print(application.camera.position)
   
   let time = createTime()
   let angleDegrees = 0.1 * time * 360
