@@ -156,15 +156,16 @@ enum Direction {
         axis: SIMD3(1, 0, 0))
     case .negativeZ:
       return Quaternion<Float>(
-        angle: Float.pi / 2,
+        angle: Float.pi,
         axis: SIMD3(0, 1, 0))
     case .negativeZInverse:
       return Quaternion<Float>(
-        angle: Float.pi / 2,
+        angle: Float.pi,
         axis: SIMD3(1, 0, 0))
     }
   }
 }
+let direction: Direction = .positiveX
 
 // MARK: - Launch Application
 
@@ -210,22 +211,36 @@ func modifyCamera() {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
   }
-  application.camera.position = SIMD3<Float>(
-    0,
+  
+  func createPosition() -> SIMD3<Float> {
+    var output = SIMD3<Float>(
     latticeConstant,
+    2 * latticeConstant,
     (latticeSizeXY / 3) * latticeConstant)
-  application.camera.fovAngleVertical = Float.pi / 180 * 90
-  application.camera.secondaryRayCount = nil
+    output = direction.rotation.act(on: output)
+    return output
+  }
+  application.camera.position = createPosition()
   print(application.camera.position)
   
   let time = createTime()
   let angleDegrees = 0.1 * time * 360
-  let rotation = Quaternion<Float>(
+  let animationRotation = Quaternion<Float>(
     angle: Float.pi / 180 * -angleDegrees,
     axis: SIMD3(0, 0, 1))
-  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
-  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
-  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
+  
+  func transform(_ axis: SIMD3<Float>) -> SIMD3<Float> {
+    var output = axis
+    output = animationRotation.act(on: output)
+    output = direction.rotation.act(on: output)
+    return output
+  }
+  application.camera.basis.0 = transform(SIMD3(1, 0, 0))
+  application.camera.basis.1 = transform(SIMD3(0, 1, 0))
+  application.camera.basis.2 = transform(SIMD3(0, 0, 1))
+  
+  application.camera.fovAngleVertical = Float.pi / 180 * 90
+  application.camera.secondaryRayCount = nil
 }
 
 application.run {
