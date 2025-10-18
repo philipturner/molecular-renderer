@@ -236,8 +236,12 @@ private func createIntersectPrimary(
                      query,
                      largeDDA);
       
-      if (outOfBounds) {
-        loopIterationCount += acceptedLargeVoxelCount;
+      if (largeCellBorder[0] > -3 && largeCellBorder[0] < 3) {
+        if (largeCellBorder[1] > -3 && largeCellBorder[1] < 3) {
+          if (largeCellBorder[2] > -35 && largeCellBorder[2] < -30) {
+            loopIterationCount += 10;
+          }
+        }
       }
       
       \(Reduction.waveLocalBarrier())
