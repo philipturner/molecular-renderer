@@ -57,7 +57,8 @@ struct RenderShader {
         device ushort *memorySlots16 [[buffer(\(Self.memorySlots16))]],
         texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]],
         \(optionalFunctionArguments())
-        uint2 pixelCoords [[thread_position_in_grid]])
+        uint2 pixelCoords [[thread_position_in_grid]],
+        uint2 localID [[thread_position_in_threadgroup]])
       """
       #else
       let byteCount = MemoryLayout<RenderArgs>.size
@@ -74,7 +75,6 @@ struct RenderShader {
       RWBuffer<uint> memorySlots16 : register(u\(Self.memorySlots16));
       RWTexture2D<float4> colorTexture : register(u\(Self.colorTexture));
       \(optionalFunctionArguments())
-      groupshared uint2 memoryTape[8 * 64];
       
       [numthreads(8, 8, 1)]
       [RootSignature(
@@ -91,12 +91,21 @@ struct RenderShader {
         \(optionalRootSignatureArguments())
       )]
       void render(
-        uint2 pixelCoords : SV_DispatchThreadID)
+        uint2 pixelCoords : SV_DispatchThreadID,
+        uint2 localID : SV_GroupThreadID)
       """
       #endif
     }
     
-    func allocateThreadgroupMemory() -> String {
+    func allocateTapeWindows() -> String {
+      #if os(macOS)
+      ""
+      #else
+      "groupshared uint2 memoryTape[8 * 64];"
+      #endif
+    }
+    
+    func allocateTapeMac() -> String {
       #if os(macOS)
       "threadgroup uint2 memoryTape[8 * 64];"
       #else
@@ -237,6 +246,8 @@ struct RenderShader {
     return """
     \(Shader.importStandardLibrary)
     
+    \(allocateTapeWindows())
+    
     \(AtomStyles.createAtomColors(AtomStyles.colors))
     \(createMatrixUtility())
     \(createRayGeneration())
@@ -251,7 +262,7 @@ struct RenderShader {
     
     \(functionSignature())
     {
-      \(allocateThreadgroupMemory())
+      \(allocateTapeMac())
       
       // Query the screen's dimensions.
       \(queryScreenDimensions())
@@ -273,6 +284,7 @@ struct RenderShader {
       rayIntersector.memorySlots32 = memorySlots32;
       rayIntersector.memorySlots16 = memorySlots16;
       \(bindMemoryTape())
+      rayIntersector.localID = localID.y * 8 + localID.x;
       
       // Prepare the ray direction.
       float dzdt;

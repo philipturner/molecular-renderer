@@ -108,6 +108,28 @@ private func createFillMemoryTape(
           .nextTimes(largeCellBorder, query.rayOrigin);
         uint slotID = getSlotID(largeLowerCorner);
         
+        // If the large cell has small cells, proceed.
+        if (slotID != \(UInt32.max)) {
+          float3 currentTimes = nextTimes - dda.dx * dda.dtdx;
+          
+          float minimumTime = 1e38;
+          minimumTime = min(currentTimes[0], minimumTime);
+          minimumTime = min(currentTimes[1], minimumTime);
+          minimumTime = min(currentTimes[2], minimumTime);
+          minimumTime = max(minimumTime, float(0));
+          
+          // Encode the key.
+          uint2 largeKey;
+          largeKey[0] = slotID;
+          largeKey[1] = \(Shader.asuint)(minimumTime);
+          
+          // Write to the memory tape.
+          uint address = acceptedLargeVoxelCount;
+          address = address * 64 + localID;
+          memoryTape[address] = largeKey;
+          acceptedLargeVoxelCount += 1;
+        }
+        
         // Increment to the next large voxel.
         largeCellBorder = dda.nextBorder(largeCellBorder, nextTimes);
       }
@@ -379,6 +401,7 @@ func createRayIntersector(worldDimension: Float) -> String {
   
   struct RayIntersector {
     \(bvhBuffers())
+    uint localID;
     
     uint getSlotID(float3 largeLowerCorner) {
       float3 coordinates = largeLowerCorner + \(worldDimension / 2);
