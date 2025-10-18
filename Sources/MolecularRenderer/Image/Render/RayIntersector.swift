@@ -197,8 +197,10 @@ private func createIntersectPrimary(
       DDA smallDDA;
       bool initializedSmallDDA = false;
       
+      // Allocate the large cell metadata.
       uint largeVoxelCursor = 0;
       uint slotID;
+      uint smallHeaderBase;
       
       // The ray's origin relative to the lower corner of the 2 nm voxel.
       float3 shiftedRayOrigin;
@@ -208,11 +210,11 @@ private func createIntersectPrimary(
       // This is a measure to minimize the divergence of the ray-sphere
       // intersection tests.
       while (largeVoxelCursor < acceptedLargeVoxelCount) {
-        uint smallHeader = 0;
+        uint acceptedSmallHeader = 0;
         float acceptedVoxelMaximumHitTime;
         
         // Loop over all ~64 small voxels.
-        while (smallHeader == 0) {
+        while (acceptedSmallHeader == 0) {
           // Regenerate the small DDA.
           //
           // This is a measure to minimize the divergence from the variation
@@ -228,7 +230,11 @@ private func createIntersectPrimary(
             uint3 voxelCoords = \(VoxelResources.decode("encodedVoxelCoords"));
             float minimumTime = \(Shader.asuint)(largeKey[1]);
             
+            // Retrieve the large cell metadata.
             slotID = getSlotID(voxelCoords);
+            uint headerAddress = slotID * \(MemorySlot.header.size / 4);
+            smallHeaderBase = headerAddress +
+            \(MemorySlot.smallHeadersOffset / 4);
             
             // Compute the voxel bounds.
             shiftedRayOrigin = query.rayOrigin;
@@ -248,21 +254,21 @@ private func createIntersectPrimary(
           
           // Check whether the DDA has gone out of bounds.
           float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
-          if (any(smallLowerCorner < 0 || smallLowerCorner >= 2)) {
+          if (\(checkPrimary())) {
             largeVoxelCursor += 1;
             initializedSmallDDA = false;
-            break; // search for occupied voxel
+            break; // search for occupied 2 nm voxel
           }
           
           // Retrieve the small cell metadata.
-          ushort2 smallMetadata = this->smallMetadata(smallLowerCorner,
-                                                      largeMetadata[0]);
+          uint smallHeader = getSmallHeader(smallHeaderBase,
+                                            smallLowerCorner);
           float3 nextTimes = smallDDA
             .nextTimes(smallCellBorder, shiftedRayOrigin);
           
           // Save the voxel maximum time.
-          if (smallMetadata[1] > 0) {
-            acceptedSmallMetadata = smallMetadata;
+          if (smallHeader > 0) {
+            acceptedSmallHeader = smallHeader;
             acceptedVoxelMaximumHitTime = smallDDA
               .voxelMaximumHitTime(smallCellBorder, nextTimes);
           }
@@ -272,7 +278,7 @@ private func createIntersectPrimary(
         }
         
         // Test the atoms.
-        if (acceptedSmallMetadata[1] > 0) {
+        if (acceptedSmallHeader > 0) {
           // Set the distance register.
           result.distance = acceptedVoxelMaximumHitTime;
           
