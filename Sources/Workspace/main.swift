@@ -18,10 +18,10 @@ import QuaternionModule
 
 // Use these parameters to guarantee correct functioning of the 2 nm scoped
 // primary ray intersector.
-let latticeSizeXY: Float = 64
+let latticeSizeXY: Float = 32
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
-let worldDimension: Float = 64
+let worldDimension: Float = 256
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
@@ -203,16 +203,13 @@ func createApplication() -> Application {
   // it broke down at addressSpaceSize = 6_000_000 and voxelAllocationSize =
   // 2_350_000_000 to 2_400_000_000. However, a variety of factors could shift
   // the breaking point for voxel allocation size.
-//  if latticeSizeXY <= 384 {
-//    applicationDesc.addressSpaceSize = 4_000_000
-//    applicationDesc.voxelAllocationSize = 1_500_000_000
-//  } else {
-//    applicationDesc.addressSpaceSize = 6_000_000
-//    applicationDesc.voxelAllocationSize = 2_500_000_000
-//  }
-  
-  applicationDesc.addressSpaceSize = 2_000_000
-  applicationDesc.voxelAllocationSize = 18_000_000_000
+  if latticeSizeXY <= 384 {
+    applicationDesc.addressSpaceSize = 4_000_000
+    applicationDesc.voxelAllocationSize = 1_500_000_000
+  } else {
+    applicationDesc.addressSpaceSize = 6_000_000
+    applicationDesc.voxelAllocationSize = 2_500_000_000
+  }
   applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
   
