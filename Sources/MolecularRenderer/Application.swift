@@ -142,7 +142,7 @@ public class Application {
     // application closes. It only kicks in when the memory allocation reaches
     // ~15.7 GB. This is with an older scheme before the allocation was broken
     // into 3 parts. The exact tipping point may change with the new scheme.
-    // - Smetimes happens at 14 GB, although the probability is ~10%.
+    // - Sometimes happens at 14 GB, although the probability is ~10%.
     // - Probability at 16 GB is perhaps 75%.
     //
     // TODO: Check whether the tipping point has changed.

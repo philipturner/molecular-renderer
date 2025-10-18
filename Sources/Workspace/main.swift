@@ -1,13 +1,11 @@
+import Foundation
 import HDL
 import MolecularRenderer
 import QuaternionModule
 
-import Foundation
-
 // Remaining tasks of this PR:
-// - Implement the change to memory organization and redo the benchmarks for
-//   the "original algorithm".
-//   - Confirm that the existing code fails at 18 GB on macOS.
+// - Implement the change to memory organization and validate that the
+//   benchmarks for the "original algorithm" haven't changed.
 // - Implement 8 nm scoped primary ray intersector from main-branch-backup.
 //   - Start off with 2 nm scoped. Ensure correctness and gather perf data.
 //   - Then, implement the 8 nm skipping optimization.
@@ -204,16 +202,6 @@ func createApplication() -> Application {
   // it broke down at addressSpaceSize = 6_000_000 and voxelAllocationSize =
   // 2_350_000_000 to 2_400_000_000. However, a variety of factors could shift
   // the breaking point for voxel allocation size.
-  
-  // Large memory allocations will also be a problem on macOS. The M1 Max has
-  // 32 GB of memory, but maximum buffer length is 16 GB and maximum
-  // recommended working set is 21 GB. We can partially solve this along two
-  // vectors. First, split the memory slots into 3 buffers: headers, 32-bit
-  // references, 16-bit references. Second, count on the future paradigm with
-  // multiple allocation tiers putting greater expense into the headers. Also
-  // factor in the address space consuming more memory with SiC and (maybe) less
-  // sparse occupation of the 2 nm voxels. Overall, we can exceed 75% of the
-  // RAM capacity without increasing instruction count of the shader code.
   if latticeSizeXY <= 384 {
     applicationDesc.addressSpaceSize = 4_000_000
     applicationDesc.voxelAllocationSize = 1_500_000_000
