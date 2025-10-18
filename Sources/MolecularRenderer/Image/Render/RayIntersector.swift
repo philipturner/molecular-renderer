@@ -71,12 +71,19 @@ private func createFillMemoryTape(
     #endif
   }
   
+  func float3(_ repeatedValue: Float) -> String {
+      "float3(\(repeatedValue), \(repeatedValue), \(repeatedValue))"
+    }
+  
   return """
   void fillMemoryTape(\(fillMemoryTapeArguments())
                         IntersectionQuery query,
                         DDA dda)
   {
-    
+    float3 sign =
+    \(Shader.select(float3(-1), float3(1), "dda.dtdx >= 0"));
+    float3 flippedRayOrigin = query.rayOrigin * sign;
+    float3 flippedRayDirection = query.rayDirection * sign;
   }
   """
 }
@@ -98,9 +105,9 @@ private func createIntersectPrimary(
     // Initialize the DDA.
     float3 smallCellBorder;
     DDA dda;
-    dda.initialize(smallCellBorder,
-                    query.rayOrigin,
-                    query.rayDirection);
+    dda.initializeSmall(smallCellBorder,
+                        query.rayOrigin,
+                        query.rayDirection);
     
     // Prepare the intersection result.
     IntersectionResult result;
@@ -210,9 +217,9 @@ private func createIntersectAO(
     // Initialize the DDA.
     float3 smallCellBorder;
     DDA dda;
-    dda.initialize(smallCellBorder,
-                    query.rayOrigin,
-                    query.rayDirection);
+    dda.initializeSmall(smallCellBorder,
+                        query.rayOrigin,
+                        query.rayDirection);
     
     // Prepare the intersection result.
     IntersectionResult result;
