@@ -72,8 +72,15 @@ private func createFillMemoryTape(
   }
   
   func float3(_ repeatedValue: Float) -> String {
-      "float3(\(repeatedValue), \(repeatedValue), \(repeatedValue))"
-    }
+    "float3(\(repeatedValue), \(repeatedValue), \(repeatedValue))"
+  }
+  
+  func checkMemoryTape() -> String {
+    outOfBoundsStatement(
+      argument: "largeLowerCorner",
+      minimum: "\(-worldDimension / 2)",
+      maximum: "\(worldDimension / 2)")
+  }
   
   return """
   void fillMemoryTape(\(fillMemoryTapeArguments())
@@ -84,6 +91,10 @@ private func createFillMemoryTape(
     \(Shader.select(float3(-1), float3(1), "dda.dtdx >= 0"));
     float3 flippedRayOrigin = query.rayOrigin * sign;
     float3 flippedRayDirection = query.rayDirection * sign;
+    
+    while (acceptedLargeVoxelCount < 8) {
+      // Check whether the DDA has gone out of bounds.
+    }
   }
   """
 }
@@ -115,14 +126,7 @@ private func createIntersectPrimary(
     result.atomID = \(UInt32.max);
     result.distance = 1e38;
     
-    uint loopIterationCount = 0;
     while (!result.accept) {
-      // Prevent infinite loops from corrupted BVH data.
-      loopIterationCount += 1;
-      if (loopIterationCount >= 640) {
-        break;
-      }
-      
       // Compute the voxel maximum time.
       float3 nextTimes = dda
         .nextTimes(smallCellBorder, query.rayOrigin);
@@ -225,14 +229,7 @@ private func createIntersectAO(
     IntersectionResult result;
     result.accept = false;
     
-    uint loopIterationCount = 0;
     while (!result.accept) {
-      // Prevent infinite loops from corrupted BVH data.
-      loopIterationCount += 1;
-      if (loopIterationCount >= 20) {
-        break;
-      }
-      
       // Compute the voxel maximum time.
       float3 nextTimes = dda
         .nextTimes(smallCellBorder, query.rayOrigin);
