@@ -306,7 +306,6 @@ struct RenderShader {
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersectPrimary(query);
       
-      /*
       if (\(Reduction.waveIsFirstLane())) {
         if (intersect.atomID != 0) {
           bool acquiredLock = false;
@@ -322,7 +321,6 @@ struct RenderShader {
           return;
         }
       }
-      */
       
       // Write the depth and motion vector ASAP, reducing register pressure.
       \(computeDepth())
