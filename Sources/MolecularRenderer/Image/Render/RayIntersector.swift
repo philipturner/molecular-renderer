@@ -448,7 +448,7 @@ func createRayIntersector(worldDimension: Float) -> String {
     \(bvhBuffers())
     uint localID;
     
-    uint getSlotID(float3 largeLowerCorner) {
+    uint getVoxelID(float3 largeLowerCorner) {
       float3 coordinates = largeLowerCorner + \(worldDimension / 2);
       coordinates /= 2;
       
@@ -457,9 +457,9 @@ func createRayIntersector(worldDimension: Float) -> String {
       // precision of UInt32 and the precision of FP32 when computing addresses
       // for 8 nm voxel groups.
       uint3 coordinatesInt = uint3(coordinates);
-      uint address =
+      uint voxelID =
       \(VoxelResources.generate("coordinatesInt", worldDimension / 2));
-      return assignedSlotIDs[address];
+      return voxelID;
     }
     
     uint getSmallHeader(uint smallHeaderBase,
