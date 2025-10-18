@@ -106,6 +106,7 @@ private func createFillMemoryTape(
       {
         float3 nextTimes = dda
           .nextTimes(largeCellBorder, query.rayOrigin);
+        uint3 voxelCoords = getVoxelCoords(largeLowerCorner);
         uint slotID = getSlotID(largeLowerCorner);
         
         // If the large cell has small cells, proceed.
@@ -465,7 +466,7 @@ func createRayIntersector(worldDimension: Float) -> String {
     uint getSlotID(uint3 voxelCoords) {
       uint voxelID =
       \(VoxelResources.generate("voxelCoords", worldDimension / 2));
-      return voxelID;
+      return assignedSlotIDs[voxelID];
     }
     
     uint getSmallHeader(uint smallHeaderBase,
