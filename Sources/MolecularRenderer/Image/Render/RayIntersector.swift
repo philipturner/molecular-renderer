@@ -301,16 +301,18 @@ private func createIntersectPrimary(
                                      origin,
                                      direction);
             initializedSmallDDA = true;
+            
+            if (ddaLowerBound.x > 5 && ddaLowerBound.y > 5) {
+              if (smallCellBorder.x == ddaUpperBound.x) {
+                if (smallDDA.dtdx[0] > 0) {
+                  loopIterationCount += 1;
+                }
+              }
+            }
           }
-          
-          
           
           // Check whether the DDA has gone out of bounds.
           float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
-          
-          
-          
-          
           
           // This is the condition sending the mysteriously blank 2 nm voxels
           // out. It's hit when we don't want it to be.
@@ -319,12 +321,6 @@ private func createIntersectPrimary(
             initializedSmallDDA = false;
             break; // search for occupied 2 nm voxel
           }
-          
-          
-          if (smallLowerCorner.x > 5 && smallLowerCorner.y > 5) {
-            loopIterationCount += 1;
-          }
-          
           
           float3 nextTimes = smallDDA
             .nextTimes(smallCellBorder, query.rayOrigin);
