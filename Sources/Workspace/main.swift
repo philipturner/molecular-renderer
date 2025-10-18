@@ -2,6 +2,8 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
+import Foundation
+
 // Remaining tasks of this PR:
 // - Implement 8 nm scoped primary ray intersector from main-branch-backup.
 //   - Start off with 2 nm scoped. Ensure correctness and gather perf data.
@@ -165,7 +167,7 @@ enum Direction {
     }
   }
 }
-let direction: Direction = .positiveX
+let direction: Direction = .positiveZ
 
 // MARK: - Launch Application
 
@@ -222,15 +224,21 @@ func modifyCamera() {
   }
   
   func createPosition() -> SIMD3<Float> {
+    // WARNING: Restore the correct expression here.
+    //
+    // latticeSizeXY / 2 for debugging correctness
+    // latticeSizeXY / 3 for benchmark
     var output = SIMD3<Float>(
-    latticeConstant,
-    2 * latticeConstant,
-    (latticeSizeXY / 3) * latticeConstant)
+    0.001,
+    0.002,
+    (latticeSizeXY / 2) * latticeConstant)
     output = direction.rotation.act(on: output)
     return output
   }
   application.camera.position = createPosition()
-  // print(application.camera.position)
+  if application.frameID == 0 {
+    print(application.camera.position)
+  }
   
   let time = createTime()
   let angleDegrees = 0.1 * time * 360
@@ -254,6 +262,8 @@ func modifyCamera() {
 
 @MainActor
 func modifyAtoms() {
+  let start = Date()
+  
   var startIndex = application.frameID * 300_000
   var endIndex = startIndex + 300_000
   startIndex = min(startIndex, topology.atoms.count)
@@ -262,11 +272,33 @@ func modifyAtoms() {
     fatalError("Exceeded address space size.")
   }
   
-  // No catastrophic CPU-side bottlenecks from @MainActor referencing to the
-  // global scope in this instance.
+  let rotation = direction.rotation
+  let basis0 = rotation.act(on: SIMD3(1, 0, 0))
+  let basis1 = rotation.act(on: SIMD3(0, 1, 0))
+  let basis2 = rotation.act(on: SIMD3(0, 0, 1))
+  
   for atomID in startIndex..<endIndex {
-    let atom = topology.atoms[atomID]
+    var atom = topology.atoms[atomID]
+    
+    var position: SIMD3<Float> = .zero
+    position += basis0 * atom.position[0]
+    position += basis1 * atom.position[1]
+    position += basis2 * atom.position[2]
+    
+    atom.position = position
     application.atoms[atomID] = atom
+  }
+  
+  let end = Date()
+  
+  // Check for no catastrophic CPU-side bottlenecks. Should not be above
+  // 10 ns/atom on any platform.
+  if startIndex < endIndex {
+    let latency = end.timeIntervalSince(start)
+    let atomCount = endIndex - startIndex
+    let nsPerAtom = Double(1e9) * latency / Double(atomCount)
+    let nsPerAtomRepr = String(format: "%.3f", nsPerAtom)
+    print(nsPerAtomRepr)
   }
 }
 

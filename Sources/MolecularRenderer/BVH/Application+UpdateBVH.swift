@@ -106,13 +106,15 @@ extension Application {
       Self.upscaleMeter.integrate(upscaleLatency)
       
       // Insert code here to gather diagnostics about performance.
-      #if true
+      #if false
       print(
         PerformanceMeter.pad(Self.updateMeter.minimum),
         PerformanceMeter.pad(Self.renderMeter.minimum),
         PerformanceMeter.pad(Self.forgetMeter.minimum),
         PerformanceMeter.pad(Self.upscaleMeter.minimum))
-      #else
+      #endif
+      
+      #if false
       print(
         PerformanceMeter.pad(updateLatency),
         PerformanceMeter.pad(renderLatency),
