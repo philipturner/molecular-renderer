@@ -84,6 +84,8 @@ In the source code, look for the declaration of `beamDepth`. The default value i
 
 Run a test that hits the pain points of ray tracing. Long primary ray traversal times in the DDA, high divergence for AO rays. Not exactly stressing the BVH update process. Rather, a single unchanging BVH and a rotating camera to detect stuttering. Make the test scaleable to different distances and window sizes.
 
+Objective is not to reach a certain limit of distance or compute capacity. Rather, the upper limits are fixed at the parameter combinations that caused problems for GTX 970.
+
 ## Chunk Loader
 
 Objective is to reach as many atoms as possible, until your GPU runs out of memory.
