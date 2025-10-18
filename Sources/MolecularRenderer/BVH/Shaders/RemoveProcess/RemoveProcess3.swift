@@ -30,7 +30,8 @@ extension RemoveProcess {
         device uchar *rebuiltMarks [[buffer(3)]],
         device uint *assignedVoxelCoords [[buffer(4)]],
         device uint *atomsRemovedVoxelCoords [[buffer(5)]],
-        device uint *memorySlots [[buffer(6)]],
+        device uint *headers [[buffer(6)]],
+        device uint *references32 [[buffer(7)]],
         uint groupID [[threadgroup_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
       """
@@ -42,7 +43,8 @@ extension RemoveProcess {
       RWBuffer<uint> rebuiltMarks : register(u3);
       RWStructuredBuffer<uint> assignedVoxelCoords : register(u4);
       RWStructuredBuffer<uint> atomsRemovedVoxelCoords : register(u5);
-      RWStructuredBuffer<uint> memorySlots : register(u6);
+      RWStructuredBuffer<uint> headers : register(u6);
+      RWStructuredBuffer<uint> references32 : register(u7);
       groupshared uint threadgroupMemory[5];
       
       [numthreads(128, 1, 1)]
@@ -54,6 +56,7 @@ extension RemoveProcess {
         "UAV(u4),"
         "UAV(u5),"
         "UAV(u6),"
+        "UAV(u7),"
       )]
       void removeProcess3(
         uint groupID : SV_GroupID,
@@ -86,13 +89,12 @@ extension RemoveProcess {
       uint voxelID =
       \(VoxelResources.generate("voxelCoords", worldDimension / 2));
       
-      uint assignedSlotID = assignedSlotIDs[voxelID];
-      uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
-      uint listAddress = headerAddress;
-      listAddress += \(MemorySlot.offset(.referenceLarge) / 4);
-      uint beforeAtomCount = memorySlots[headerAddress];
+      uint slotID = assignedSlotIDs[voxelID];
+      uint headerAddress = slotID * \(MemorySlot.header.size / 4);
+      uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
       
       // check the addressOccupiedMark of each atom in voxel
+      uint beforeAtomCount = headers[headerAddress];
       uint afterAtomCount = 0;
       uint loopBound = ((beforeAtomCount + 127) / 128) * 128;
       for (uint i = localID; i < loopBound; i += 128) {
@@ -102,7 +104,7 @@ extension RemoveProcess {
         uint atomID = \(UInt32.max);
         bool shouldKeep = false;
         if (inLoopBounds) {
-          atomID = memorySlots[listAddress + i];
+          atomID = references32[listAddress + i];
           if (addressOccupiedMarks[atomID] == 1) {
             shouldKeep = true;
           }
@@ -125,12 +127,12 @@ extension RemoveProcess {
         \(Reduction.groupLocalBarrier())
         
         if (shouldKeep) {
-          memorySlots[listAddress + localOffset] = atomID;
+          references32[listAddress + localOffset] = atomID;
         }
       }
       if (localID == 0) {
-        memorySlots[headerAddress] = afterAtomCount;
-        memorySlots[headerAddress + 1] = 0;
+        headers[headerAddress] = afterAtomCount;
+        headers[headerAddress + 1] = 0;
       }
       
       // if atoms remain, write to dense.rebuiltMarks
@@ -174,7 +176,9 @@ extension BVHBuilder {
       commandList.setBuffer(
         voxels.sparse.atomsRemovedVoxelCoords, index: 5)
       commandList.setBuffer(
-        voxels.sparse.memorySlots, index: 6)
+        voxels.sparse.headers, index: 6)
+      commandList.setBuffer(
+        voxels.sparse.references32, index: 7)
       
       let offset = GeneralCounters.offset(.atomsRemovedVoxelCount)
       commandList.dispatchIndirect(
