@@ -228,17 +228,6 @@ private func createIntersectPrimary(
     bool outOfBounds = false;
     
     uint loopIterationCount = 0;
-    
-    /*
-    if (largeCellBorder[0] > -3 && largeCellBorder[0] < 3) {
-      if (largeCellBorder[1] > -3 && largeCellBorder[1] < 3) {
-        if (largeCellBorder[2] > -35 && largeCellBorder[2] < -30) {
-          loopIterationCount += 20;
-        }
-      }
-    }
-    */
-    
     while (!outOfBounds) {
       loopIterationCount += 1;
       
@@ -249,10 +238,6 @@ private func createIntersectPrimary(
                      acceptedLargeVoxelCount,
                      query,
                      largeDDA);
-      
-      if (acceptedLargeVoxelCount > 0) {
-        loopIterationCount += 1;
-      }
       
       \(Reduction.waveLocalBarrier())
       
@@ -299,6 +284,11 @@ private func createIntersectPrimary(
             uint headerAddress = slotID * \(MemorySlot.header.size / 4);
             smallHeaderBase = headerAddress +
             \(MemorySlot.smallHeadersOffset / 4);
+            
+            if ((query.rayOrigin.x + minimumTime * query.rayDirection.x) > 5 &&
+                (query.rayOrigin.y + minimumTime * query.rayDirection.y) > 5) {
+              //loopIterationCount += 1;
+            }
             
             // Compute the voxel bounds.
             shiftedRayOrigin = query.rayOrigin;
