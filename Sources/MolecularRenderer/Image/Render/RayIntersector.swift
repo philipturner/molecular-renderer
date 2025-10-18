@@ -19,6 +19,7 @@ func createRayIntersector(worldDimension: Float) -> String {
     device uint *assignedSlotIDs;
     device uint *memorySlots32;
     device ushort *memorySlots16;
+    threadgroup uint2 *memoryTape;
     """
     #else
     """
@@ -31,11 +32,20 @@ func createRayIntersector(worldDimension: Float) -> String {
     #endif
   }
   
-  func memoryTapeArgument() -> String {
+  // Arguments for fillMemoryTape that vary by platform.
+  func fillMemoryTapeArguments() -> String {
     #if os(macOS)
-    "threadgroup uint2 *memoryTape;"
+    """
+    thread float3 &largeCellBorder,
+    thread bool &outOfBounds,
+    thread uint &acceptedLargeVoxelCount,
+    """
     #else
-    ""
+    """
+    inout float3 largeCellBorder,
+    inout bool outOfBounds,
+    inout uint acceptedLargeVoxelCount,
+    """
     #endif
   }
   
@@ -114,7 +124,6 @@ func createRayIntersector(worldDimension: Float) -> String {
   
   struct RayIntersector {
     \(bvhBuffers())
-    \(memoryTapeArgument())
     
     uint getSlotID(float3 largeLowerCorner) {
       float3 coordinates = largeLowerCorner + \(worldDimension / 2);
@@ -137,6 +146,13 @@ func createRayIntersector(worldDimension: Float) -> String {
       float address =
       \(VoxelResources.generate("coordinates", 8));
       return memorySlots32[smallHeaderBase + uint(address)];
+    }
+    
+    void fillMemoryTape(\(fillMemoryTapeArguments())
+                        IntersectionQuery query,
+                        DDA dda)
+    {
+      
     }
     
     // BVH traversal algorithm for primary rays. These rays must jump very
