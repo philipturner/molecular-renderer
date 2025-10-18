@@ -72,7 +72,11 @@ class VoxelResources {
   }
   
   static func memorySlotCount(voxelAllocationSize: Int) -> Int {
-    return voxelAllocationSize / MemorySlot.totalSize
+    var bytesPerSlot: Int = .zero
+    bytesPerSlot += MemorySlot.header.size
+    bytesPerSlot += MemorySlot.reference32.size
+    bytesPerSlot += MemorySlot.reference16.size
+    return voxelAllocationSize / bytesPerSlot
   }
   
   // Shader code to generate a voxel address.
@@ -159,9 +163,11 @@ class SparseVoxelResources {
   let rebuiltVoxelCoords: Buffer
   let vacantSlotIDs: Buffer
   
-  let memorySlots: Buffer
+  let headers: Buffer
+  let references32: Buffer
+  let references16: Buffer
   #if os(Windows)
-  var memorySlotsHandleID: Int = -1
+  var references16HandleID: Int = -1
   #endif
   
   init(device: Device, memorySlotCount: Int) {
@@ -177,8 +183,13 @@ class SparseVoxelResources {
     self.atomsRemovedVoxelCoords = createBuffer(size: memorySlotCount * 4)
     self.rebuiltVoxelCoords = createBuffer(size: memorySlotCount * 4)
     self.vacantSlotIDs = createBuffer(size: memorySlotCount * 4)
-    self.memorySlots = createBuffer(
-      size: memorySlotCount * MemorySlot.totalSize)
+    
+    self.headers = createBuffer(
+      size: memorySlotCount * MemorySlot.header.size)
+    self.references32 = createBuffer(
+      size: memorySlotCount * MemorySlot.reference32.size)
+    self.references16 = createBuffer(
+      size: memorySlotCount * MemorySlot.reference16.size)
   }
 }
 
@@ -208,7 +219,7 @@ extension VoxelResources {
   }
   
   func encodeMemorySlots(descriptorHeap: DescriptorHeap) {
-    let bufferByteCount = memorySlotCount * MemorySlot.totalSize
+    let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
     
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R16_UINT
@@ -220,9 +231,9 @@ extension VoxelResources {
     uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
     
     let handleID = descriptorHeap.createUAV(
-      resource: sparse.memorySlots.d3d12Resource,
+      resource: sparse.references16.d3d12Resource,
       uavDesc: uavDesc)
-    sparse.memorySlotsHandleID = handleID
+    sparse.references16HandleID = handleID
   }
 }
 #endif
