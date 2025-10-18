@@ -285,9 +285,9 @@ private func createIntersectPrimary(
             smallHeaderBase = headerAddress +
             \(MemorySlot.smallHeadersOffset / 4);
             
-            if ((query.rayOrigin.x + minimumTime * query.rayDirection.x) > 5 &&
-                (query.rayOrigin.y + minimumTime * query.rayDirection.y) > 5) {
-              //loopIterationCount += 1;
+            if ((query.rayOrigin.x + minimumTime * query.rayDirection.x) > 15 &&
+                (query.rayOrigin.y + minimumTime * query.rayDirection.y) > 15) {
+              loopIterationCount += 1;
             }
             
             // Compute the voxel bounds.
