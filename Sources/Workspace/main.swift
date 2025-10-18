@@ -2,8 +2,6 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
-import Foundation
-
 // Remaining tasks of this PR:
 // - Implement 8 nm scoped primary ray intersector from main-branch-backup.
 //   - Start off with 2 nm scoped. Ensure correctness and gather perf data.
@@ -16,7 +14,7 @@ import Foundation
 
 // Use these parameters to guarantee correct functioning of the 2 nm scoped
 // primary ray intersector.
-let latticeSizeXY: Float = 384
+let latticeSizeXY: Float = 64
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
 let worldDimension: Float = 256
@@ -191,8 +189,17 @@ func createApplication() -> Application {
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 3
   
-  applicationDesc.addressSpaceSize = 6_000_000
-  applicationDesc.voxelAllocationSize = 2_350_000_000
+  // Large test: on GTX 970, massive slowdown for BVH construction on GPU side.
+  // ~50 ms latency, O(1), probably from running out of memory and paging to
+  // something slower. Surprisingly does not show up as abnormally bad
+  // performance in rendering latency.
+  if latticeSizeXY <= 384 {
+    applicationDesc.addressSpaceSize = 4_000_000
+    applicationDesc.voxelAllocationSize = 1_500_000_000
+  } else {
+    applicationDesc.addressSpaceSize = 6_000_000
+    applicationDesc.voxelAllocationSize = 2_500_000_000
+  }
   applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
   
@@ -247,9 +254,7 @@ func modifyCamera() {
 
 @MainActor
 func modifyAtoms() {
-  let start = Date()
-  
-  var startIndex = (application.frameID % 20) * 300_000
+  var startIndex = application.frameID * 300_000
   var endIndex = startIndex + 300_000
   startIndex = min(startIndex, topology.atoms.count)
   endIndex = min(endIndex, topology.atoms.count)
@@ -257,16 +262,11 @@ func modifyAtoms() {
     fatalError("Exceeded address space size.")
   }
   
+  // No catastrophic CPU-side bottlenecks from @MainActor referencing to the
+  // global scope in this instance.
   for atomID in startIndex..<endIndex {
     let atom = topology.atoms[atomID]
     application.atoms[atomID] = atom
-  }
-  
-  let end = Date()
-  let latency = end.timeIntervalSince(start)
-  let latencyMicroseconds = Int(latency * 1e6)
-  if startIndex < endIndex {
-    print(latencyMicroseconds)
   }
 }
 
