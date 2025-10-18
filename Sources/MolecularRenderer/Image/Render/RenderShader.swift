@@ -284,8 +284,9 @@ struct RenderShader {
       rayIntersector.atoms = atoms;
       rayIntersector.voxelGroupOccupiedMarks = voxelGroupOccupiedMarks;
       rayIntersector.assignedSlotIDs = assignedSlotIDs;
-      rayIntersector.memorySlots32 = memorySlots32;
-      rayIntersector.memorySlots16 = memorySlots16;
+      rayIntersector.headers = headers;
+      rayIntersector.references32 = references32;
+      rayIntersector.references16 = references16;
       \(bindMemoryTape())
       rayIntersector.localID = localID.y * 8 + localID.x;
       

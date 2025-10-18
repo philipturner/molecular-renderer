@@ -261,7 +261,8 @@ extension RebuildProcess {
       // ===                            Phase IV                             ===
       // =======================================================================
       
-      uint smallHeaderBase = headerAddress + \(MemorySlot.smallHeadersOffset / 4);
+      uint smallHeaderBase = headerAddress +
+      \(MemorySlot.smallHeadersOffset / 4);
       
       \(Shader.unroll)
       for (uint i = 0; i < 4; ++i) {

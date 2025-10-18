@@ -199,13 +199,11 @@ private func createIntersectPrimary(
       
       // If the large cell has small cells, proceed.
       if (slotID != \(UInt32.max)) {
-        uint headerAddress = slotID * \(MemorySlot.totalSize / 4);
+        uint headerAddress = slotID * \(MemorySlot.header.size / 4);
         uint smallHeaderBase = headerAddress +
-        \(MemorySlot.offset(.headerSmall) / 4);
-        uint listAddress = headerAddress +
-        \(MemorySlot.offset(.referenceLarge) / 4);
-        uint listAddress16 = headerAddress * 2 +
-        \(MemorySlot.offset(.referenceSmall) / 2);
+        \(MemorySlot.smallHeadersOffset / 4);
+        uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+        uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
         
         float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
         uint smallHeader = getSmallHeader(smallHeaderBase,
@@ -226,8 +224,8 @@ private func createIntersectPrimary(
           
           // Test every atom in the voxel.
           while (referenceCursor < referenceEnd) {
-            uint reference16 = memorySlots16[referenceCursor];
-            uint atomID = memorySlots32[listAddress + reference16];
+            uint reference16 = references16[referenceCursor];
+            uint atomID = references32[listAddress + reference16];
             float4 atom = atoms[atomID];
             
             intersectAtom(result,
@@ -302,13 +300,11 @@ private func createIntersectAO(
       
       // If the large cell has small cells, proceed.
       if (slotID != \(UInt32.max)) {
-        uint headerAddress = slotID * \(MemorySlot.totalSize / 4);
+        uint headerAddress = slotID * \(MemorySlot.header.size / 4);
         uint smallHeaderBase = headerAddress +
-        \(MemorySlot.offset(.headerSmall) / 4);
-        uint listAddress = headerAddress +
-        \(MemorySlot.offset(.referenceLarge) / 4);
-        uint listAddress16 = headerAddress * 2 +
-        \(MemorySlot.offset(.referenceSmall) / 2);
+        \(MemorySlot.smallHeadersOffset / 4);
+        uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+        uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
         
         float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
         uint smallHeader = getSmallHeader(smallHeaderBase,
@@ -329,8 +325,8 @@ private func createIntersectAO(
           
           // Test every atom in the voxel.
           while (referenceCursor < referenceEnd) {
-            uint reference16 = memorySlots16[referenceCursor];
-            uint atomID = memorySlots32[listAddress + reference16];
+            uint reference16 = references16[referenceCursor];
+            uint atomID = references32[listAddress + reference16];
             float4 atom = atoms[atomID];
             
             intersectAtom(result,
@@ -425,7 +421,7 @@ func createRayIntersector(worldDimension: Float) -> String {
       float3 coordinates = relativeSmallLowerCorner / 0.25;
       float address =
       \(VoxelResources.generate("coordinates", 8));
-      return memorySlots32[smallHeaderBase + uint(address)];
+      return headers[smallHeaderBase + uint(address)];
     }
     
     \(createFillMemoryTape(worldDimension: worldDimension))
