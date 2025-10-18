@@ -5,6 +5,10 @@ import QuaternionModule
 import Foundation
 
 // Remaining tasks of this PR:
+// - Implement the change to memory organization and redo the benchmarks for
+//   the "original algorithm".
+//   - Confirm that the existing code fails at 18 GB on macOS.
+//   - Check whether the 50 ms bottleneck on Windows improved after the change.
 // - Implement 8 nm scoped primary ray intersector from main-branch-backup.
 //   - Start off with 2 nm scoped. Ensure correctness and gather perf data.
 //   - Then, implement the 8 nm skipping optimization.
