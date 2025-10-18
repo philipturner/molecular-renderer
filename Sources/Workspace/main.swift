@@ -8,7 +8,6 @@ import Foundation
 // - Implement the change to memory organization and redo the benchmarks for
 //   the "original algorithm".
 //   - Confirm that the existing code fails at 18 GB on macOS.
-//   - Check whether the 50 ms bottleneck on Windows improved after the change.
 // - Implement 8 nm scoped primary ray intersector from main-branch-backup.
 //   - Start off with 2 nm scoped. Ensure correctness and gather perf data.
 //   - Then, implement the 8 nm skipping optimization.
@@ -20,7 +19,7 @@ import Foundation
 
 // Use these parameters to guarantee correct functioning of the 2 nm scoped
 // primary ray intersector.
-let latticeSizeXY: Float = 64
+let latticeSizeXY: Float = 384
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
 let worldDimension: Float = 256
@@ -200,6 +199,12 @@ func createApplication() -> Application {
   // something slower. Surprisingly does not show up as abnormally bad
   // performance in rendering latency.
   //
+  // Confirmed that in the Windows 10 Task Manager, "Dedicated GPU memory usage"
+  // is going very close to 4 GB at the point where it breaks down. In one case,
+  // it broke down at addressSpaceSize = 6_000_000 and voxelAllocationSize =
+  // 2_350_000_000 to 2_400_000_000. However, a variety of factors could shift
+  // the breaking point for voxel allocation size.
+  
   // Large memory allocations will also be a problem on macOS. The M1 Max has
   // 32 GB of memory, but maximum buffer length is 16 GB and maximum
   // recommended working set is 21 GB. We can partially solve this along two
@@ -209,11 +214,6 @@ func createApplication() -> Application {
   // factor in the address space consuming more memory with SiC and (maybe) less
   // sparse occupation of the 2 nm voxels. Overall, we can exceed 75% of the
   // RAM capacity without increasing instruction count of the shader code.
-  //
-  // Implement this optimization, test a before/after of achievable allocation
-  // size on macOS (double check that 18_000_000_000 crashes when run through
-  // this specific framework's initialization process), and revisit the massive
-  // slowdown between 2_350_000_000 and 2_400_000_000 on GTX 970.
   if latticeSizeXY <= 384 {
     applicationDesc.addressSpaceSize = 4_000_000
     applicationDesc.voxelAllocationSize = 1_500_000_000
@@ -250,7 +250,7 @@ func modifyCamera() {
     var output = SIMD3<Float>(
     0.001,
     0.002,
-    (latticeSizeXY / 2) * latticeConstant)
+    (latticeSizeXY / 3) * latticeConstant)
     output = direction.rotation.act(on: output)
     return output
   }
