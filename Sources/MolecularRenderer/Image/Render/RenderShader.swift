@@ -53,8 +53,9 @@ struct RenderShader {
         device half4 *motionVectors [[buffer(\(Self.motionVectors))]],
         device uint *voxelGroupOccupiedMarks [[buffer(\(Self.voxelGroupOccupiedMarks))]],
         device uint *assignedSlotIDs [[buffer(\(Self.assignedSlotIDs))]],
-        device uint *memorySlots32 [[buffer(\(Self.memorySlots32))]],
-        device ushort *memorySlots16 [[buffer(\(Self.memorySlots16))]],
+        device uint *headers [[buffer(\(Self.headers))]],
+        device uint *references32 [[buffer(\(Self.references32))]],
+        device ushort *references16 [[buffer(\(Self.references16))]],
         texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]],
         \(optionalFunctionArguments())
         uint2 pixelCoords [[thread_position_in_grid]],
@@ -71,8 +72,9 @@ struct RenderShader {
       RWBuffer<float4> motionVectors : register(u\(Self.motionVectors));
       RWStructuredBuffer<uint> voxelGroupOccupiedMarks : register(u\(Self.voxelGroupOccupiedMarks));
       RWStructuredBuffer<uint> assignedSlotIDs : register(u\(Self.assignedSlotIDs));
-      RWStructuredBuffer<uint> memorySlots32 : register(u\(Self.memorySlots32));
-      RWBuffer<uint> memorySlots16 : register(u\(Self.memorySlots16));
+      RWStructuredBuffer<uint> headers : register(u\(Self.headers));
+      RWStructuredBuffer<uint> references32 : register(u\(Self.references32));
+      RWBuffer<uint> references16 : register(u\(Self.references16));
       RWTexture2D<float4> colorTexture : register(u\(Self.colorTexture));
       \(optionalFunctionArguments())
       
@@ -85,8 +87,9 @@ struct RenderShader {
         "DescriptorTable(UAV(u\(Self.motionVectors), numDescriptors = 1)),"
         "UAV(u\(Self.voxelGroupOccupiedMarks)),"
         "UAV(u\(Self.assignedSlotIDs)),"
-        "UAV(u\(Self.memorySlots32)),"
-        "DescriptorTable(UAV(u\(Self.memorySlots16), numDescriptors = 1)),"
+        "UAV(u\(Self.headers)),"
+        "UAV(u\(Self.references32)),"
+        "DescriptorTable(UAV(u\(Self.references16), numDescriptors = 1)),"
         "DescriptorTable(UAV(u\(Self.colorTexture), numDescriptors = 1)),"
         \(optionalRootSignatureArguments())
       )]

@@ -368,8 +368,9 @@ func createRayIntersector(worldDimension: Float) -> String {
     device float4 *atoms;
     device uint *voxelGroupOccupiedMarks;
     device uint *assignedSlotIDs;
-    device uint *memorySlots32;
-    device ushort *memorySlots16;
+    device uint *headers;
+    device uint *references32;
+    device ushort *references16;
     threadgroup uint2 *memoryTape;
     """
     #else
@@ -377,8 +378,9 @@ func createRayIntersector(worldDimension: Float) -> String {
     RWStructuredBuffer<float4> atoms;
     RWStructuredBuffer<uint> voxelGroupOccupiedMarks;
     RWStructuredBuffer<uint> assignedSlotIDs;
-    RWStructuredBuffer<uint> memorySlots32;
-    RWBuffer<uint> memorySlots16;
+    RWStructuredBuffer<uint> headers;
+    RWStructuredBuffer<uint> references32;
+    RWBuffer<uint> references16;
     """
     #endif
   }
