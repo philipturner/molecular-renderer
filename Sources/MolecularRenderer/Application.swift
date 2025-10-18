@@ -3,6 +3,8 @@ import SwiftCOM
 import WinSDK
 #endif
 
+import QuartzCore
+
 public struct ApplicationDescriptor {
   public var device: Device?
   public var display: Display?
@@ -104,6 +106,38 @@ public class Application {
     #if os(Windows)
     // Bind resources to the descriptor heap.
     encodeDescriptorHeap()
+    #endif
+    
+    #if os(macOS)
+    // Fix an issue with massive startup latency for large allocations. Wait
+    // for the latency period here, prior to application launch. Prevents a
+    // gray screen from appearing for ~1 second and severely messing up
+    // animations that rely on 'clock.frames'.
+    //
+    // It isn't perfect, but it reduces the disparity between frameID and
+    // 'clock.frames' @ 16 GB from ~55 frames (0.6 seconds) to ~10 frames (0.15
+    // seconds). At negligible allocation size, the minimum jump is 0.08
+    // seconds and happens exactly between frameID = 4 and frameID = 5. There
+    // is no way to make the disparity substantially smaller.
+    //
+    // | voxelAllocationSize | disp. before | disp. after | wait time here |
+    // | ------------------: | -----------: | ----------: | -------------: |
+    // |              0.2 GB |
+    // |              0.5 GB |
+    // |              1.0 GB |
+    // |              2.0 GB |
+    // |              4.0 GB |
+    // |              8.0 GB |
+    // |             12.0 GB |
+    // |             16.0 GB |
+    let start = CACurrentMediaTime()
+    checkCrashBuffer(frameID: 0)
+    checkExecutionTime(frameID: 0)
+    updateBVH(inFlightFrameID: 0)
+    forgetIdleState(inFlightFrameID: 0)
+    device.commandQueue.flush()
+    let end = CACurrentMediaTime()
+    print("extra latency:", end - start)
     #endif
     
     guard Application.singleton == nil else {

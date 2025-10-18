@@ -19,10 +19,10 @@ import Foundation
 
 // Use these parameters to guarantee correct functioning of the 2 nm scoped
 // primary ray intersector.
-let latticeSizeXY: Float = 384
+let latticeSizeXY: Float = 64
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
-let worldDimension: Float = 256
+let worldDimension: Float = 64
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
@@ -214,13 +214,15 @@ func createApplication() -> Application {
   // factor in the address space consuming more memory with SiC and (maybe) less
   // sparse occupation of the 2 nm voxels. Overall, we can exceed 75% of the
   // RAM capacity without increasing instruction count of the shader code.
-  if latticeSizeXY <= 384 {
-    applicationDesc.addressSpaceSize = 4_000_000
-    applicationDesc.voxelAllocationSize = 1_500_000_000
-  } else {
-    applicationDesc.addressSpaceSize = 6_000_000
-    applicationDesc.voxelAllocationSize = 2_500_000_000
-  }
+//  if latticeSizeXY <= 384 {
+//    applicationDesc.addressSpaceSize = 4_000_000
+//    applicationDesc.voxelAllocationSize = 1_500_000_000
+//  } else {
+//    applicationDesc.addressSpaceSize = 6_000_000
+//    applicationDesc.voxelAllocationSize = 2_500_000_000
+//  }
+  applicationDesc.addressSpaceSize = 2_000_000
+  applicationDesc.voxelAllocationSize = 8_000_000_000
   applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
   
@@ -326,6 +328,11 @@ application.run {
   modifyCamera()
   modifyAtoms()
   #endif
+  
+  if application.frameID < 10 {
+    let desynchronization = application.clock.frames - application.frameID
+    print(application.frameID, Double(desynchronization) / 120)
+  }
   
   var image = application.render()
   image = application.upscale(image: image)
