@@ -113,6 +113,7 @@ private func createFillMemoryTape(
         if (slotID != \(UInt32.max)) {
           float3 currentTimes = nextTimes - dda.dx * dda.dtdx;
           
+          // Find the minimum time.
           float minimumTime = 1e38;
           minimumTime = min(currentTimes[0], minimumTime);
           minimumTime = min(currentTimes[1], minimumTime);
@@ -121,7 +122,7 @@ private func createFillMemoryTape(
           
           // Encode the key.
           uint2 largeKey;
-          largeKey[0] = slotID;
+          largeKey[0] = \(VoxelResources.encode("voxelCoords"));
           largeKey[1] = \(Shader.asuint)(minimumTime);
           
           // Write to the memory tape.
@@ -188,6 +189,7 @@ private func createIntersectPrimary(
                      intersectionQuery,
                      largeDDA);
       
+      
       \(Reduction.waveLocalBarrier())
       
       // Allocate the small DDA.
@@ -195,13 +197,11 @@ private func createIntersectPrimary(
       DDA smallDDA;
       bool initializedSmallDDA = false;
       
-      // Allocate the large cell metadata.
       uint largeVoxelCursor = 0;
-      // TODO
+      uint slotID;
       
-      // Free to add a 'shifted ray origin' offset to the ray
-      // during every ray-sphere test. The dominant cost of the primary
-      // rays is not ray-sphere intersection, but DDA traversal.
+      // The ray's origin relative to the lower corner of the 2 nm voxel.
+      float3 shiftedRayOrigin;
       
       // Loop over the few small voxels that are occupied.
       //
@@ -224,33 +224,25 @@ private func createIntersectPrimary(
             uint2 largeKey = memoryTape[address];
             
             // Decode the key.
-            uint slotID = largeKey[0];
+            uint encodedVoxelCoords = largeKey[0];
+            uint3 voxelCoords = \(VoxelResources.decode("encodedVoxelCoords"));
             float minimumTime = \(Shader.asuint)(largeKey[1]);
             
-            // Retrieve the large cell metadata.
-            largeMetadata = compactedLargeCellMetadata[largeCellOffset];
-            uchar4 compressedCellCoordinates = as_type<uchar4>(largeMetadata[0]);
-            float3 cellCoordinates = float3(compressedCellCoordinates.xyz);
-            largeMetadata[0] = largeCellOffset;
+            slotID = getSlotID(voxelCoords);
             
             // Compute the voxel bounds.
-            //
-            // Need to compress cell coordinates @ 2 nm?
-            shiftedRayOrigin = intersectionQuery.rayOrigin;
-            shiftedRayOrigin += float(worldVolumeInNm / 2);
-            shiftedRayOrigin -= cellCoordinates * 2;
+            shiftedRayOrigin = query.rayOrigin;
+            shiftedRayOrigin += \(worldDimension / 2);
+            shiftedRayOrigin -= float3(voxelCoords) * 2;
             
             // Initialize the inner DDA.
             float3 direction = query.rayDirection;
-            float3 origin = query.rayOrigin + minimumTime * direction;
-            
-            // Need to clamp the origin to the cell bounds, otherwise floating
-            // point error will invalidate correctness.
+            float3 origin = shiftedRayOrigin + minimumTime * direction;
             origin = max(origin, 0);
             origin = min(origin, 2);
-            smallDDA = DDA(&smallCellBorder,
-                           origin,
-                           direction);
+            smallDDA.initializeSmall(smallCellBorder,
+                                     origin,
+                                     direction);
             initializedSmallDDA = true;
           }
           
@@ -356,7 +348,6 @@ private func createIntersectAO(
         uint headerAddress = slotID * \(MemorySlot.header.size / 4);
         uint smallHeaderBase = headerAddress +
         \(MemorySlot.smallHeadersOffset / 4);
-        
         
         float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
         uint smallHeader = getSmallHeader(smallHeaderBase,
