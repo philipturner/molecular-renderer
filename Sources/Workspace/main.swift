@@ -18,10 +18,10 @@ import QuaternionModule
 
 // Use these parameters to guarantee correct functioning of the 2 nm scoped
 // primary ray intersector.
-let latticeSizeXY: Float = 32
+let latticeSizeXY: Float = 64
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
-let worldDimension: Float = 256
+let worldDimension: Float = 64
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
