@@ -203,24 +203,24 @@ private func createIntersectPrimary(
       // This is a measure to minimize the divergence of the ray-sphere
       // intersection tests.
       while (largeVoxelCursor < acceptedLargeVoxelCount) {
-        ushort2 acceptedSmallMetadata = 0;
+        uint smallHeader = 0;
         float acceptedVoxelMaximumHitTime;
         
         // Loop over all ~64 small voxels.
-        while (acceptedSmallMetadata[1] == 0) {
+        while (smallHeader == 0) {
           // Regenerate the small DDA.
           //
           // This is a measure to minimize the divergence from the variation
           // in number of intersected small voxels per large voxel.
           if (!initializedSmallDDA) {
-            // Read from threadgroup memory.
-            ushort threadgroupAddress = largeVoxelCursor;
-            threadgroupAddress = threadgroupAddress * 64 + threadIndex;
-            uint2 largeKey = threadgroupMemory[threadgroupAddress];
+            // Read from the memory tape.
+            uint address = largeVoxelCursor;
+            address = address * 64 + localID;
+            uint2 largeKey = memoryTape[address];
             
             // Decode the key.
-            uint largeCellOffset = largeKey[0];
-            float minimumTime = as_type<float>(largeKey[1]);
+            uint slotID = largeKey[0];
+            float minimumTime = \(Shader.asuint)(largeKey[1]);
             
             // Retrieve the large cell metadata.
             largeMetadata = compactedLargeCellMetadata[largeCellOffset];
@@ -229,13 +229,18 @@ private func createIntersectPrimary(
             largeMetadata[0] = largeCellOffset;
             
             // Compute the voxel bounds.
+            //
+            // Need to compress cell coordinates @ 2 nm?
             shiftedRayOrigin = intersectionQuery.rayOrigin;
             shiftedRayOrigin += float(worldVolumeInNm / 2);
             shiftedRayOrigin -= cellCoordinates * 2;
             
             // Initialize the inner DDA.
-            float3 direction = intersectionQuery.rayDirection;
-            float3 origin = shiftedRayOrigin + minimumTime * direction;
+            float3 direction = query.rayDirection;
+            float3 origin = query.rayOrigin + minimumTime * direction;
+            
+            // Need to clamp the origin to the cell bounds, otherwise floating
+            // point error will invalidate correctness.
             origin = max(origin, 0);
             origin = min(origin, 2);
             smallDDA = DDA(&smallCellBorder,
