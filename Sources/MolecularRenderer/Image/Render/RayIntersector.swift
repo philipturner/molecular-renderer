@@ -179,7 +179,117 @@ private func createIntersectPrimary(
     bool outOfBounds = false;
     
     while (!outOfBounds) {
-      outOfBounds = true;
+      // Loop over ~8 large voxels.
+      ushort acceptedLargeVoxelCount = 0;
+      fillMemoryTape(largeCellBorder,
+                     outOfBounds,
+                     acceptedLargeVoxelCount,
+                     intersectionQuery,
+                     largeDDA);
+      
+      simdgroup_barrier(mem_flags::mem_threadgroup);
+      
+      // Allocate the small DDA.
+      float3 smallCellBorder;
+      DDA smallDDA;
+      bool initializedSmallDDA = false;
+      
+      // Allocate the large cell metadata.
+      ushort largeVoxelCursor = 0;
+      uint4 largeMetadata;
+      float3 shiftedRayOrigin;
+      
+      // Loop over the few small voxels that are occupied.
+      //
+      // This is a measure to minimize the divergence of the ray-sphere
+      // intersection tests.
+      while (largeVoxelCursor < acceptedLargeVoxelCount) {
+        ushort2 acceptedSmallMetadata = 0;
+        float acceptedVoxelMaximumHitTime;
+        
+        // Loop over all ~64 small voxels.
+        while (acceptedSmallMetadata[1] == 0) {
+          // Regenerate the small DDA.
+          //
+          // This is a measure to minimize the divergence from the variation
+          // in number of intersected small voxels per large voxel.
+          if (!initializedSmallDDA) {
+            // Read from threadgroup memory.
+            ushort threadgroupAddress = largeVoxelCursor;
+            threadgroupAddress = threadgroupAddress * 64 + threadIndex;
+            uint2 largeKey = threadgroupMemory[threadgroupAddress];
+            
+            // Decode the key.
+            uint largeCellOffset = largeKey[0];
+            float minimumTime = as_type<float>(largeKey[1]);
+            
+            // Retrieve the large cell metadata.
+            largeMetadata = compactedLargeCellMetadata[largeCellOffset];
+            uchar4 compressedCellCoordinates = as_type<uchar4>(largeMetadata[0]);
+            float3 cellCoordinates = float3(compressedCellCoordinates.xyz);
+            largeMetadata[0] = largeCellOffset;
+            
+            // Compute the voxel bounds.
+            shiftedRayOrigin = intersectionQuery.rayOrigin;
+            shiftedRayOrigin += float(worldVolumeInNm / 2);
+            shiftedRayOrigin -= cellCoordinates * 2;
+            
+            // Initialize the inner DDA.
+            float3 direction = intersectionQuery.rayDirection;
+            float3 origin = shiftedRayOrigin + minimumTime * direction;
+            origin = max(origin, 0);
+            origin = min(origin, 2);
+            smallDDA = DDA(&smallCellBorder,
+                           origin,
+                           direction);
+            initializedSmallDDA = true;
+          }
+          
+          // Check whether the DDA has gone out of bounds.
+          float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
+          if (any(smallLowerCorner < 0 || smallLowerCorner >= 2)) {
+            largeVoxelCursor += 1;
+            initializedSmallDDA = false;
+            break; // search for occupied voxel
+          }
+          
+          // Retrieve the small cell metadata.
+          ushort2 smallMetadata = this->smallMetadata(smallLowerCorner,
+                                                      largeMetadata[0]);
+          float3 nextTimes = smallDDA
+            .nextTimes(smallCellBorder, shiftedRayOrigin);
+          
+          // Save the voxel maximum time.
+          if (smallMetadata[1] > 0) {
+            acceptedSmallMetadata = smallMetadata;
+            acceptedVoxelMaximumHitTime = smallDDA
+              .voxelMaximumHitTime(smallCellBorder, nextTimes);
+          }
+          
+          // Increment to the next small voxel.
+          smallCellBorder = smallDDA.nextBorder(smallCellBorder, nextTimes);
+        }
+        
+        // Test the atoms.
+        if (acceptedSmallMetadata[1] > 0) {
+          // Set the distance register.
+          result.distance = acceptedVoxelMaximumHitTime;
+          
+          // Test the atoms in the accepted voxel.
+          testCell(result,
+                   shiftedRayOrigin,
+                   intersectionQuery.rayDirection,
+                   largeMetadata,
+                   acceptedSmallMetadata);
+          
+          // Check whether we found a hit.
+          if (result.distance < acceptedVoxelMaximumHitTime) {
+            result.accept = true;
+            outOfBounds = true;
+            largeVoxelCursor = acceptedLargeVoxelCount;
+          }
+        }
+      }
     }
     
     return result;
