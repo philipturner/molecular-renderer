@@ -3,20 +3,16 @@ import SwiftCOM
 import WinSDK
 #endif
 
-public struct PerformanceMeter {
-  public var minimum: Int = .max
+struct PerformanceMeter {
+  var minimum: Int = .max
   
-  public init() {
-    
-  }
-  
-  public mutating func integrate(_ measurement: Int) {
+  mutating func integrate(_ measurement: Int) {
     if measurement < minimum {
       minimum = measurement
     }
   }
   
-  public static func pad(_ latency: Int) -> String {
+  static func pad(_ latency: Int) -> String {
     var output = "\(latency)"
     while output.count < 5 {
       output = " " + output
@@ -106,7 +102,7 @@ extension Application {
       Self.upscaleMeter.integrate(upscaleLatency)
       
       // Insert code here to gather diagnostics about performance.
-      #if false
+      #if true
       print(
         PerformanceMeter.pad(Self.updateMeter.minimum),
         PerformanceMeter.pad(Self.renderMeter.minimum),
