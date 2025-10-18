@@ -117,27 +117,42 @@ public class Application {
     // It isn't perfect, but it reduces the disparity between frameID and
     // 'clock.frames' @ 16 GB from ~55 frames (0.6 seconds) to ~10 frames (0.15
     // seconds). At negligible allocation size, the minimum jump is 0.08
-    // seconds and happens exactly between frameID = 4 and frameID = 5. There
-    // is no way to make the disparity substantially smaller.
+    // seconds and happens exactly between frameID = 4 and frameID = 5.
+    //
+    // The disparity is clock.frames - frameID, meaning clock.frames has jumped
+    // forward several dozen frames in time. The jump is a sudden jitter around
+    // frameID = 4.
+    //
+    // These statistics were recorded at 1440x1440 resolution, M1 Max, 3x
+    // upscaling enabled. Perhaps the exact latencies depend on these factors.
     //
     // | voxelAllocationSize | disp. before | disp. after | wait time here |
     // | ------------------: | -----------: | ----------: | -------------: |
-    // |              0.2 GB |
-    // |              0.5 GB |
-    // |              1.0 GB |
-    // |              2.0 GB |
-    // |              4.0 GB |
-    // |              8.0 GB |
-    // |             12.0 GB |
-    // |             16.0 GB |
-    let start = CACurrentMediaTime()
+    // |              0.2 GB |       125 ms |       83 ms |          43 ms |
+    // |              0.5 GB |       133 ms |       83 ms |          50 ms |
+    // |              1.0 GB |       158 ms |       83 ms |          73 ms |
+    // |              2.0 GB |       175 ms |       83 ms |         104 ms |
+    // |              4.0 GB |       275 ms |       83 ms |         183 ms |
+    // |              8.0 GB |       450 ms |       83 ms |         323 ms |
+    // |             12.0 GB |       583 ms |       83 ms |         477 ms |
+    // |             16.0 GB |       766 ms |       83 ms |         677 ms |
+    //
+    // _Improvements to the 'clock.frames' jitter after implementing the queue
+    // flush here._
+    //
+    // There is also an incredible lag (stutter lasting ~0.5 s) when the
+    // application closes. It only kicks in when the memory allocation reaches
+    // ~15.7 GB. This is with an older scheme before the allocation was broken
+    // into 3 parts. The exact tipping point may change with the new scheme.
+    // - Smetimes happens at 14 GB, although the probability is ~10%.
+    // - Probability at 16 GB is perhaps 75%.
+    //
+    // TODO: Check whether the tipping point has changed.
     checkCrashBuffer(frameID: 0)
     checkExecutionTime(frameID: 0)
     updateBVH(inFlightFrameID: 0)
     forgetIdleState(inFlightFrameID: 0)
     device.commandQueue.flush()
-    let end = CACurrentMediaTime()
-    print("extra latency:", end - start)
     #endif
     
     guard Application.singleton == nil else {
