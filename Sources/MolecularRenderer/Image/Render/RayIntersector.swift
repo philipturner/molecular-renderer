@@ -279,7 +279,7 @@ private func createIntersectPrimary(
             // Decode the key.
             uint encodedVoxelCoords = largeKey[0];
             uint3 voxelCoords = \(VoxelResources.decode("encodedVoxelCoords"));
-            float minimumTime = \(Shader.asuint)(largeKey[1]);
+            float minimumTime = \(Shader.asfloat)(largeKey[1]);
             
             // Retrieve the large cell metadata.
             slotID = getSlotID(voxelCoords);
@@ -303,8 +303,8 @@ private func createIntersectPrimary(
             initializedSmallDDA = true;
             
             if (ddaLowerBound.x > 5 && ddaLowerBound.y > 5) {
-              if (smallCellBorder.x == ddaUpperBound.x) {
-                if (smallDDA.dtdx[0] > 0) {
+              if (smallCellBorder.x == ddaUpperBound.x && smallDDA.dtdx[0] > 0) {
+                if (query.rayOrigin.x < ddaUpperBound.x && origin.x == ddaUpperBound.x) {
                   loopIterationCount += 1;
                 }
               }
