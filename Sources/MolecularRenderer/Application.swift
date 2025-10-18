@@ -3,8 +3,6 @@ import SwiftCOM
 import WinSDK
 #endif
 
-import QuartzCore
-
 public struct ApplicationDescriptor {
   public var device: Device?
   public var display: Display?
