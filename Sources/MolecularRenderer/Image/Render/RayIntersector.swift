@@ -151,7 +151,7 @@ private func createFillMemoryTape(
         float3 nextTimes = dda
           .nextTimes(largeCellBorder, query.rayOrigin);
         uint3 voxelCoords = getVoxelCoords(largeLowerCorner);
-        uint slotID = getSlotID(largeLowerCorner);
+        uint slotID = getSlotID(voxelCoords);
         
         // If the large cell has small cells, proceed.
         if (slotID != \(UInt32.max)) {
@@ -220,11 +220,25 @@ private func createIntersectPrimary(
                              query.rayOrigin,
                              query.rayDirection);
     
+    
+    
+    
     IntersectionResult result;
     result.accept = false;
     bool outOfBounds = false;
     
     uint loopIterationCount = 0;
+    
+    /*
+    if (largeCellBorder[0] > -3 && largeCellBorder[0] < 3) {
+      if (largeCellBorder[1] > -3 && largeCellBorder[1] < 3) {
+        if (largeCellBorder[2] > -35 && largeCellBorder[2] < -30) {
+          loopIterationCount += 20;
+        }
+      }
+    }
+    */
+    
     while (!outOfBounds) {
       loopIterationCount += 1;
       
@@ -236,12 +250,8 @@ private func createIntersectPrimary(
                      query,
                      largeDDA);
       
-      if (largeCellBorder[0] > -3 && largeCellBorder[0] < 3) {
-        if (largeCellBorder[1] > -3 && largeCellBorder[1] < 3) {
-          if (largeCellBorder[2] > -35 && largeCellBorder[2] < -30) {
-            loopIterationCount += 10;
-          }
-        }
+      if (acceptedLargeVoxelCount > 0) {
+        loopIterationCount += 1;
       }
       
       \(Reduction.waveLocalBarrier())
