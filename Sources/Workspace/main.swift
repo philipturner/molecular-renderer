@@ -2,6 +2,8 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
+import Foundation
+
 // Remaining tasks of this PR:
 // - Implement 8 nm scoped primary ray intersector from main-branch-backup.
 //   - Start off with 2 nm scoped. Ensure correctness and gather perf data.
@@ -14,10 +16,10 @@ import QuaternionModule
 
 // Use these parameters to guarantee correct functioning of the 2 nm scoped
 // primary ray intersector.
-let latticeSizeXY: Float = 512
+let latticeSizeXY: Float = 384
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
-let worldDimension: Float = 384
+let worldDimension: Float = 256
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
@@ -190,7 +192,7 @@ func createApplication() -> Application {
   applicationDesc.upscaleFactor = 3
   
   applicationDesc.addressSpaceSize = 6_000_000
-  applicationDesc.voxelAllocationSize = 2_700_000_000
+  applicationDesc.voxelAllocationSize = 2_350_000_000
   applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
   
@@ -221,7 +223,7 @@ func modifyCamera() {
     return output
   }
   application.camera.position = createPosition()
-  print(application.camera.position)
+  // print(application.camera.position)
   
   let time = createTime()
   let angleDegrees = 0.1 * time * 360
@@ -243,12 +245,12 @@ func modifyCamera() {
   application.camera.secondaryRayCount = nil
 }
 
-application.run {
-  #if true
-  modifyCamera()
+@MainActor
+func modifyAtoms() {
+  let start = Date()
   
-  var startIndex = application.frameID * 1_000_000
-  var endIndex = startIndex + 1_000_000
+  var startIndex = (application.frameID % 20) * 300_000
+  var endIndex = startIndex + 300_000
   startIndex = min(startIndex, topology.atoms.count)
   endIndex = min(endIndex, topology.atoms.count)
   guard endIndex <= application.atoms.addressSpaceSize else {
@@ -259,6 +261,19 @@ application.run {
     let atom = topology.atoms[atomID]
     application.atoms[atomID] = atom
   }
+  
+  let end = Date()
+  let latency = end.timeIntervalSince(start)
+  let latencyMicroseconds = Int(latency * 1e6)
+  if startIndex < endIndex {
+    print(latencyMicroseconds)
+  }
+}
+
+application.run {
+  #if true
+  modifyCamera()
+  modifyAtoms()
   #endif
   
   var image = application.render()
