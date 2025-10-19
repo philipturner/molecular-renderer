@@ -208,7 +208,7 @@ private func createIntersectPrimary(
     outOfBoundsStatement(
       argument: "smallLowerCorner",
       minimum: "ddaLowerBound",
-      maximum: "ddaUpperBound")
+      maximum: "(ddaLowerBound + 2)")
   }
   
   return """
@@ -220,17 +220,11 @@ private func createIntersectPrimary(
                              query.rayOrigin,
                              query.rayDirection);
     
-    
-    
-    
     IntersectionResult result;
     result.accept = false;
     bool outOfBounds = false;
     
-    uint loopIterationCount = 0;
     while (!outOfBounds) {
-      loopIterationCount += 1;
-      
       // Loop over ~8 large voxels.
       uint acceptedLargeVoxelCount = 0;
       fillMemoryTape(largeCellBorder,
@@ -250,11 +244,7 @@ private func createIntersectPrimary(
       uint largeVoxelCursor = 0;
       uint slotID;
       uint smallHeaderBase;
-      
-      // // The ray's origin relative to the lower corner of the 2 nm voxel.
-      // float3 shiftedRayOrigin;
       float3 ddaLowerBound;
-      float3 ddaUpperBound;
       
       // Loop over the few small voxels that are occupied.
       //
@@ -290,32 +280,20 @@ private func createIntersectPrimary(
             // Compute the voxel bounds.
             ddaLowerBound = float3(voxelCoords) * 2;
             ddaLowerBound -= float(\(worldDimension / 2));
-            ddaUpperBound = ddaLowerBound + float(2);
             
             // Initialize the inner DDA.
             float3 direction = query.rayDirection;
             float3 origin = query.rayOrigin + minimumTime * direction;
             origin = max(origin, ddaLowerBound);
-            origin = min(origin, ddaUpperBound);
+            origin = min(origin, ddaLowerBound + 2);
             smallDDA.initializeSmall(smallCellBorder,
                                      origin,
                                      direction);
             initializedSmallDDA = true;
-            
-            if (ddaLowerBound.x > 5 && ddaLowerBound.y > 5) {
-              if (smallCellBorder.x == ddaUpperBound.x && smallDDA.dtdx[0] > 0) {
-                if (query.rayOrigin.x < ddaUpperBound.x && origin.x == ddaUpperBound.x) {
-                  loopIterationCount += 1;
-                }
-              }
-            }
           }
           
           // Check whether the DDA has gone out of bounds.
           float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
-          
-          // This is the condition sending the mysteriously blank 2 nm voxels
-          // out. It's hit when we don't want it to be.
           if (\(checkPrimary())) {
             largeVoxelCursor += 1;
             initializedSmallDDA = false;
@@ -362,10 +340,6 @@ private func createIntersectPrimary(
       }
     }
     
-    result.atomID = 0;
-    if (loopIterationCount > 1) {
-      result.atomID = loopIterationCount;
-    }
     return result;
   }
   """
