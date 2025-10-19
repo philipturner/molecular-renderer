@@ -36,17 +36,17 @@ In the source code, look for the declaration of `beamDepth`. The default value i
 
 </details>
 
-This test is bottlenecked by the system's CPU. There is room to improve by multithreading the Swift code for animating the beam and writing to `application.atoms`. For detailed explanation of the performance limits, study the source code in "Sources/MolecularRenderer/Atoms.swift".
+For high-end GPUs, this test should be bottlenecked by the system's CPU. There is room to improve by multithreading the Swift code for animating the beam and writing to `application.atoms`. For detailed explanation of the performance limits, study the source code in "Sources/MolecularRenderer/Atoms.swift".
 
 ## Long Distances
 
 Test that hits the pain points of ray tracing. Long primary ray traversal times in the DDA, high divergence for AO rays. Not exactly stressing the BVH update process. Rather, a single unchanging BVH and a rotating camera to detect stuttering. Scaleable to different distances and window sizes.
 
+The structure is a hydrogen-passivated, Si(100)-(2×1) lattice generated with [`reconstruction.compile()`](https://github.com/philipturner/HDL/blob/main/Documentation/API/Reconstruction.md). The largest setting has 5.6 million atoms, takes over 10 seconds to compile, and causes issues with the GTX 970 running out of memory.
+
 ![Long Distances Benchmark](../LongDistancesBenchmark.png)
 
 ![Long Distances Benchmark 2](../LongDistancesBenchmark2.png)
-
-The structure is a hydrogen-passivated, Si(100)-(2×1) lattice generated with [`reconstruction.compile()`](https://github.com/philipturner/HDL/blob/main/Documentation/API/Reconstruction.md). The largest setting has 5.6 million atoms, takes over 10 seconds to compile, and causes issues with the GTX 970 running out of memory.
 
 ## Large Scenes
 
