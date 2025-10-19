@@ -56,12 +56,12 @@ The scene will take some time to design correctly. Expect it to hit challenging 
 
 | Chip            | RAM    | Theoretical Max Atoms | Actual Max Atoms |
 | --------------- | -----: | --------------------: | ---------------: |
-| GTX 970         | 3.5 GB | 33M   |
+| GTX 970         | 3.5 GB | 33M   |     |
 | M1 @ 60 Hz      |   8 GB | 75M   | n/a |
 | M1 Pro @ 120 Hz |  16 GB | 150M  | n/a |
 | 7900 XTX        |  24 GB | 225M  | n/a |
 | RTX 4090        |  24 GB | 225M  | n/a |
-| M1 Max          |  32 GB | 300M  |
+| M1 Max          |  32 GB | 300M  |     |
 | RTX 5090        |  32 GB | 300M  | n/a |
 | M3 Max          | 128 GB | 1200M | n/a |
 | M3 Ultra        | 512 GB | 4800M | n/a |
