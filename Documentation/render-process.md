@@ -91,6 +91,8 @@ A simple heuristic reduces the number of secondary rays, at a certain distance f
 
 _Critical pixel count with the old code base._
 
+TODO: Include screenshot of raw data from Google Sheet.
+
 ## MetalFX Latency Issues
 
 On macOS, there is a problem with the MetalFX framework that may lead to massive program startup times. These appear as if Swift switched from `-Xswiftc -Ounchecked` to true release mode, making the user wait up to 10 seconds to compile after the tiniest change to the code.
