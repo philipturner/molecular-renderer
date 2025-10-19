@@ -44,7 +44,7 @@ GPU time spent updating the acceleration structure will eat into time available 
 
 These combinations of settings are known to run smoothly (or predicted to, for M1).
 
-### Short Distance (TBD nm)
+### Short Distance (2.2 nm)
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
@@ -62,7 +62,7 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 15        | 15        | 15        |
 
-### Long Distance (TBD nm)
+### Long Distance (9.2 nm)
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
@@ -70,7 +70,7 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 | FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
 | Window resolution     | TBD       | TBD       | TBD       |
 | Upscale factor        | 2x        | 2x        | 2x        |
-| AO sample count       | 15        | 15        | 15        |
+| AO sample count       | 7         | 7         | 7         |
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
@@ -78,7 +78,7 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 | FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
 | Window resolution     | TBD       | TBD       | TBD       |
 | Upscale factor        | 3x        | 3x        | 3x        |
-| AO sample count       | 15        | 15        | 15        |
+| AO sample count       | 7         | 7         | 7         |
 
 TODO: Test performance after getting the acceleration structure working. Run with a minimally small world volume, so you don't have to worry about the per-dense-voxel bottleneck.
 

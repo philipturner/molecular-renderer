@@ -44,7 +44,7 @@ Run a test that hits the pain points of ray tracing. Long primary ray traversal 
 
 ![Long Distances Benchmark](../LongDistancesBenchmark.png)
 
-TODO: Include screenshot of raw data for the AO investigation.
+![Long Distances Benchmark 2](../LongDistancesBenchmark2.png)
 
 ## Large Scenes
 
