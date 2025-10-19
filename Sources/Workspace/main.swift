@@ -17,7 +17,7 @@ import QuaternionModule
 // 256 lattice, 192 world dimension
 let latticeSizeXY: Float = 64
 let latticeSizeZ: Float = 2
-let screenDimension: Int = 1080
+let screenDimension: Int = 2010
 let worldDimension: Float = 64
 do {
   let latticeConstant = Constant(.square) {

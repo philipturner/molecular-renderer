@@ -18,22 +18,23 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 
 GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count (atoms that are moving, not atom count of the entire scene). The above performance model assumes a static scene, where the cost of updating the acceleration structure is zero.
 
-These combinations of settings are known to run smoothly (or predicted to, for M1).
-
-### Short Distance (2.8 nm @ 90° FOV)
+These combinations of settings are known to run smoothly (or predicted to, for M1). The long distances test was used, with `latticeSizeXY` set to 16, 64, or 256.
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
 | GPU model             | M1 Max    | M1        | GTX 970   |
 | FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
+
+### Short Distance (2.8 nm @ 90° FOV)
+
+| Multiplicative Factor | macOS     | macOS (target audience) | Windows |
+| --------------------- | :-------: | :-------: | :-------: |
 | Window resolution     | TBD       | TBD       | 1410x1410 |
 | Upscale factor        | 2x        | 2x        | 2x        |
 | AO sample count       | 15        | 15        | 15        |
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| GPU model             | M1 Max    | M1        | GTX 970   |
-| FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
 | Window resolution     | TBD       | TBD       | 2010x2010 |
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 15        | 15        | 15        |
@@ -42,23 +43,29 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| GPU model             | M1 Max    | M1        | GTX 970   |
-| FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
 | Window resolution     | TBD       | TBD       | TBD       |
 | Upscale factor        | 2x        | 2x        | 2x        |
 | AO sample count       | 7         | 7         | 7         |
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| GPU model             | M1 Max    | M1        | GTX 970   |
-| FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
 | Window resolution     | TBD       | TBD       | TBD       |
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 7         | 7         | 7         |
 
-### Long Distance
+### Long Distance (46.2 nm @ 90° FOV)
 
-TODO
+| Multiplicative Factor | macOS     | macOS (target audience) | Windows |
+| --------------------- | :-------: | :-------: | :-------: |
+| Window resolution     | TBD       | TBD       | TBD       |
+| Upscale factor        | 2x        | 2x        | 2x        |
+| AO sample count       | 3         | 3         | 3         |
+
+| Multiplicative Factor | macOS     | macOS (target audience) | Windows |
+| --------------------- | :-------: | :-------: | :-------: |
+| Window resolution     | TBD       | TBD       | TBD       |
+| Upscale factor        | 3x        | 3x        | 3x        |
+| AO sample count       | 3         | 3         | 3         |
 
 ## Ambient Occlusion Sample Count
 
@@ -71,13 +78,22 @@ A default of 7 or 15 secondary rays results in sufficient quality for any genera
 A simple heuristic reduces the number of secondary rays, at a certain distance from the user. When atoms are small, they are harder to clearly see, and therefore can afford less rendering quality. The reduction in sample count cancels the increase in divergence, leading to consistent rendering speed in all use cases.
 
 | element | radius    | pixels @ 7 samples | pixels @ 3 samples |
-| :-----: | --------: | -----------------: | -----------------: |
-| H       | 0.0930 nm | 28 | 12 |
-| C       | 0.1426 nm | 43 | 18 |
-| Si      | 0.1744 nm | 52 | 22 |
-| Au      | 0.2371 nm | 71 | 30 |
+| :-----: | --------: | --: | --: |
+| H       | 0.0930 nm |  28 |  12 |
+| C       | 0.1426 nm |  43 |  18 |
+| Si      | 0.1744 nm |  52 |  22 |
+| Au      | 0.2371 nm |  71 |  30 |
 
 _Critical pixel count with the old code base._
+
+| element | radius    | pixels @ 15 samples | pixels @ 7 samples | pixels @ 3 samples |
+| :-----: | --------: | --: | --: | --: |
+| H       | 0.0930 nm |
+| C       | 0.1426 nm |
+| Si      | 0.1744 nm |
+| Au      | 0.2371 nm |
+
+_Critical pixel count with the new code base._
 
 ## MetalFX Latency Issues
 
