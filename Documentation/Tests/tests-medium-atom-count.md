@@ -16,6 +16,6 @@ Use the same {100} reconstructed cube as the previous test.
 
 Test obviously bad thresholds for the critical pixel count heuristic and check for unacceptable quality.
 
-The camera slowly moves away and activates different tiers of the ray count. Tests several different surfaces: hydrogen passivated C(111), Au(111), GaAs(110).
+The camera slowly moves away and activates different tiers of the ray count. Test the following surfaces: hydrogen passivated C(111), unpassivated C(110), Au(111), GaAs(110).
 
 Unlike the long distances test, the lattice doesn't need to cover 100% of the FOV for the entire duration of the test. We can compile a small lattice that shows some empty space when the user is far away.
