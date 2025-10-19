@@ -36,7 +36,7 @@ In the source code, look for the declaration of `beamDepth`. The default value i
 
 </details>
 
-This test is bottlenecked by the system's CPU. For more detailed explanation of the performance limits, study the source code in "Sources/MolecularRenderer/Atoms.swift".
+This test is bottlenecked by the system's CPU. There is room to improve by multithreading the Swift code for animating the beam and writing to `application.atoms`. For detailed explanation of the performance limits, study the source code in "Sources/MolecularRenderer/Atoms.swift".
 
 ## Long Distances
 
