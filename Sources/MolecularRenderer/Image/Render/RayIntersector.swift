@@ -149,7 +149,7 @@ private func createFillMemoryTape(
       uint3 voxelGroup8Coords = voxelCoords / 4;
       uint voxelGroup8ID =
       \(VoxelResources.generate("voxelGroup8Coords", worldDimension / 8));
-      uint mark8 = voxelGroupOccupiedMarks[voxelGroup8ID];
+      uint mark8 = voxelGroup8OccupiedMarks[voxelGroup8ID];
       
       // Branch on the 8 nm scoped mark.
       if (mark8 > 0) {
@@ -444,7 +444,8 @@ func createRayIntersector(worldDimension: Float) -> String {
     #if os(macOS)
     """
     device float4 *atoms;
-    device uint *voxelGroupOccupiedMarks;
+    device uint *voxelGroup8OccupiedMarks;
+    device uint *voxelGroup32OccupiedMarks;
     device uint *assignedSlotIDs;
     device uint *headers;
     device uint *references32;
@@ -454,7 +455,8 @@ func createRayIntersector(worldDimension: Float) -> String {
     #else
     """
     RWStructuredBuffer<float4> atoms;
-    RWStructuredBuffer<uint> voxelGroupOccupiedMarks;
+    RWStructuredBuffer<uint> voxelGroup8OccupiedMarks;
+    RWStructuredBuffer<uint> voxelGroup32OccupiedMarks;
     RWStructuredBuffer<uint> assignedSlotIDs;
     RWStructuredBuffer<uint> headers;
     RWStructuredBuffer<uint> references32;

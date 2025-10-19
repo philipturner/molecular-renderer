@@ -282,7 +282,8 @@ struct RenderShader {
       // Prepare the ray intersector.
       RayIntersector rayIntersector;
       rayIntersector.atoms = atoms;
-      rayIntersector.voxelGroupOccupiedMarks = voxelGroupOccupiedMarks;
+      rayIntersector.voxelGroup8OccupiedMarks = voxelGroup8OccupiedMarks;
+      rayIntersector.voxelGroup32OccupiedMarks = voxelGroup32OccupiedMarks;
       rayIntersector.assignedSlotIDs = assignedSlotIDs;
       rayIntersector.headers = headers;
       rayIntersector.references32 = references32;
