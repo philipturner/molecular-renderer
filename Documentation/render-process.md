@@ -18,7 +18,7 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 
 GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count (atoms that are moving, not atom count of the entire scene). The above performance model assumes a static scene, where the cost of updating the acceleration structure is zero.
 
-These combinations of settings are known to run smoothly (or predicted to, for M1). The long distances test was used, with `latticeSizeXY` set to 16, 64, or 256.
+These combinations of settings are known to run smoothly (or predicted to, for M1). The long distances test is used, with `latticeSizeXY` set to 16, 64, or 256. The critical pixel count heuristic is disabled.
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
@@ -43,13 +43,13 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| Window resolution     | TBD       | TBD       | TBD       |
+| Window resolution     | TBD       | TBD       | 1680x1680 |
 | Upscale factor        | 2x        | 2x        | 2x        |
 | AO sample count       | 7         | 7         | 7         |
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| Window resolution     | TBD       | TBD       | TBD       |
+| Window resolution     | TBD       | TBD       | 2100x2100 |
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 7         | 7         | 7         |
 
@@ -57,13 +57,13 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| Window resolution     | TBD       | TBD       | TBD       |
+| Window resolution     | TBD       | TBD       | 1710x1710 |
 | Upscale factor        | 2x        | 2x        | 2x        |
 | AO sample count       | 3         | 3         | 3         |
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| Window resolution     | TBD       | TBD       | TBD       |
+| Window resolution     | TBD       | TBD       | 2100x2100 |
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 3         | 3         | 3         |
 

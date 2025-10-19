@@ -15,10 +15,10 @@ import QuaternionModule
 // 16 lattice, 32 world dimension
 // 64 lattice, 64 world dimension
 // 256 lattice, 192 world dimension
-let latticeSizeXY: Float = 64
+let latticeSizeXY: Float = 256
 let latticeSizeZ: Float = 2
-let screenDimension: Int = 2010
-let worldDimension: Float = 64
+let screenDimension: Int = 1740
+let worldDimension: Float = 192
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
@@ -188,7 +188,7 @@ func createApplication() -> Application {
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 3
+  applicationDesc.upscaleFactor = 2
   
   // Large test: on GTX 970, massive slowdown for BVH construction on GPU side.
   // ~50 ms latency, O(1), probably from running out of memory and paging to
@@ -262,7 +262,7 @@ func modifyCamera() {
   application.camera.basis.2 = transform(SIMD3(0, 0, 1))
   
   application.camera.fovAngleVertical = Float.pi / 180 * 90
-  application.camera.secondaryRayCount = 7
+  application.camera.secondaryRayCount = 3
 }
 
 @MainActor
