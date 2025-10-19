@@ -183,11 +183,22 @@ private func createFillMemoryTape(
         // Increment to the next large voxel.
         largeCellBorder = dda.nextBorder(largeCellBorder, nextTimes);
       } else {
-        // If false, retrieve the 32 nm scoped mark.
+        // Read the 32 nm scoped mark.
+        uint3 voxelGroup32Coords = voxelGroup8Coords / 4;
+        uint voxelGroup32ID =
+        \(VoxelResources.generate("voxelGroup32Coords", worldDimension / 32));
+        uint mark32 = voxelGroup32OccupiedMarks[voxelGroup32ID];
         
         // Set the group spacing to 8 nm or 32 nm based on the mark.
-        float groupSpacing = 8;
-        float groupSpacingRecip = \(Float(1) / 8);
+        float groupSpacing;
+        float groupSpacing32;
+        if (mark32 > 0) {
+          groupSpacing = 8;
+          groupSpacingRecip = \(Float(1) / 8);
+        } else {
+          groupSpacing = 32;
+          groupSpacingRecip = \(Float(1) / 32);
+        }
         
         // Jump forward to the next cell group.
         //
