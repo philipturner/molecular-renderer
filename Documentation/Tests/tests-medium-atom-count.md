@@ -10,6 +10,8 @@ Simple test that the ray tracing acceleration structure works correctly, with no
 
 Proof of concept of energy minimization using custom FIRE algorithm, proving there is no need for the built-in minimizer from OpenMM. Relies on GitHub gist.
 
+Use the same {100} reconstructed cube as the previous test.
+
 ## Key-Value SSD Caching
 
 > TODO: Implement in a future PR.
