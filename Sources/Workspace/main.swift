@@ -4,6 +4,10 @@ import MolecularRenderer
 import QuaternionModule
 
 // Remaining tasks of this PR:
+// - Run the tests under "Rendering Performance", which demand deactivation of
+//   the critical pixel count heuristic. Recycle code from the long distances
+//   test at very small distances. State the settings used on the documentation
+//   page.
 // - Implement the "critical pixel count" heuristic to optimize AO cost.
 //   - Just get it over and done with first.
 //   - By the end of this, the long distances test will be finished.
