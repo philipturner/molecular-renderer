@@ -28,8 +28,6 @@ A new API function, `application.stop()`, prevents the next run loop from happen
 
 ## Rendering Performance
 
-> TODO: Establish a performance metric of ns/pixel in the intermediate texture, incorporate this performance model into all pending investigations of rendering cost. It also makes the Drake Equation more comprehensible, so this documentation section will be overhauled.
-
 The time to render a frame is a multiplication of many variables. Like the Drake Equation, changing a few by 2x could change the end result by 10x. Users can tune these variables to render as many pixels as possible, while still producing one frame per display refresh period.
 
 | Multiplicative Factor | Explanation |
