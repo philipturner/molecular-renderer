@@ -15,7 +15,7 @@ import QuaternionModule
 
 // Test 192, 256 for correctness while implementing the 32 nm scoping
 // optimization.
-let latticeSizeXY: Float = 192
+let latticeSizeXY: Float = 32
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
 let worldDimension: Float = 256
@@ -236,7 +236,7 @@ func modifyCamera() {
     var output = SIMD3<Float>(
     0.001,
     0.002,
-    (latticeSizeXY / 2) * latticeConstant)
+    (latticeSizeXY / 3) * latticeConstant)
     output = direction.rotation.act(on: output)
     return output
   }
