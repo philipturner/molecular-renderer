@@ -12,7 +12,19 @@ Simplest implementation:
 
 ![Acceleration Structure Layout (16-Bit)](./AccelerationStructureLayout_16Bit.png)
 
-Revision: the 16-bit offset is temporary and can be ignored after integrating the atom into the BVH. It will be inaccurate in future frames, as the 2 nm voxel's reference list rearranges to fill empty slots. This realization created an opportunity to reduce the memory footprint per address.
+### Revision 1
+
+It is possible to reduce the memory costs of the acceleration structure, by taking advantage of the small number of atoms per 2 nm voxel (less than 2<sup>16</sup>) and compressing atom positions to FP16. This optimization slightly speeds up the BVH update process and ray-sphere intersection tests.
+
+The current code partially implements this optimization. It uses two levels of indirection to fetch the atom position, which is just the FP32 source of truth. There are now 3 memory operations per ray-sphere test, instead of 2. However, the BVH memory footprint is now smaller than any alternative design.
+
+Improvement: 96264 bytes/voxel → 55304 bytes/voxel
+
+Alternative design: 79880 bytes/voxel
+
+### Revision 2
+
+The 16-bit offset is temporary and can be ignored after integrating the atom into the BVH. It will be inaccurate in future frames, as the 2 nm voxel's reference list rearranges to fill empty slots. This realization created an opportunity to reduce the memory footprint per address.
 
 Improvement: 41 bytes/address → 25 bytes/address
 
