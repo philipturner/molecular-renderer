@@ -27,10 +27,11 @@ extension RebuildProcess {
         \(CrashBuffer.functionArguments),
         device atomic_uint *rebuiltVoxelCount [[buffer(1)]],
         device uint *voxelGroupRebuiltMarks [[buffer(2)]],
-        device uint *voxelGroupOccupiedMarks [[buffer(3)]],
-        device uint *assignedSlotIDs [[buffer(4)]],
-        device uchar *rebuiltMarks [[buffer(5)]],
-        device uint *rebuiltVoxelCoords [[buffer(6)]],
+        device uint *voxelGroup8OccupiedMarks [[buffer(3)]],
+        device uint *voxelGroup32OccupiedMarks [[buffer(4)]],
+        device uint *assignedSlotIDs [[buffer(5)]],
+        device uchar *rebuiltMarks [[buffer(6)]],
+        device uint *rebuiltVoxelCoords [[buffer(7)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
@@ -39,10 +40,11 @@ extension RebuildProcess {
       \(CrashBuffer.functionArguments)
       RWStructuredBuffer<uint> rebuiltVoxelCount : register(u1);
       RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u2);
-      RWStructuredBuffer<uint> voxelGroupOccupiedMarks : register(u3);
-      RWStructuredBuffer<uint> assignedSlotIDs : register(u4);
-      RWBuffer<uint> rebuiltMarks : register(u5);
-      RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u6);
+      RWStructuredBuffer<uint> voxelGroup8OccupiedMarks : register(u3);
+      RWStructuredBuffer<uint> voxelGroup32OccupiedMarks : register(u4);
+      RWStructuredBuffer<uint> assignedSlotIDs : register(u5);
+      RWBuffer<uint> rebuiltMarks : register(u6);
+      RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u7);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
@@ -51,8 +53,9 @@ extension RebuildProcess {
         "UAV(u2),"
         "UAV(u3),"
         "UAV(u4),"
-        "DescriptorTable(UAV(u5, numDescriptors = 1)),"
-        "UAV(u6),"
+        "UAV(u5),"
+        "DescriptorTable(UAV(u6, numDescriptors = 1)),"
+        "UAV(u7),"
       )]
       void rebuildProcess1(
         uint3 globalID : SV_DispatchThreadID,
@@ -79,7 +82,7 @@ extension RebuildProcess {
         return;
       }
       
-      uint voxelGroupID =
+      uint voxelGroup8ID =
       \(VoxelResources.generate("groupID", worldDimension / 8));
       uint voxelID =
       \(VoxelResources.generate("globalID", worldDimension / 2));
@@ -89,12 +92,15 @@ extension RebuildProcess {
       if (slotID != \(UInt32.max)) {
         // TODO: When the kernel is migrated, avoid computation of the
         // voxel group ID until absolutely necessary.
-        voxelGroupOccupiedMarks[voxelGroupID] = 1;
+        voxelGroup8OccupiedMarks[voxelGroup8ID] = 1;
         
-        // Generate voxelGroup32ID within this conditional block.
+        uint3 voxelGroup32Coords = groupID / 4;
+        uint voxelGroup32ID =
+        \(VoxelResources.generate("voxelGroup32Coords", worldDimension / 32));
+        voxelGroup32OccupiedMarks[voxelGroup32ID] = 1;
       }
       
-      if (voxelGroupRebuiltMarks[voxelGroupID] == 0) {
+      if (voxelGroupRebuiltMarks[voxelGroup8ID] == 0) {
         return;
       }
       
@@ -137,19 +143,21 @@ extension BVHBuilder {
       commandList.setBuffer(
         voxels.group.rebuiltMarks, index: 2)
       commandList.setBuffer(
-        voxels.group.occupiedMarks, index: 3)
+        voxels.group.occupiedMarks8, index: 3)
       commandList.setBuffer(
-        voxels.dense.assignedSlotIDs, index: 4)
+        voxels.group.occupiedMarks32, index: 4)
+      commandList.setBuffer(
+        voxels.dense.assignedSlotIDs, index: 5)
       
       #if os(macOS)
       commandList.setBuffer(
-        voxels.dense.rebuiltMarks, index: 5)
+        voxels.dense.rebuiltMarks, index: 6)
       #else
       commandList.setDescriptor(
-        handleID: voxels.dense.rebuiltMarksHandleID, index: 5)
+        handleID: voxels.dense.rebuiltMarksHandleID, index: 6)
       #endif
       commandList.setBuffer(
-        voxels.sparse.rebuiltVoxelCoords, index: 6)
+        voxels.sparse.rebuiltVoxelCoords, index: 7)
       
       let gridSize = Int(voxels.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(
