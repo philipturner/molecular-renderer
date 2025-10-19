@@ -67,3 +67,5 @@ A large number of 100k atom cubes, each with a random orientation. All packed in
 | RTX 5090        |  32 GB | 300M  | n/a |
 | M3 Max          | 128 GB | 1200M | n/a |
 | M3 Ultra        | 512 GB | 4800M | n/a |
+
+Another limiter to atom count might be moiré patterns. CAD workflows at the million atom scale should strive to maximize window size and minimize camera distance. By packing the nanoparts less closely, this test follows a bad practice and increases the camera distance. Therefore, we provide an option to pack the nanoparts densely and see how this affects both performance and quality.

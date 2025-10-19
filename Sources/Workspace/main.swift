@@ -4,13 +4,17 @@ import MolecularRenderer
 import QuaternionModule
 
 // Remaining tasks of this PR:
-// - Implement the "critical pixel count" heuristic to optimize AO cost.
-//   - Finish the analysis of cost scaling with distance, primary vs. AO cost.
-//   - Implement the heuristic in shader code.
-//   - Archive the current state of the long distances test.
-//   - Draft the critical pixel count test, which should be relatively easy.
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
-// - Clean up the documentation and implement the last two tests.
+//   - Create a new section of the Google Sheet.
+//   - Benchmark existing cost of an empty scene with a thorough range of
+//     values for world size.
+//   - Implement the proposed changes and test for correctness.
+//   - Validate a substantial improvement to latency on the GPU timeline
+//     (several hundred microseconds at large world dimensions).
+// - Integrate the critical pixel count heuristic into the code base.
+//   - Save the long distances test to the Tests directory.
+//   - Implement the critical pixel count test; shouldn't take much time.
+// - Clean up the documentation and implement the remaining tests.
 
 // MARK: - Compile Structure
 

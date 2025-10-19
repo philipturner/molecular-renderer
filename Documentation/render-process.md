@@ -12,8 +12,8 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 | FPS target        | Lower refresh-rate displays permit more render time (in ms/frame) |
 | Window resolution | Less pixels means less compute cost |
 | Upscale factor    | Make this as high as possible without graphical quality issues |
-| AO sample count   | Number of rays/pixel = 1 + AO sample count. Primary ray is TBD times more expensive than each AO ray. |
-| Distance          | TODO
+| AO sample count   | Number of rays/pixel = 1 + AO sample count. Primary ray is ~5 times more expensive than each AO ray. |
+| Distance          | Cost of all rays scales linearly with distance up to ~75 nm away. Afterward, cost of AO rays skyrockets from worsening divergence. Theoretical limit is 32x worse than value at short distances. |
 | Coverage of FOV   | Images with mostly empty space will not incur the cost of AO rays. This makes it look like the renderer supports more expensive settings than it actually does, in general applications. |
 
 GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count (atoms that are moving, not atom count of the entire scene). The above performance model assumes a static scene, where the cost of updating the acceleration structure is zero.
@@ -94,6 +94,14 @@ _Critical pixel count with the old code base._
 | Au      | 0.2371 nm |  50 |  23 |  10 |
 
 _Critical pixel count with the new code base._
+
+## Distance Scaling Behavior
+
+The inflection point for AO cost is ~75 nm. This value is attained at 1440 px, 90° FOV, and a hydrogen-passivated, Si(100)-(2×1) surface. The exact point could change with a different setup.
+
+At the inflection point, hydrogen atoms span ~2 pixels on screen (2 after upscaling, 0.67 before). Severe moiré patterns make visualization challenging. The patterns are probably unavoidable because ray traced rendering does not rely on traditional rasterization techniques. Rasterized renderers often use MSAA or mipmapping to fix aliasing problems.
+
+![Distance Scaling Behavior](./DistanceScalingBehavior.png)
 
 ## MetalFX Latency Issues
 
