@@ -50,9 +50,15 @@ Simple test that the ray tracing acceleration structure works correctly, with no
 
 ## MM4 Energy Minimization
 
-Proof of concept of energy minimization using custom FIRE algorithm, proving there is no need for the built-in minimizer from OpenMM.
+Proof of concept of energy minimization using custom FIRE algorithm, proving there is no need for the built-in minimizer from OpenMM. Relies on GitHub gist.
 
-TODO: Implement during the acceleration structure PR
+TODO: Implement in a future PR.
+
+## Key-Value SSD Caching
+
+Example that uses the `.build` folder for the Swift package to hold 3 different structures cached on disk. Builds on the previous test. Relies on GitHub gist.
+
+TODO: Implement in a future PR.
 
 ## Rotating Beam
 
