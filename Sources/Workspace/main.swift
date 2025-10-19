@@ -8,7 +8,7 @@ import QuaternionModule
 //   - Just get it over and done with first.
 //   - By the end of this, the long distances test will be finished.
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
-// - Clean up the documentation.
+// - Clean up the documentation and implement the last two tests.
 
 // MARK: - Compile Structure
 

@@ -46,24 +46,24 @@ Run a test that hits the pain points of ray tracing. Long primary ray traversal 
 
 TODO: Include screenshot of raw data for the AO investigation.
 
-## Chunk Loader
+## Large Scenes
 
-> TODO: Implement in a future PR.
+> TODO: Implement in the acceleration structure PR. We can make this more doable by removing the need to build the BVH super quick. Instead, just the camera rotating around the Y axis to survey the entire scene.
 
-Objective is to reach as many atoms as possible, until your GPU runs out of memory. After that, build the BVH as quickly as possible without dropping the FPS.
+Objective is to reach as many atoms as possible, until your GPU runs out of memory.
 
 The scene will take some time to design correctly. Expect it to hit challenging pain points for performance. It is a rigorous proof that I have achieved the ultimate goal of computer graphics.
 
-| Chip            | RAM    | Theoretical Max Atoms |
-| --------------- | -----: | --------------------: |
+| Chip            | RAM    | Theoretical Max Atoms | Actual Max Atoms |
+| --------------- | -----: | --------------------: | ---------------: |
 | GTX 970         | 3.5 GB | 33M   |
-| M1 @ 60 Hz      |   8 GB | 75M   |
-| M1 Pro @ 120 Hz |  16 GB | 150M  |
-| 7900 XTX        |  24 GB | 225M  |
-| RTX 4090        |  24 GB | 225M  |
+| M1 @ 60 Hz      |   8 GB | 75M   | n/a |
+| M1 Pro @ 120 Hz |  16 GB | 150M  | n/a |
+| 7900 XTX        |  24 GB | 225M  | n/a |
+| RTX 4090        |  24 GB | 225M  | n/a |
 | M1 Max          |  32 GB | 300M  |
-| RTX 5090        |  32 GB | 300M  |
-| M3 Max          | 128 GB | 1200M |
-| M3 Ultra        | 512 GB | 4800M |
+| RTX 5090        |  32 GB | 300M  | n/a |
+| M3 Max          | 128 GB | 1200M | n/a |
+| M3 Ultra        | 512 GB | 4800M | n/a |
 
 A large number of 100k atom cubes, each with a random orientation. All packed in a grid, with a spacing to ensure they don't overlap. This hits the pain points of partial filling that waste memory, therefore being a realistic example of achievable atom count.

@@ -6,14 +6,8 @@ Simple test that the ray tracing acceleration structure works correctly, with no
 
 ## MM4 Energy Minimization
 
-> TODO: Implement in a future PR.
+> TODO: Implement in the acceleration structure PR. We can make this more doable by omitting key-value SSD caching.
 
 Proof of concept of energy minimization using custom FIRE algorithm, proving there is no need for the built-in minimizer from OpenMM. Relies on GitHub gist.
 
 Use the same {100} reconstructed cube as the previous test.
-
-## Key-Value SSD Caching
-
-> TODO: Implement in a future PR.
-
-Example that uses the `.build` folder for the Swift package to hold 3 different structures cached on disk. Builds on the previous test. Relies on GitHub gist.
