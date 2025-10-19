@@ -18,7 +18,7 @@ import QuaternionModule
 
 // Test 192, 256 for correctness while implementing the 32 nm scoping
 // optimization.
-let latticeSizeXY: Float = 32
+let latticeSizeXY: Float = 128
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
 let worldDimension: Float = 256

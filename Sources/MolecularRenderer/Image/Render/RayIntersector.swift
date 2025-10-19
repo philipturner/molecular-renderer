@@ -146,13 +146,15 @@ private func createFillMemoryTape(
       
       // Read the 8 nm scoped mark.
       uint3 voxelCoords = getVoxelCoords(largeLowerCorner);
+      /*
       uint3 voxelGroup8Coords = voxelCoords / 4;
       uint voxelGroup8ID =
       \(VoxelResources.generate("voxelGroup8Coords", worldDimension / 8));
       uint mark8 = voxelGroup8OccupiedMarks[voxelGroup8ID];
+      */
       
       // Branch on the 8 nm scoped mark.
-      if (mark8 > 0) {
+      //if (mark8 > 0) {
         float3 nextTimes = dda
           .nextTimes(largeCellBorder, query.rayOrigin);
         uint slotID = getSlotID(voxelCoords);
@@ -182,6 +184,7 @@ private func createFillMemoryTape(
         
         // Increment to the next large voxel.
         largeCellBorder = dda.nextBorder(largeCellBorder, nextTimes);
+      /*
       } else {
         // Read the 32 nm scoped mark.
         uint3 voxelGroup32Coords = voxelGroup8Coords / 4;
@@ -214,6 +217,7 @@ private func createFillMemoryTape(
                                             groupSpacingRecip);
         largeCellBorder = largeCellBorder * sign;
       }
+      */
     }
   }
   """
