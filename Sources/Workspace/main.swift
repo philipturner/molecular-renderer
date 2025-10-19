@@ -4,20 +4,14 @@ import MolecularRenderer
 import QuaternionModule
 
 // Remaining tasks of this PR:
-// - Run the tests under "Rendering Performance", which demand deactivation of
-//   the critical pixel count heuristic. Recycle code from the long distances
-//   test at very small distances. State the settings used on the documentation
-//   page.
 // - Implement the "critical pixel count" heuristic to optimize AO cost.
 //   - Just get it over and done with first.
 //   - By the end of this, the long distances test will be finished.
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
-// - Clean up the documentation and start working on the final test.
+// - Clean up the documentation.
 
 // MARK: - Compile Structure
 
-// Test 192, 256 for correctness while implementing the 32 nm scoping
-// optimization.
 let latticeSizeXY: Float = 32
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440

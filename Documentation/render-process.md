@@ -42,15 +42,9 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 
 GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count (atoms that are moving, not atom count of the entire scene). The above performance model assumes a static scene, where the cost of updating the acceleration structure is zero.
 
-These combinations of settings are known to run smoothly (or predicted to).
+These combinations of settings are known to run smoothly (or predicted to, for M1).
 
-| Multiplicative Factor | macOS     | macOS (target audience) | Windows |
-| --------------------- | :-------: | :-------: | :-------: |
-| GPU model             | M1 Max    | M1        | GTX 970   |
-| FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
-| Window resolution     | TBD       | TBD       | TBD       |
-| Upscale factor        | 1x        | 1x        | 1x        |
-| AO sample count       | 15        | 15        | 15        |
+### Short Distance (TBD nm)
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
@@ -68,9 +62,25 @@ These combinations of settings are known to run smoothly (or predicted to).
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 15        | 15        | 15        |
 
-The benchmarked systems are a few atoms very close to the user, consuming all of the FOV. Divergence is negligible and the critical distance heuristic does not kick in. The test does not face the cost of primary rays traveling large distances; AO cost dominates.
+### Long Distance (TBD nm)
 
-TODO: Test performance after getting the acceleration structure working.
+| Multiplicative Factor | macOS     | macOS (target audience) | Windows |
+| --------------------- | :-------: | :-------: | :-------: |
+| GPU model             | M1 Max    | M1        | GTX 970   |
+| FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
+| Window resolution     | TBD       | TBD       | TBD       |
+| Upscale factor        | 2x        | 2x        | 2x        |
+| AO sample count       | 15        | 15        | 15        |
+
+| Multiplicative Factor | macOS     | macOS (target audience) | Windows |
+| --------------------- | :-------: | :-------: | :-------: |
+| GPU model             | M1 Max    | M1        | GTX 970   |
+| FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
+| Window resolution     | TBD       | TBD       | TBD       |
+| Upscale factor        | 3x        | 3x        | 3x        |
+| AO sample count       | 15        | 15        | 15        |
+
+TODO: Test performance after getting the acceleration structure working. Run with a minimally small world volume, so you don't have to worry about the per-dense-voxel bottleneck.
 
 ## Ambient Occlusion Sample Count
 
