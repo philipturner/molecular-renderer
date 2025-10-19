@@ -108,22 +108,16 @@ Get this working at the very end of the PR. Make a YouTube video of ~70M atoms o
 
 The scene will take some time to design correctly. Expect it to hit challenging pain points for performance. It is a rigorous proof that I have achieved the ultimate goal of computer graphics.
 
----
+| Chip            | RAM    | Theoretical Max Atoms |
+| --------------- | -----: | --------------------: |
+| GTX 970         | 3.5 GB | 33M   |
+| M1 @ 60 Hz      |   8 GB | 75M   |
+| M1 Pro @ 120 Hz |  16 GB | 150M  |
+| 7900 XTX        |  24 GB | 225M  |
+| RTX 4090        |  24 GB | 225M  |
+| M1 Max          |  32 GB | 300M  |
+| RTX 5090        |  32 GB | 300M  |
+| M3 Max          | 128 GB | 1200M |
+| M3 Ultra        | 512 GB | 4800M |
 
-Make the entire thing parameterizable and scalable. Then, work on two variations with world volume proportional to atom count. One is for 150M atoms, the other is for 500M atoms. The cost of per-dense-voxel operations during the BVH update starts to become non-negligible here.
-
-> Re-evaluate the need for these two variations when the per-dense-voxel cost is optimized better.
-
-| Chip            | RAM    | Theoretical Max Atoms | Target Variation |
-| --------------- | -----: | --------------------: | ---------------: |
-| GTX 970         | 3.5 GB | 33M   | 150M |
-| M1 @ 60 Hz      |   8 GB | 75M   | 150M |
-| M1 Pro @ 120 Hz |  16 GB | 150M  | 150M |
-| 7900 XTX        |  24 GB | 225M  | 500M |
-| RTX 4090        |  24 GB | 225M  | 500M |
-| M1 Max          |  32 GB | 300M  | 500M |
-| RTX 5090        |  32 GB | 300M  | 500M |
-| M3 Max          | 128 GB | 1200M | 500M |
-| M3 Ultra        | 512 GB | 4800M | 500M |
-
-A large number of 100k atom cubes, each with a random orientation. All packed in a grid, with a spacing to ensure they don't overlap.
+A large number of 100k atom cubes, each with a random orientation. All packed in a grid, with a spacing to ensure they don't overlap. This hits the pain points of partial filling that waste memory, therefore being a realistic example of achievable atom count.
