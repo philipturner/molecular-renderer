@@ -1,4 +1,4 @@
-# Other Documentation
+# Render Process
 
 ## Render Process Diagram
 

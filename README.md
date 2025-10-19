@@ -26,6 +26,6 @@ git clone https://github.com/philipturner/molecular-renderer
 
 [Tests](./Documentation/tests.md)
 
-[Other Documentation](./Documentation/other-documentation.md)
+[Render Process](./Documentation/render-process.md)
 
 [BVH Update Process](./Documentation/bvh-update-process.md)
