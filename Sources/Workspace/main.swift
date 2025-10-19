@@ -9,15 +9,21 @@ import QuaternionModule
 //   - In the middle of analyzing data to decide on the threshold and
 //     functional form.
 //   - By the end of this, the long distances test will be finished.
+// - Validation mechanisms for the critical pixel count heuristic:
+//   - Test obviously bad values and check for unacceptable quality.
+//   - Run the "Acceleration Structure" test with the heuristic enabled.
+//   - New test, where the camera slowly moves away and activates different
+//     tiers of the ray count. Tests several different materials along the
+//     (111) direction: C, Au, GaAs
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
 // - Clean up the documentation and implement the last two tests.
 
 // MARK: - Compile Structure
 
-let latticeSizeXY: Float = 32
+let latticeSizeXY: Float = 64
 let latticeSizeZ: Float = 2
-let screenDimension: Int = 140
-let worldDimension: Float = 256
+let screenDimension: Int = 1440
+let worldDimension: Float = 64
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
@@ -261,7 +267,7 @@ func modifyCamera() {
   application.camera.basis.2 = transform(SIMD3(0, 0, 1))
   
   application.camera.fovAngleVertical = Float.pi / 180 * 90
-  application.camera.secondaryRayCount = 15
+  application.camera.secondaryRayCount = 4
 }
 
 @MainActor
