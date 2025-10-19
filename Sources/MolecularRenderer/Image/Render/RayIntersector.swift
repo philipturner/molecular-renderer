@@ -191,7 +191,7 @@ private func createFillMemoryTape(
         
         // Set the group spacing to 8 nm or 32 nm based on the mark.
         float groupSpacing;
-        float groupSpacing32;
+        float groupSpacingRecip;
         if (mark32 > 0) {
           groupSpacing = 8;
           groupSpacingRecip = \(Float(1) / 8);
