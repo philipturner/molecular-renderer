@@ -145,12 +145,16 @@ private func createFillMemoryTape(
       }
       
       // Read the 8 nm scoped mark.
+      uint3 voxelCoords = getVoxelCoords(largeLowerCorner);
+      uint3 voxelGroup8Coords = voxelCoords / 4;
+      uint voxelGroup8ID =
+      \(VoxelResources.generate("voxelGroup8Coords", worldDimension / 8));
+      uint mark8 = voxelGroupOccupiedMarks[voxelGroup8ID];
       
       // Branch on the 8 nm scoped mark.
-      {
+      if (mark8 > 0) {
         float3 nextTimes = dda
           .nextTimes(largeCellBorder, query.rayOrigin);
-        uint3 voxelCoords = getVoxelCoords(largeLowerCorner);
         uint slotID = getSlotID(voxelCoords);
         
         // If the large cell has small cells, proceed.
@@ -178,9 +182,7 @@ private func createFillMemoryTape(
         
         // Increment to the next large voxel.
         largeCellBorder = dda.nextBorder(largeCellBorder, nextTimes);
-      }
-      
-      {
+      } else {
         // If false, retrieve the 32 nm scoped mark.
         
         // Set the group spacing to 8 nm or 32 nm based on the mark.
@@ -193,6 +195,13 @@ private func createFillMemoryTape(
         // - Flip the negative-pointing axes upside down.
         // - Reduces the divergence cost of the ceil/floor instructions by 2x.
         // - Correct the final value upon exit.
+        largeCellBorder = largeCellBorder * sign;
+        largeCellBorder = dda.nextCellGroup(largeCellBorder,
+                                            flippedRayOrigin,
+                                            flippedRayDirection,
+                                            groupSpacing,
+                                            groupSpacingRecip);
+        largeCellBorder = largeCellBorder * sign;
       }
     }
   }

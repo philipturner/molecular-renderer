@@ -4,10 +4,7 @@ import MolecularRenderer
 import QuaternionModule
 
 // Remaining tasks of this PR:
-// - Implement the change to memory organization and validate that the
-//   benchmarks for the "original algorithm" haven't changed.
 // - Implement 8 nm scoped primary ray intersector from main-branch-backup.
-//   - Start off with 2 nm scoped. Ensure correctness and gather perf data.
 //   - Then, implement the 8 nm skipping optimization.
 //   - Try 32 nm skipping by writing to a simple buffer during RebuildProcess1
 //     of the current implementation.
@@ -16,8 +13,6 @@ import QuaternionModule
 
 // MARK: - Compile Structure
 
-// Use these parameters to guarantee correct functioning of the 2 nm scoped
-// primary ray intersector.
 let latticeSizeXY: Float = 32
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
