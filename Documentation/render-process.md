@@ -8,13 +8,13 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 
 | Multiplicative Factor | Explanation |
 | --------------------- | ----------- |
-| GPU model             | More powerful GPUs render a scene faster |
-| FPS target            | Lower refresh-rate displays permit more render time (in ms/frame) |
-| Window resolution     | Less pixels means less compute cost |
-| Upscale factor        | Make this as high as possible without graphical quality issues |
-| Atom count            | Not $O(1)$. Find the true scaling law with distance and thus volume. |
-| AO sample count       | Number of rays cast/pixel = (1 + AO sample count). Primary ray will be more expensive than AO rays because it must travel extremely large distances through the uniform grid. |
-| Coverage of FOV       | Images with mostly empty space will not incur the cost of AO rays. This makes it look like the renderer supports more expensive settings than it actually does, in general applications. |
+| GPU model         | More powerful GPUs render a scene faster |
+| FPS target        | Lower refresh-rate displays permit more render time (in ms/frame) |
+| Window resolution | Less pixels means less compute cost |
+| Upscale factor    | Make this as high as possible without graphical quality issues |
+| AO sample count   | Number of rays cast/pixel = (1 + AO sample count). Primary ray will be more expensive than AO rays because it must travel extremely large distances through the uniform grid. |
+| Distance          | TODO
+| Coverage of FOV   | Images with mostly empty space will not incur the cost of AO rays. This makes it look like the renderer supports more expensive settings than it actually does, in general applications. |
 
 GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count (atoms that are moving, not atom count of the entire scene). The above performance model assumes a static scene, where the cost of updating the acceleration structure is zero.
 
