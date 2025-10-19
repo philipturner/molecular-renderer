@@ -51,7 +51,8 @@ struct RenderShader {
         constant CameraArgsList &cameraArgs [[buffer(\(Self.cameraArgs))]],
         device float4 *atoms [[buffer(\(Self.atoms))]],
         device half4 *motionVectors [[buffer(\(Self.motionVectors))]],
-        device uint *voxelGroupOccupiedMarks [[buffer(\(Self.voxelGroupOccupiedMarks))]],
+        device uint *voxelGroup8OccupiedMarks [[buffer(\(Self.voxelGroup8OccupiedMarks))]],
+        device uint *voxelGroup32OccupiedMarks [[buffer(\(Self.voxelGroup32OccupiedMarks))]],
         device uint *assignedSlotIDs [[buffer(\(Self.assignedSlotIDs))]],
         device uint *headers [[buffer(\(Self.headers))]],
         device uint *references32 [[buffer(\(Self.references32))]],
@@ -70,7 +71,8 @@ struct RenderShader {
       ConstantBuffer<CameraArgsList> cameraArgs : register(b\(Self.cameraArgs));
       RWStructuredBuffer<float4> atoms : register(u\(Self.atoms));
       RWBuffer<float4> motionVectors : register(u\(Self.motionVectors));
-      RWStructuredBuffer<uint> voxelGroupOccupiedMarks : register(u\(Self.voxelGroupOccupiedMarks));
+      RWStructuredBuffer<uint> voxelGroup8OccupiedMarks : register(u\(Self.voxelGroup8OccupiedMarks));
+      RWStructuredBuffer<uint> voxelGroup32OccupiedMarks : register(u\(Self.voxelGroup32OccupiedMarks));
       RWStructuredBuffer<uint> assignedSlotIDs : register(u\(Self.assignedSlotIDs));
       RWStructuredBuffer<uint> headers : register(u\(Self.headers));
       RWStructuredBuffer<uint> references32 : register(u\(Self.references32));
@@ -85,7 +87,8 @@ struct RenderShader {
         "CBV(b\(Self.cameraArgs)),"
         "UAV(u\(Self.atoms)),"
         "DescriptorTable(UAV(u\(Self.motionVectors), numDescriptors = 1)),"
-        "UAV(u\(Self.voxelGroupOccupiedMarks)),"
+        "UAV(u\(Self.voxelGroup8OccupiedMarks)),"
+        "UAV(u\(Self.voxelGroup32OccupiedMarks)),"
         "UAV(u\(Self.assignedSlotIDs)),"
         "UAV(u\(Self.headers)),"
         "UAV(u\(Self.references32)),"

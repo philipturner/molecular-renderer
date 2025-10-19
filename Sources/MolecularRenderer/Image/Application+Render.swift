@@ -113,8 +113,11 @@ extension Application {
         #endif
         
         commandList.setBuffer(
-          bvhBuilder.voxels.group.occupiedMarks,
-          index: RenderShader.voxelGroupOccupiedMarks)
+          bvhBuilder.voxels.group.occupiedMarks8,
+          index: RenderShader.voxelGroup8OccupiedMarks)
+        commandList.setBuffer(
+          bvhBuilder.voxels.group.occupiedMarks32,
+          index: RenderShader.voxelGroup32OccupiedMarks)
         commandList.setBuffer(
           bvhBuilder.voxels.dense.assignedSlotIDs,
           index: RenderShader.assignedSlotIDs)
