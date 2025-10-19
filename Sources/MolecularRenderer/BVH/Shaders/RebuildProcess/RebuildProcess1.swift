@@ -90,6 +90,8 @@ extension RebuildProcess {
         // TODO: When the kernel is migrated, avoid computation of the
         // voxel group ID until absolutely necessary.
         voxelGroupOccupiedMarks[voxelGroupID] = 1;
+        
+        // Generate voxelGroup32ID within this conditional block.
       }
       
       if (voxelGroupRebuiltMarks[voxelGroupID] == 0) {

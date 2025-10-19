@@ -5,9 +5,9 @@ import QuaternionModule
 
 // Remaining tasks of this PR:
 // - Implement 8 nm scoped primary ray intersector from main-branch-backup.
-//   - Then, implement the 8 nm skipping optimization.
 //   - Try 32 nm skipping by writing to a simple buffer during RebuildProcess1
 //     of the current implementation.
+//   - Gather benchmark data and decide whether to keep this optimization.
 // - Implement the "critical pixel count" heuristic to optimize AO cost.
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
 
