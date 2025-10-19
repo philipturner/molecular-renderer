@@ -7,7 +7,7 @@ Objective is to reach as many atoms as possible, until the Metal Performance HUD
 | Maximum Atom Count | macOS System | Windows System |
 | ------------------ | -----------: | -------------: |
 | Theoretical        | 1,546,000    | 954,000        |
-| Actual             | 934,000      | TBD            |
+| Actual             | ~934,000 (TODO) | TODO           |
 
 _For more detailed explanation of the benchmarked hardware, study the source code in "Sources/MolecularRenderer/Atoms.swift"._
 
@@ -40,11 +40,13 @@ In the source code, look for the declaration of `beamDepth`. The default value i
 
 ## Long Distances
 
-Run a test that hits the pain points of ray tracing. Long primary ray traversal times in the DDA, high divergence for AO rays. Not exactly stressing the BVH update process. Rather, a single unchanging BVH and a rotating camera to detect stuttering. Make the test scaleable to different distances and window sizes.
+Test that hits the pain points of ray tracing. Long primary ray traversal times in the DDA, high divergence for AO rays. Not exactly stressing the BVH update process. Rather, a single unchanging BVH and a rotating camera to detect stuttering. Scaleable to different distances and window sizes.
 
 ![Long Distances Benchmark](../LongDistancesBenchmark.png)
 
 ![Long Distances Benchmark 2](../LongDistancesBenchmark2.png)
+
+The structure is a hydrogen-passivated, Si(100)-(2×1) lattice generated with [`reconstruction.compile()`](https://github.com/philipturner/HDL/blob/main/Documentation/API/Reconstruction.md). The largest setting has 5.6 million atoms, takes over 10 seconds to compile, and causes issues with the GTX 970 running out of memory.
 
 ## Large Scenes
 
