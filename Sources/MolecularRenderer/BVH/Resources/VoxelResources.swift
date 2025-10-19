@@ -105,7 +105,8 @@ class GroupVoxelResources {
   let atomsRemovedMarks: Buffer
   let addedMarks: Buffer
   let rebuiltMarks: Buffer
-  let occupiedMarks: Buffer
+  let occupiedMarks8: Buffer
+  let occupiedMarks32: Buffer
   
   init(device: Device, voxelGroupCount: Int) {
     func createBuffer(size: Int) -> Buffer {
@@ -119,7 +120,8 @@ class GroupVoxelResources {
     self.atomsRemovedMarks = createBuffer(size: voxelGroupCount * 4)
     self.addedMarks = createBuffer(size: voxelGroupCount * 4)
     self.rebuiltMarks = createBuffer(size: voxelGroupCount * 4)
-    self.occupiedMarks = createBuffer(size: voxelGroupCount * 4)
+    self.occupiedMarks8 = createBuffer(size: voxelGroupCount * 4)
+    self.occupiedMarks32 = createBuffer(size: (voxelGroupCount / 64) * 4)
   }
 }
 

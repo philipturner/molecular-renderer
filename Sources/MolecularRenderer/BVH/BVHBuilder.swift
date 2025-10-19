@@ -143,8 +143,13 @@ class BVHBuilder {
     clearBuffer(
       commandList: commandList,
       clearValue: 0,
-      clearedBuffer: voxels.group.occupiedMarks,
+      clearedBuffer: voxels.group.occupiedMarks8,
       size: voxelGroupCount * 4)
+    clearBuffer(
+      commandList: commandList,
+      clearValue: 0,
+      clearedBuffer: voxels.group.occupiedMarks32,
+      size: (voxelGroupCount / 64) * 4)
     
     clearBuffer(
       commandList: commandList,
