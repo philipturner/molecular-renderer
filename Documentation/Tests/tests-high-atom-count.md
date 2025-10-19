@@ -54,7 +54,7 @@ The structure is a hydrogen-passivated, Si(100)-(2×1) lattice generated with [`
 
 Objective is to reach as many atoms as possible, until your GPU runs out of memory.
 
-The scene will take some time to design correctly. Expect it to hit challenging pain points for performance. It is a rigorous proof that I have achieved the ultimate goal of computer graphics.
+A large number of 100k atom cubes, each with a random orientation. All packed in a grid, with a spacing to ensure they don't overlap. This hits the pain points of partial filling that waste memory, therefore being a realistic example of achievable atom count.
 
 | Chip            | RAM    | Theoretical Max Atoms | Actual Max Atoms |
 | --------------- | -----: | --------------------: | ---------------: |
@@ -67,5 +67,3 @@ The scene will take some time to design correctly. Expect it to hit challenging 
 | RTX 5090        |  32 GB | 300M  | n/a |
 | M3 Max          | 128 GB | 1200M | n/a |
 | M3 Ultra        | 512 GB | 4800M | n/a |
-
-A large number of 100k atom cubes, each with a random orientation. All packed in a grid, with a spacing to ensure they don't overlap. This hits the pain points of partial filling that waste memory, therefore being a realistic example of achievable atom count.
