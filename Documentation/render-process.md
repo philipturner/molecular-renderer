@@ -1,30 +1,6 @@
 # Render Process
 
-## Render Process Diagram
-
 ![Render Process Diagram](./RenderProcessDiagram.png)
-
-### Asynchronous Raw Pixel Buffer Handler
-
-> This API is required before users can make professional YouTube videos out of animations. Until then, record your computer screen with a smartphone camera.
-
-API design requirements:
-- Handlers should be executed on a sequential dispatch queue. Although it's
-  not thread safe with the main or `@MainActor` thread, it's thread safe
-  between sequential calls to itself.
-- Implement an equivalent of 3 frames in flight `DispatchSemaphore` for the
-  asynchronous handlers, to avoid overflowing the dispatch queue for this.
-  - The user should be able to stall the render loop, for example to encode a large batch of GIF frames. They do this by making the handler take extra long, thus reaching the limit of the dispatch semaphore.
-- Guarantee that all asynchronous handlers have executed before
-  `application.run()` returns.
-
-Perhaps it would be more appropriate to exit the `application.run()` paradigm entirely for offline rendering. `Display` and `Clock` are inappropriate because there is no interaction with DXGI/CVDisplayLink, notion of "frames per second", or need to accurately track wall time for real-time animations. However, the backend code can be applied to offline rendering with little effort. It is mostly a frontend (API) design problem.
-
-Solution: add a second mode for `Display`. In the descriptor, leave `monitorID` as `nil` and instead specify the pixel buffer handler in `handler`. The application now follows the same APIs as a real-time render loop. It creates an artificial "display" with triple buffering, but no actual link to DXGI. The frame rate is zero and the clock never increments. Every call to `application.present()` forwards an asynchronous handler to the dispatch queue mentioned above.
-
-> In real-time renders, always use `clock.frames` to find the accurate time for coding animations. In offline renders, always use `frameID` for correct timing.
-
-A new API function, `application.stop()`, prevents the next run loop from happening. Functions called during the current loop iteration (before `stop()` is called) still work the same. `application.present()` forwards one final render command to the GPU, which will be handled in the `handler` before the backend fully shuts down. Finally, `application.run()` exits the scope of its closure and the calling program resumes. The user can perform custom cleanup processes without relying on intentional program crashes (`exit(0)` and `fatalError`).
 
 ## Rendering Performance
 
@@ -44,7 +20,7 @@ GPU time spent updating the acceleration structure will eat into time available 
 
 These combinations of settings are known to run smoothly (or predicted to, for M1).
 
-### Short Distance (2.2 nm)
+### Short Distance (2.8 nm @ 90° FOV)
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
@@ -62,7 +38,7 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 15        | 15        | 15        |
 
-### Long Distance (9.2 nm)
+### Long Distance (11.5 nm @ 90° FOV)
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
@@ -79,8 +55,6 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 | Window resolution     | TBD       | TBD       | TBD       |
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 7         | 7         | 7         |
-
-TODO: Test performance after getting the acceleration structure working. Run with a minimally small world volume, so you don't have to worry about the per-dense-voxel bottleneck.
 
 ## Ambient Occlusion Sample Count
 
@@ -136,3 +110,25 @@ The current code partially implements this optimization. It uses two levels of i
 Improvement: 96264 bytes/voxel → 55304 bytes/voxel
 
 Alternative design: 79880 bytes/voxel
+
+## Asynchronous Raw Pixel Buffer Handler
+
+> This API is required before users can make professional YouTube videos out of animations. Until then, record your computer screen with a smartphone camera.
+
+API design requirements:
+- Handlers should be executed on a sequential dispatch queue. Although it's
+  not thread safe with the main or `@MainActor` thread, it's thread safe
+  between sequential calls to itself.
+- Implement an equivalent of 3 frames in flight `DispatchSemaphore` for the
+  asynchronous handlers, to avoid overflowing the dispatch queue for this.
+  - The user should be able to stall the render loop, for example to encode a large batch of GIF frames. They do this by making the handler take extra long, thus reaching the limit of the dispatch semaphore.
+- Guarantee that all asynchronous handlers have executed before
+  `application.run()` returns.
+
+Perhaps it would be more appropriate to exit the `application.run()` paradigm entirely for offline rendering. `Display` and `Clock` are inappropriate because there is no interaction with DXGI/CVDisplayLink, notion of "frames per second", or need to accurately track wall time for real-time animations. However, the backend code can be applied to offline rendering with little effort. It is mostly a frontend (API) design problem.
+
+Solution: add a second mode for `Display`. In the descriptor, leave `monitorID` as `nil` and instead specify the pixel buffer handler in `handler`. The application now follows the same APIs as a real-time render loop. It creates an artificial "display" with triple buffering, but no actual link to DXGI. The frame rate is zero and the clock never increments. Every call to `application.present()` forwards an asynchronous handler to the dispatch queue mentioned above.
+
+> In real-time renders, always use `clock.frames` to find the accurate time for coding animations. In offline renders, always use `frameID` for correct timing.
+
+A new API function, `application.stop()`, prevents the next run loop from happening. Functions called during the current loop iteration (before `stop()` is called) still work the same. `application.present()` forwards one final render command to the GPU, which will be handled in the `handler` before the backend fully shuts down. Finally, `application.run()` exits the scope of its closure and the calling program resumes. The user can perform custom cleanup processes without relying on intentional program crashes (`exit(0)` and `fatalError`).

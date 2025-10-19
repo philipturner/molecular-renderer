@@ -12,10 +12,10 @@ import QuaternionModule
 
 // MARK: - Compile Structure
 
-let latticeSizeXY: Float = 32
+let latticeSizeXY: Float = 16
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
-let worldDimension: Float = 256
+let worldDimension: Float = 32
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
@@ -259,7 +259,7 @@ func modifyCamera() {
   application.camera.basis.2 = transform(SIMD3(0, 0, 1))
   
   application.camera.fovAngleVertical = Float.pi / 180 * 90
-  application.camera.secondaryRayCount = nil
+  application.camera.secondaryRayCount = 15
 }
 
 @MainActor
