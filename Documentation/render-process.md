@@ -12,7 +12,7 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 | FPS target        | Lower refresh-rate displays permit more render time (in ms/frame) |
 | Window resolution | Less pixels means less compute cost |
 | Upscale factor    | Make this as high as possible without graphical quality issues |
-| AO sample count   | Number of rays cast/pixel = (1 + AO sample count). Primary ray is TBD times more expensive than each AO ray. |
+| AO sample count   | Number of rays/pixel = 1 + AO sample count. Primary ray is TBD times more expensive than each AO ray. |
 | Distance          | TODO
 | Coverage of FOV   | Images with mostly empty space will not incur the cost of AO rays. This makes it look like the renderer supports more expensive settings than it actually does, in general applications. |
 
@@ -29,13 +29,13 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| Window resolution     | TBD       | TBD       | 1410x1410 |
+| Window resolution     | 1800x1800 | 1272x1272 | 1410x1410 |
 | Upscale factor        | 2x        | 2x        | 2x        |
 | AO sample count       | 15        | 15        | 15        |
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| Window resolution     | TBD       | TBD       | 2010x2010 |
+| Window resolution     | 2100x2100 | 1482x1482 | 2010x2010 |
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 15        | 15        | 15        |
 
@@ -43,13 +43,13 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| Window resolution     | TBD       | TBD       | 1680x1680 |
+| Window resolution     | 2100x2100 | 1482x1482 | 1680x1680 |
 | Upscale factor        | 2x        | 2x        | 2x        |
 | AO sample count       | 7         | 7         | 7         |
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| Window resolution     | TBD       | TBD       | 2100x2100 |
+| Window resolution     | 2100x2100 | 1482x1482 | 2100x2100 |
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 7         | 7         | 7         |
 
@@ -57,13 +57,13 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| Window resolution     | TBD       | TBD       | 1710x1710 |
+| Window resolution     | 1920x1920 | 1356x1356 | 1710x1710 |
 | Upscale factor        | 2x        | 2x        | 2x        |
 | AO sample count       | 3         | 3         | 3         |
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
-| Window resolution     | TBD       | TBD       | 2100x2100 |
+| Window resolution     | 2100x2100 | 1482x1482 | 2100x2100 |
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 3         | 3         | 3         |
 
