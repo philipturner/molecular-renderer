@@ -384,6 +384,7 @@ func createTopology() -> Topology {
   return topology
 }
 let topology = createTopology()
+print(topology.atoms.count)
 
 func createRotationCenter() -> SIMD3<Float> {
   let latticeConstant = Constant(.square) {
@@ -486,8 +487,17 @@ func modifyCamera() {
   }
   let halfSize = latticeConstant * 5
   
-  // Test both 3 * halfSize and 10 * halfSize.
-  var cameraDelta = SIMD3<Float>(0, 0, 3 * halfSize)
+  func deltaLength() -> Float {
+    let roundedDownTime = Int((time / 3).rounded(.down))
+    if roundedDownTime % 3 == 0 {
+      return 3 * halfSize
+    } else if roundedDownTime % 3 == 1 {
+      return 20
+    } else {
+      return 50
+    }
+  }
+  var cameraDelta = SIMD3<Float>(0, 0, deltaLength())
   cameraDelta = rotation.act(on: cameraDelta)
   
   let rotationCenter = createRotationCenter()
