@@ -14,6 +14,8 @@ Import the OpenMM module and validate that the OpenCL plugin can be loaded.
 
 Should report that two platforms exist: Reference, OpenCL
 
+Molecular Renderer will only ever rely on these GPU APIs: OpenCL, Metal, DirectX. It will never rely on CUDA or Vulkan. The target audience is average people (macOS and Windows, not Linux) with GPUs supporting SIMD-scoped reductions and 32-wide wavefronts. These two advanced GPU features were the essence of CUDA in the early days of GPGPU compute. We now harness them through cross-platform code generation with Swift `#if os()` macros to select the platform-specific variation.
+
 ## MM4
 
 Simulate the time evolution of a compiled structure with ~80 zJ of strain energy. Capture 200 very short frames (2 fs each) and render the trajectory after 2 seconds of delay.
@@ -44,7 +46,7 @@ Reference video: [YouTube](https://www.youtube.com/shorts/rV1UGau20xQ)
 
 ## Acceleration Structure
 
-Simple test that the ray tracing acceleration structure works correctly, with no bugs in the DDA. Tests a 9827-atom cube. Ambient occlusion is enabled with default settings. Alternates between the following camera distances at three-second intervals: 6.54 nm, 20 nm, 50 nm.
+Simple test that the ray tracing acceleration structure works correctly, with no bugs in the DDA. Tests a 9827-atom cube. Ambient occlusion is enabled and uses default settings. Alternates between the following camera distances at three-second intervals: 6.54 nm, 20 nm, 50 nm.
 
 ## MM4 Energy Minimization
 
@@ -95,6 +97,8 @@ In the source code, look for the declaration of `beamDepth`. The default value i
 Run a test that hits the pain points of ray tracing. Long primary ray traversal times in the DDA, high divergence for AO rays. Not exactly stressing the BVH update process. Rather, a single unchanging BVH and a rotating camera to detect stuttering. Make the test scaleable to different distances and window sizes.
 
 Objective is not to reach a certain limit of distance or compute capacity. Rather, the upper limits are fixed at the parameter combinations that caused problems for GTX 970.
+
+![Long Distances Benchmark](./LongDistancesBenchmark.png)
 
 ## Chunk Loader
 

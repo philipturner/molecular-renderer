@@ -4,10 +4,9 @@ import MolecularRenderer
 import QuaternionModule
 
 // Remaining tasks of this PR:
-// - Take a picture of the Google Sheet results and embed it in documentation
-//   for the long distances test.
 // - Implement the "critical pixel count" heuristic to optimize AO cost.
 //   - Just get it over and done with first.
+//   - By the end of this, the long distances test will be finished.
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
 // - Clean up the documentation and start working on the final test.
 
