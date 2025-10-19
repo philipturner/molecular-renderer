@@ -110,22 +110,9 @@ extension Application {
       Self.forgetMeter.integrate(forgetLatency)
       Self.upscaleMeter.integrate(upscaleLatency)
       
-      // TODO Remove the two statements gated under '#if' before merging the PR.
-      #if true
-      print(
-        PerformanceMeter.pad(Self.updateMeter.minimum),
-        PerformanceMeter.pad(Self.renderMeter.minimum),
-        PerformanceMeter.pad(Self.forgetMeter.minimum),
-        PerformanceMeter.pad(Self.upscaleMeter.minimum))
-      #endif
-      
-      #if false
-      print(
-        PerformanceMeter.pad(updateLatency),
-        PerformanceMeter.pad(renderLatency),
-        PerformanceMeter.pad(forgetLatency),
-        PerformanceMeter.pad(upscaleLatency))
-      #endif
+      // TODO Remove the following code before merging the PR.
+      let sum = updateLatency + renderLatency + forgetLatency + upscaleLatency
+      print(PerformanceMeter.pad(sum))
     }
   }
   
