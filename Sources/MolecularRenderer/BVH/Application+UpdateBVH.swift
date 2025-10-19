@@ -96,12 +96,18 @@ extension Application {
       }
       #endif
       
+      // WARNING: While benchmarking rendering performance, avoid taking
+      // samples while the scene is still loading. This gives misleading
+      // opportunities for minima when the scene is mostly empty.
+      guard frameID > 60 else {
+        return
+      }
+      
       Self.updateMeter.integrate(updateLatency)
       Self.renderMeter.integrate(renderLatency)
       Self.forgetMeter.integrate(forgetLatency)
       Self.upscaleMeter.integrate(upscaleLatency)
       
-      // Insert code here to gather diagnostics about performance.
       #if true
       print(
         PerformanceMeter.pad(Self.updateMeter.minimum),
