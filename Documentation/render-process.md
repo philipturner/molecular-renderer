@@ -26,7 +26,7 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 | --------------------- | :-------: | :-------: | :-------: |
 | GPU model             | M1 Max    | M1        | GTX 970   |
 | FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
-| Window resolution     | TBD       | TBD       | TBD       |
+| Window resolution     | TBD       | TBD       | 1410x1410 |
 | Upscale factor        | 2x        | 2x        | 2x        |
 | AO sample count       | 15        | 15        | 15        |
 
@@ -34,11 +34,11 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 | --------------------- | :-------: | :-------: | :-------: |
 | GPU model             | M1 Max    | M1        | GTX 970   |
 | FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
-| Window resolution     | TBD       | TBD       | TBD       |
+| Window resolution     | TBD       | TBD       | 2010x2010 |
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 15        | 15        | 15        |
 
-### Long Distance (11.5 nm @ 90° FOV)
+### Medium Distance (11.5 nm @ 90° FOV)
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
@@ -55,6 +55,10 @@ These combinations of settings are known to run smoothly (or predicted to, for M
 | Window resolution     | TBD       | TBD       | TBD       |
 | Upscale factor        | 3x        | 3x        | 3x        |
 | AO sample count       | 7         | 7         | 7         |
+
+### Long Distance
+
+TODO
 
 ## Ambient Occlusion Sample Count
 
