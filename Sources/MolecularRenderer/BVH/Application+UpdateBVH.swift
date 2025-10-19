@@ -96,6 +96,8 @@ extension Application {
       }
       #endif
       
+      // Edit the template below to inspect GPU-side performance.
+      
       // WARNING: While benchmarking rendering performance, avoid taking
       // samples while the scene is still loading. This gives misleading
       // opportunities for minima when the scene is mostly empty.
@@ -108,6 +110,7 @@ extension Application {
       Self.forgetMeter.integrate(forgetLatency)
       Self.upscaleMeter.integrate(upscaleLatency)
       
+      // TODO Remove the two statements gated under '#if' before merging the PR.
       #if true
       print(
         PerformanceMeter.pad(Self.updateMeter.minimum),
