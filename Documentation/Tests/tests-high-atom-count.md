@@ -9,8 +9,6 @@ Objective is to reach as many atoms as possible, until the Metal Performance HUD
 | Theoretical        | 1,546,000    | 954,000        |
 | Actual             | ~934,000 (TODO) | TODO           |
 
-_For more detailed explanation of the benchmarked hardware, study the source code in "Sources/MolecularRenderer/Atoms.swift"._
-
 In the source code, look for the declaration of `beamDepth`. The default value is 10. Increase this number as much as possible.
 
 <details>
@@ -37,6 +35,8 @@ In the source code, look for the declaration of `beamDepth`. The default value i
 | 112 | 1,823,477 |
 
 </details>
+
+This test is bottlenecked by the system's CPU. For more detailed explanation of the performance limits, study the source code in "Sources/MolecularRenderer/Atoms.swift".
 
 ## Long Distances
 
