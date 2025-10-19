@@ -88,10 +88,10 @@ _Critical pixel count with the old code base._
 
 | element | radius    | pixels @ 15 samples | pixels @ 7 samples | pixels @ 3 samples |
 | :-----: | --------: | --: | --: | --: |
-| H       | 0.0930 nm |
-| C       | 0.1426 nm |
-| Si      | 0.1744 nm |
-| Au      | 0.2371 nm |
+| H       | 0.0930 nm |  50 |  23 |  10 |
+| C       | 0.1426 nm |  50 |  23 |  10 |
+| Si      | 0.1744 nm |  50 |  23 |  10 |
+| Au      | 0.2371 nm |  50 |  23 |  10 |
 
 _Critical pixel count with the new code base._
 

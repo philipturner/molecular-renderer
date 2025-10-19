@@ -5,6 +5,7 @@ import QuaternionModule
 
 // Remaining tasks of this PR:
 // - Implement the "critical pixel count" heuristic to optimize AO cost.
+//   - Finish the analysis of cost scaling with distance, primary vs. AO cost.
 //   - Implement the heuristic in shader code.
 //   - Archive the current state of the long distances test.
 //   - Draft the critical pixel count test, which should be relatively easy.
@@ -13,10 +14,10 @@ import QuaternionModule
 
 // MARK: - Compile Structure
 
-let latticeSizeXY: Float = 64
+let latticeSizeXY: Float = 32
 let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
-let worldDimension: Float = 64
+let worldDimension: Float = 256
 do {
   let latticeConstant = Constant(.square) {
     .elemental(.silicon)
@@ -260,7 +261,7 @@ func modifyCamera() {
   application.camera.basis.2 = transform(SIMD3(0, 0, 1))
   
   application.camera.fovAngleVertical = Float.pi / 180 * 90
-  application.camera.secondaryRayCount = 4
+  application.camera.secondaryRayCount = 15
 }
 
 @MainActor
