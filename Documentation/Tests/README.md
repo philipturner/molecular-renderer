@@ -1,6 +1,6 @@
 # Tests
 
-To run each test, copy the source code from the relevant file in [Tests](./Tests). Paste the code into "Sources/Workspace/main.swift", overwriting the Hello World template. Then follow the program startup instructions for your operating system.
+To run each test, copy the source code from the relevant file in this folder. Paste the code into "Sources/Workspace/main.swift", overwriting the Hello World template. Then follow the program startup instructions for your operating system.
 
 ## Upscaling
 
@@ -50,15 +50,15 @@ Simple test that the ray tracing acceleration structure works correctly, with no
 
 ## MM4 Energy Minimization
 
-Proof of concept of energy minimization using custom FIRE algorithm, proving there is no need for the built-in minimizer from OpenMM. Relies on GitHub gist.
+> TODO: Implement in a future PR.
 
-TODO: Implement in a future PR.
+Proof of concept of energy minimization using custom FIRE algorithm, proving there is no need for the built-in minimizer from OpenMM. Relies on GitHub gist.
 
 ## Key-Value SSD Caching
 
-Example that uses the `.build` folder for the Swift package to hold 3 different structures cached on disk. Builds on the previous test. Relies on GitHub gist.
+> TODO: Implement in a future PR.
 
-TODO: Implement in a future PR.
+Example that uses the `.build` folder for the Swift package to hold 3 different structures cached on disk. Builds on the previous test. Relies on GitHub gist.
 
 ## Rotating Beam
 
@@ -104,13 +104,13 @@ Run a test that hits the pain points of ray tracing. Long primary ray traversal 
 
 Objective is not to reach a certain limit of distance or compute capacity. Rather, the upper limits are fixed at the parameter combinations that caused problems for GTX 970.
 
-![Long Distances Benchmark](./LongDistancesBenchmark.png)
+![Long Distances Benchmark](../LongDistancesBenchmark.png)
 
 ## Chunk Loader
 
-Objective is to reach as many atoms as possible, until your GPU runs out of memory.
+> TODO: Implement in a future PR.
 
-Get this working at the very end of the PR. Make a YouTube video of ~70M atoms on M1 Max (1620x1620 window for maximum detail). Post it, link into this document, overhaul the repo, and then return to social media. Estimated date: end of October.
+Objective is to reach as many atoms as possible, until your GPU runs out of memory.
 
 The scene will take some time to design correctly. Expect it to hit challenging pain points for performance. It is a rigorous proof that I have achieved the ultimate goal of computer graphics.
 
