@@ -2,8 +2,6 @@ import HDL
 import MolecularRenderer
 
 // Remaining tasks of this PR:
-// - Insert check that the camera basis is orthogonal and normalized. Test that
-//   this check effectively catches API misuse.
 // - Integrate the critical pixel count heuristic into the code base.
 //   - Implement the heuristic, using the long distances test as a testing
 //     ground. We need computational tractability before designing additional
@@ -47,10 +45,6 @@ func createApplication() -> Application {
 let application = createApplication()
 
 application.run {
-  application.camera.basis.0 = SIMD3<Float>(1, 0, 0)
-  application.camera.basis.1 = SIMD3<Float>(0, 1, 0)
-  application.camera.basis.2 = SIMD3<Float>(0, 0, 1)
-  
   var image = application.render()
   image = application.upscale(image: image)
   application.present(image: image)

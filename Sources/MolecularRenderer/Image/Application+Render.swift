@@ -22,7 +22,6 @@ extension Application {
       let dotProduct11 = (basis.1 * basis.1).sum()
       let dotProduct22 = (basis.2 * basis.2).sum()
       let axisLengthsSquared = [dotProduct00, dotProduct11, dotProduct22]
-      print(axisLengthsSquared)
       
       for dotProduct in axisLengthsSquared {
         let actual = dotProduct
@@ -37,7 +36,6 @@ extension Application {
       let dotProduct12 = (basis.1 * basis.2).sum()
       let dotProduct20 = (basis.2 * basis.0).sum()
       let axisSimilarities = [dotProduct01, dotProduct12, dotProduct20]
-      print(axisSimilarities)
       
       for dotProduct in axisSimilarities {
         let actual = dotProduct
@@ -48,8 +46,6 @@ extension Application {
         }
       }
     }
-    
-    print()
     
     check(basis: camera.basis)
     
