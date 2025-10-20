@@ -1,6 +1,7 @@
 class RebuildProcess {
   let process1: Shader
   let process2: Shader
+  let process3: Shader
   
   init(device: Device, worldDimension: Float) {
     var shaderDesc = ShaderDescriptor()
@@ -17,6 +18,12 @@ class RebuildProcess {
     shaderDesc.source = Self.createSource2(
       worldDimension: worldDimension)
     self.process2 = Shader(descriptor: shaderDesc)
+    
+    shaderDesc.name = "rebuildProcess3"
+    shaderDesc.threadsPerGroup = SIMD3(4, 4, 4)
+    shaderDesc.source = Self.createSource3(
+      worldDimension: worldDimension)
+    self.process3 = Shader(descriptor: shaderDesc)
   }
   
   static func cubeSphereTest() -> String {

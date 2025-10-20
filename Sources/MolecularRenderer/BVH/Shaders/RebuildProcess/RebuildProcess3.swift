@@ -64,3 +64,23 @@ extension RebuildProcess {
     """
   }
 }
+
+extension BVHBuilder {
+  func rebuildProcess3(commandList: CommandList) {
+    commandList.withPipelineState(shaders.rebuild.process3) {
+      commandList.setBuffer(
+        voxels.group.occupiedMarks8, index: 0)
+      commandList.setBuffer(
+        voxels.group.occupiedMarks32, index: 1)
+      commandList.setBuffer(
+        voxels.dense.assignedSlotIDs, index: 2)
+      
+      let gridSize = Int(voxels.worldDimension / 8)
+      let threadgroupCount = SIMD3<UInt32>(
+        UInt32(gridSize),
+        UInt32(gridSize),
+        UInt32(gridSize))
+      commandList.dispatch(groups: threadgroupCount)
+    }
+  }
+}
