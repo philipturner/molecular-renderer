@@ -11,6 +11,7 @@ extension RebuildProcess {
     // counters.general.rebuiltVoxelCount
     // voxels.group.rebuiltMarks
     // voxels.group.occupiedMarks
+    // voxels.group.rebuiltGroupCoords [TODO]
     // voxels.dense.assignedSlotIDs
     // voxels.dense.rebuiltMarks
     // voxels.sparse.rebuiltVoxelCoords

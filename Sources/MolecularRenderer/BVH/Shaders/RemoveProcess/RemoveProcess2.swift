@@ -12,6 +12,7 @@ extension RemoveProcess {
     // counters.general.atomsRemovedVoxelCount
     // voxels.group.atomsRemovedMarks
     // voxels.group.rebuiltMarks
+    // voxels.group.atomsRemovedGroupCoords [TODO]
     // voxels.dense.atomsRemovedMarks
     // voxels.sparse.atomsRemovedVoxelCoords
     func functionSignature() -> String {
@@ -69,10 +70,15 @@ extension RemoveProcess {
         return;
       }
       
+      uint encodedGroupCoords = dispatchedGroupCoords[globalID];
+      uint3 voxelGroupCoords =
+      \(VoxelResources.decode("encodedGroupCoords"));
+      uint3 voxelCoords = voxelGroupCoords * 4 + localID;
+      
       uint voxelGroupID =
-      \(VoxelResources.generate("groupID", worldDimension / 8));
+      \(VoxelResources.generate("voxelGroupCoords", worldDimension / 8));
       uint voxelID =
-      \(VoxelResources.generate("globalID", worldDimension / 2));
+      \(VoxelResources.generate("voxelCoords", worldDimension / 2));
       
       if (voxelGroupAtomsRemovedMarks[voxelGroupID] == 0) {
         return;

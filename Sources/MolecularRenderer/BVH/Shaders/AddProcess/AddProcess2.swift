@@ -25,6 +25,7 @@ extension AddProcess {
     // counters.general.allocatedSlotCount
     // voxels.group.addedMarks
     // voxels.group.rebuiltMarks
+    // voxels.group.addedGroupCoords [TODO]
     // voxels.dense.assignedSlotIDs
     // voxels.dense.rebuiltMarks
     // voxels.dense.atomicCounters

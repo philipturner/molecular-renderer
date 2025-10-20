@@ -2,6 +2,7 @@ struct ResetIdle {
   // [numthreads(128, 1, 1)]
   // dispatch threads SIMD3(movedCount, 1, 1)
   static func resetMotionVectors() -> String {
+    // atoms.*
     func functionSignature() -> String {
       #if os(macOS)
       """
@@ -65,7 +66,7 @@ struct ResetIdle {
     // voxels.group.atomsRemovedMarks
     // voxels.group.addedMarks
     // voxels.group.rebuiltMarks
-    // voxels.group.resetGroupCoords
+    // voxels.group.resetGroupCoords [TODO]
     // voxels.dense.atomsRemovedMarks
     // voxels.dense.atomicCounters
     // voxels.dense.rebuiltMarks
