@@ -360,11 +360,19 @@ struct RenderShader {
           pixelCount *= float(screenDimensions.y);
           pixelCount /= 2 * cameraArgs.data[0].tangentFactor;
           pixelCount *= renderArgs.upscaleFactor;
-          // TODO: Actually apply the heuristic.
+          if (intersect.distance > 0.100) {
+            float reductionFactor = pixelCount / renderArgs.criticalPixelCount;
+            if (reductionFactor < 1) {
+            
+              sampleCount = uint(float(renderArgs.secondaryRayCoun))
+            }
+          }
           
           // Prevent infinite loops from corrupted constant data.
           sampleCount = max(sampleCount, uint(3));
           sampleCount = min(sampleCount, uint(100));
+          
+          // TODO: Check that sample count is forced to an integer with a crash.
           
           // Create a generation context.
           GenerationContext generationContext;

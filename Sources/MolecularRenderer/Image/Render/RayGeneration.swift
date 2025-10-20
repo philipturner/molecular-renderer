@@ -131,8 +131,8 @@ func createRayGeneration() -> String {
     // WARNING: Remember to initialize this.
     uint seed;
     
-    float3 secondaryRayDirection(uint i,
-                                 uint sampleCount,
+    float3 secondaryRayDirection(float i,
+                                 float sampleCount,
                                  float3 hitPoint,
                                  float3 normal)
     {
@@ -142,9 +142,10 @@ func createRayGeneration() -> String {
       seed = (seed + 1) % 256;
       
       if (sampleCount >= 3) {
-        float sampleCountRecip = 1 / float(sampleCount);
-        float minimum = float(i) * sampleCountRecip;
+        float sampleCountRecip = 1 / sampleCount;
+        float minimum = i * sampleCountRecip;
         float maximum = minimum + sampleCountRecip;
+        
         maximum = (i == sampleCount - 1) ? 1 : maximum;
         random1 = \(lerp())(minimum, maximum, random1);
       }

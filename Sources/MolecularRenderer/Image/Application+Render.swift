@@ -94,9 +94,9 @@ extension Application {
       guard secondaryRayCount >= 3 else {
         fatalError("Secondary ray count must be at least 3.")
       }
-      renderArgs.secondaryRayCount = UInt32(secondaryRayCount)
+      renderArgs.secondaryRayCount = Float(secondaryRayCount)
     } else {
-      renderArgs.secondaryRayCount = UInt32(0)
+      renderArgs.secondaryRayCount = Float(0)
     }
     
     if let criticalPixelCount = camera.criticalPixelCount {
