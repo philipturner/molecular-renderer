@@ -437,11 +437,19 @@ print("- \(scene.partRotations[scene.partRotations.count - 1])")
 
 @MainActor
 func load(frameID: Int) {
-  // Specify the atom count...
-  let atomCount: Int = 1000
+  func createPartRange() -> Range<Int> {
+    var startPartID = frameID * loadingSpeed
+    var endPartID = startPartID + loadingSpeed
+    startPartID = min(startPartID, scene.partPositions.count)
+    endPartID = min(endPartID, scene.partPositions.count)
+    return startPartID..<endPartID
+  }
+  let partRange = createPartRange()
   
   let start = Date()
-  // Do the loading...
+  for partID in partRange {
+    
+  }
   let end = Date()
   
   // Report latency diagnostics.
@@ -449,15 +457,17 @@ func load(frameID: Int) {
   let latencyMicroseconds = Int(latency)
   let latencyNanoseconds = latency * 1e9
   
-  // Calculate atom count here...
-  let nsPerAtom = latencyNanoseconds / Double(atomCount)
-  let nsPerAtomRepr = String(format: "%.1f", nsPerAtom)
-  print(latencyMicroseconds, "μs", nsPerAtomRepr, "ns/atom")
+  if partRange.count > 0 {
+    let atomCount = partRange.count * topology.atoms.count
+    let nsPerAtom = latencyNanoseconds / Double(atomCount)
+    let nsPerAtomRepr = String(format: "%.1f", nsPerAtom)
+    print(partRange.count, latencyMicroseconds, "μs", nsPerAtomRepr, "ns/atom")
+  }
 }
 
-load(frameID: 0)
-load(frameID: 1)
-load(frameID: 2)
+for frameID in 0..<20 {
+  load(frameID: frameID)
+}
 
 application.run {
   // TODO: Make the camera rotate.
