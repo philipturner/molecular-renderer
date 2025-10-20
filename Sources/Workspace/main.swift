@@ -3,15 +3,14 @@ import MolecularRenderer
 
 // Remaining tasks of this PR:
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
-//   - Create a new section of the Google Sheet.
 //   - Benchmark existing cost of an empty scene with a thorough range of
 //     values for world size.
 //   - Implement the proposed changes and test for correctness.
 //   - Validate a substantial improvement to latency on the GPU timeline
 //     (several hundred microseconds at large world dimensions).
 // - Integrate the critical pixel count heuristic into the code base.
-//   - Save the long distances test to the Tests directory.
 //   - Implement the critical pixel count test; shouldn't take much time.
+//   - Implement the heuristic once this test is set up.
 // - Clean up the documentation and implement the remaining tests.
 
 @MainActor
