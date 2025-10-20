@@ -13,7 +13,7 @@ import MolecularRenderer
 
 let latticeSize: Float = 20
 let material: MaterialType = .elemental(.carbon)
-let is111: Bool = true
+let is111: Bool = false
 
 #if false
 // Drafting the (111) basis vectors.
@@ -137,11 +137,6 @@ func createTopology() -> Topology {
   
   #else
   
-  var reconstruction = Reconstruction()
-  reconstruction.atoms = lattice.atoms
-  reconstruction.material = material
-  var topology = reconstruction.compile()
-  
   var canPassivate: Bool
   switch material {
   case .elemental(.carbon):
@@ -150,8 +145,34 @@ func createTopology() -> Topology {
     canPassivate = false
   }
   
+  var canReconstruct: Bool
+  switch material {
+  case .elemental(.gold):
+    canReconstruct = false
+  default:
+    canReconstruct = true
+  }
+    
+  func createReconstructedTopology() -> Topology {
+    if canReconstruct {
+      print("did reconstruct")
+      var reconstruction = Reconstruction()
+      reconstruction.atoms = lattice.atoms
+      reconstruction.material = material
+    } else {
+      print("did not reconstruct")
+    }
+  }
+  
+  var topology = reconstruction.compile()
+  
+  
+  
   if is111 && canPassivate {
+    print("did passivate")
     passivate(topology: &topology)
+  } else {
+    print("did not passivate")
   }
   
   #endif
@@ -161,6 +182,8 @@ func createTopology() -> Topology {
 
 let topology = createTopology()
 analyze(topology: topology)
+
+/*
 
 // MARK: - Launch Application
 
@@ -210,3 +233,4 @@ application.run {
   image = application.upscale(image: image)
   application.present(image: image)
 }
+*/
