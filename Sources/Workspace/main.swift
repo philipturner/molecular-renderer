@@ -1,3 +1,4 @@
+import Dispatch
 import func Foundation.pow
 import struct Foundation.Date
 import HDL
@@ -5,22 +6,27 @@ import MolecularRenderer
 
 // Remaining tasks of this PR:
 // - Work on setting up the large scene test.
-//   - Dry run the loading process. A cube almost at the world's dimension
-//     limits, and a hollow sphere inside with a specified radius. Both the
-//     cube side length and sphere radius are specified independently.
-//     - Create all of the positions
-//     - Sort the positions by spatial extent
-//     - Report the spatial extent at the start and end of the list.
-//     - Check that this falls within the world volume.
+//   - Finish setting up the 'Scene' structure.
+//   - Dry run the loading process.
+//   - Implement the option to use multithreading.
+
+// MARK: - User-Facing Options
+
+let isDenselyPacked: Bool = false
+let desiredAtomCount: Int = 4_000_000
+let voxelAllocationSize: Int = 500_000_000
+
+// Loading speed in parts/frame (106k atoms/part).
+let loadingSpeed: Int = 3
+let loadingUsesMultithreading: Bool = false
+
+// Check whether console output for sorted positions falls inside
+// [-worldDimension / 2, worldDimension / 2].
+let worldDimension: Float = 384
 
 // MARK: - Compile Structure
 
 let latticeSize: Float = 23
-let isDenselyPacked: Bool = false
-
-let desiredAtomCount: Int = 4_000_000
-let voxelAllocationSize: Int = 500_000_000
-let worldDimension: Float = 384
 
 func passivate(topology: inout Topology) {
   func createHydrogen(
