@@ -11,7 +11,6 @@ import MolecularRenderer
 //       of 2 nm voxel coords.
 //     - Add the 4 new list allocations to the allocations to purge at the
 //       start of every frame.
-//     - Relabel all coords buffers as either 2 or 8.
 //     - Create a single utility kernel that reads from 3 marks, which may be
 //       duplicates of each other. This kernel globally reduces into a list of
 //       8 nm voxel groups to dispatch.

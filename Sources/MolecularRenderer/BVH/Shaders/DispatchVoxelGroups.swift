@@ -13,7 +13,7 @@ struct DispatchVoxelGroups {
   // create a compact list of these voxel groups (SIMD + global reduction)
   //   use coordinates in grid of 8 nm voxels
   // global counter is the indirect dispatch argument
-  // write to dispatchedGroupCoords8
+  // write to dispatchedGroupCoords
   static func createSource(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
@@ -24,7 +24,7 @@ struct DispatchVoxelGroups {
         device uint *marks1 [[buffer(2)]],
         device uint *marks2 [[buffer(3)]],
         device uint *marks3 [[buffer(4)]],
-        device uint *dispatchedGroupCoords8 [[buffer(5)]],
+        device uint *dispatchedGroupCoords [[buffer(5)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
@@ -35,7 +35,7 @@ struct DispatchVoxelGroups {
       RWStructuredBuffer<uint> marks1 : register(u2);
       RWStructuredBuffer<uint> marks2 : register(u3);
       RWStructuredBuffer<uint> marks3 : register(u4);
-      RWStructuredBuffer<uint> dispatchedGroupCoords8 : register(u5);
+      RWStructuredBuffer<uint> dispatchedGroupCoords : register(u5);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
@@ -102,7 +102,7 @@ struct DispatchVoxelGroups {
       allocatedOffset += \(Reduction.wavePrefixSum("uint(needsDispatch)"));
       if (needsDispatch) {
         uint encoded = \(VoxelResources.encode("globalID"));
-        rebuiltVoxelCoords[allocatedOffset] = encoded;
+        dispatchedGroupCoords[allocatedOffset] = encoded;
       }
     }
     """

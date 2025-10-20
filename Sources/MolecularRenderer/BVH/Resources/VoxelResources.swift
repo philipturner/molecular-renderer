@@ -108,6 +108,12 @@ class GroupVoxelResources {
   let occupiedMarks8: Buffer
   let occupiedMarks32: Buffer
   
+  // purge to UInt32.max before every frame
+  let atomsRemovedGroupCoords: Buffer
+  let addedGroupCoords: Buffer
+  let rebuiltGroupCoords: Buffer
+  let resetGroupCoords: Buffer
+  
   init(device: Device, voxelGroupCount: Int) {
     func createBuffer(size: Int) -> Buffer {
       var bufferDesc = BufferDescriptor()
