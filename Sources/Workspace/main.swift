@@ -143,3 +143,50 @@ func getSafeSpacing(topology: Topology) -> Float {
   return 2 * extent
 }
 print("safe spacing:", getSafeSpacing(topology: topology))
+
+// Utility function for creating a random rotational basis, without relying on
+// quaternions.
+//
+// Named 'RotationBasis' to avoid a name conflict with 'Basis' from the HDL
+// library and not worry about potential issues.
+typealias RotationBasis = (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>)
+func createRandomRotation() -> RotationBasis {
+  func createRandomDirection() -> SIMD3<Float> {
+    for _ in 0..<100 {
+      var output = SIMD3<Float>.random(in: -1...1)
+      let length = (output * output).sum().squareRoot()
+      if length > 1 || length < 0.001 {
+        continue
+      }
+      
+      output /= length
+      return output
+    }
+    fatalError("Algorithm failed to converge.")
+  }
+  
+  func cross(
+    _ lhs: SIMD3<Float>,
+    _ rhs: SIMD3<Float>
+  ) -> SIMD3<Float> {
+    let yzx = SIMD3<Int>(1, 2, 0)
+    let zxy = SIMD3<Int>(2, 0, 1)
+    return (lhs[yzx] * rhs[zxy]) - (lhs[zxy] * rhs[yzx])
+  }
+  
+  let random1 = createRandomDirection()
+  let random2 = createRandomDirection()
+  var cross12 = cross(random1, random2)
+  let cross12Length = (cross12 * cross12).sum().squareRoot()
+  if cross12Length < 0.001 || cross12Length > 1 {
+    fatalError("Could not take cross product.")
+  }
+  print(cross12Length)
+  
+  return (
+    createRandomDirection(),
+    createRandomDirection(),
+    createRandomDirection())
+}
+
+print(createRandomRotation())
