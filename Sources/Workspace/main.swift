@@ -326,9 +326,24 @@ func createPartPositions(
 }
 
 struct SceneDescriptor {
+  var isDenselyPacked: Bool?
+  
   // WARNING: Use the address space size after initializing the application. It
   // is rounded down from the number entered into the program.
   var targetAtomCount: Int?
+  
+  var topology: Topology?
+}
+
+// We do not hold a reference / copy of the topology. The original topology in
+// the global scope should remain the source of truth.
+struct Scene {
+  var partPositions: [SIMD3<Float>] = []
+  var partRotations: [RotationBasis] = []
+  
+  init(descriptor: SceneDescriptor) {
+    fatalError("Not implemented.")
+  }
 }
 
 // MARK: - Launch Application
