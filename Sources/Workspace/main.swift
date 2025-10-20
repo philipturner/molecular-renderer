@@ -47,6 +47,10 @@ func createApplication() -> Application {
 let application = createApplication()
 
 application.run {
+  application.camera.basis.0 = SIMD3<Float>(1, 0, 0)
+  application.camera.basis.1 = SIMD3<Float>(0, 1, 0)
+  application.camera.basis.2 = SIMD3<Float>(0, 0, 1)
+  
   var image = application.render()
   image = application.upscale(image: image)
   application.present(image: image)

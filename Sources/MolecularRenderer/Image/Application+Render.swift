@@ -4,7 +4,59 @@ import SwiftCOM
 import WinSDK
 #endif
 
+private typealias Basis = (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>)
+private func transpose(basis: Basis) -> Basis {
+  let output0 = SIMD3(
+    basis.0[0], basis.1[0], basis.2[0])
+  let output1 = SIMD3(
+    basis.0[1], basis.1[1], basis.2[1])
+  let output2 = SIMD3(
+    basis.0[2], basis.1[2], basis.2[2])
+  return (output0, output1, output2)
+}
+
 extension Application {
+  private func validateCameraArgs() {
+    func check(basis: Basis) {
+      let dotProduct00 = (basis.0 * basis.0).sum()
+      let dotProduct11 = (basis.1 * basis.1).sum()
+      let dotProduct22 = (basis.2 * basis.2).sum()
+      let axisLengthsSquared = [dotProduct00, dotProduct11, dotProduct22]
+      print(axisLengthsSquared)
+      
+      for dotProduct in axisLengthsSquared {
+        let actual = dotProduct
+        let expected: Float = 1.000
+        let difference = actual - expected
+        guard difference.magnitude < 0.001 else {
+          fatalError("camera.basis was invalid.")
+        }
+      }
+      
+      let dotProduct01 = (basis.0 * basis.1).sum()
+      let dotProduct12 = (basis.1 * basis.2).sum()
+      let dotProduct20 = (basis.2 * basis.0).sum()
+      let axisSimilarities = [dotProduct01, dotProduct12, dotProduct20]
+      print(axisSimilarities)
+      
+      for dotProduct in axisSimilarities {
+        let actual = dotProduct
+        let expected: Float = 0.000
+        let difference = actual - expected
+        guard difference.magnitude < 0.001 else {
+          fatalError("camera.basis was invalid.")
+        }
+      }
+    }
+    
+    print()
+    
+    check(basis: camera.basis)
+    
+    let transposed = transpose(basis: camera.basis)
+    check(basis: transposed)
+  }
+  
   private func writeCameraArgs() {
     var currentCameraArgs = CameraArgs()
     currentCameraArgs.position = (
@@ -67,6 +119,7 @@ extension Application {
     checkCrashBuffer(frameID: frameID)
     checkExecutionTime(frameID: frameID)
     updateBVH(inFlightFrameID: frameID % 3)
+    validateCameraArgs()
     writeCameraArgs()
     
     device.commandQueue.withCommandList { commandList in
