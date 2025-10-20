@@ -1,4 +1,5 @@
 import func Foundation.pow
+import struct Foundation.Date
 import HDL
 import MolecularRenderer
 
@@ -212,7 +213,7 @@ func rotate(topology: inout Topology, basis: RotationBasis) {
 
 func createPartPositions(
   spacing: Float,
-  approximatePartCount: Int
+  partCount: Int
 ) -> [SIMD3<Float>] {
   // Takes an approximate square root, biasing all calculations to round down.
   func cubeRoot(_ x: Int) -> Int {
@@ -226,6 +227,7 @@ func createPartPositions(
     return outputInt
   }
   
+  // One invocation takes ~30 μs @ 1000 parts.
   func candidateOutput(approximatePartCount: Int) -> [SIMD3<Float>] {
     let cubeSize = cubeRoot(approximatePartCount)
     let lowerCoordBound = -cubeSize / 2
@@ -257,15 +259,32 @@ func createPartPositions(
       }
     }
     
-    var filling = Float(output.count)
-    filling /= Float(cubeSize * cubeSize * cubeSize)
-    print(filling)
-    
     return output
   }
   
   // Find a cube size, iterate until we converge on the desired count.
-  _ = candidateOutput(approximatePartCount: approximatePartCount)
+  var improvedPartCount = partCount
+  for _ in 0..<10 {
+    let candidate = candidateOutput(
+      approximatePartCount: improvedPartCount)
+    
+    let ratio = Float(candidate.count) / Float(partCount)
+    print(improvedPartCount, candidate.count, ratio)
+    
+    if candidate.count >= partCount {
+      break
+    }
+    
+    var partCountFloat = Float(improvedPartCount)
+    partCountFloat /= ratio
+    partCountFloat.round(.down)
+    improvedPartCount = Int(partCountFloat)
+    
+  }
+  print("improved approximate part count:", improvedPartCount)
+  
+  var output = candidateOutput(approximatePartCount: improvedPartCount)
+  print("after culling interior parts:", output.count)
   fatalError("Not implemented.")
 }
 
@@ -303,7 +322,7 @@ let application = createApplication()
 let spacing = getSafeSpacing(topology: topology)
 let partPositions = createPartPositions(
   spacing: spacing,
-  approximatePartCount: 1000)
+  partCount: 2000)
 print(partPositions.count)
 
 application.run {
