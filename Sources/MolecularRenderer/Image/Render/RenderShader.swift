@@ -352,27 +352,43 @@ struct RenderShader {
         
         // Pick the number of AO samples.
         if (renderArgs.secondaryRayCount > 0) {
-          uint sampleCount = renderArgs.secondaryRayCount;
+          float sampleCount = renderArgs.secondaryRayCount;
           
           // Apply the critical pixel count heuristic.
-          float pixelCount = 2 * sqrt(hitAtom[3]);
-          pixelCount /= (-dzdt * intersect.distance);
-          pixelCount *= float(screenDimensions.y);
-          pixelCount /= 2 * cameraArgs.data[0].tangentFactor;
-          pixelCount *= renderArgs.upscaleFactor;
-          if (intersect.distance > 0.100) {
-            float reductionFactor = pixelCount / renderArgs.criticalPixelCount;
-            if (reductionFactor < 1) {
+          if (renderArgs.criticalPixelCount > 0) {
+            float pixelCount = 2 * sqrt(hitAtom[3]);
+            pixelCount /= (-dzdt * intersect.distance);
+            pixelCount *= float(screenDimensions.y);
+            pixelCount /= 2 * cameraArgs.data[0].tangentFactor;
+            pixelCount *= renderArgs.upscaleFactor;
             
-              sampleCount = uint(float(renderArgs.secondaryRayCoun))
+            float reductionFactor = pixelCount / renderArgs.criticalPixelCount;
+            if (intersect.distance > 0.100 && reductionFactor < 1) {
+              sampleCount *= reductionFactor;
             }
+            sampleCount = ceil(sampleCount);
           }
           
-          // Prevent infinite loops from corrupted constant data.
-          sampleCount = max(sampleCount, uint(3));
-          sampleCount = min(sampleCount, uint(100));
+          // Prevent infinite loops from corrupted constant data. This is also
+          // where we apply the constraint that sampleCount >= 3.
+          sampleCount = max(sampleCount, float(3));
+          sampleCount = min(sampleCount, float(100));
           
-          // TODO: Check that sample count is forced to an integer with a crash.
+          // Temporarily check that sample count is forced to an integer with a crash.
+          if (float(uint(sampleCount)) != sampleCount) {
+            if (\(Reduction.waveIsFirstLane())) {
+              bool acquiredLock = false;
+              \(CrashBuffer.acquireLock(errorCode: 3))
+              if (acquiredLock) {
+                crashBuffer[1] = 0;
+                crashBuffer[2] = 0;
+                crashBuffer[3] = 0;
+                crashBuffer[4] = uint(sampleCount);
+                crashBuffer[5] = uint(sampleCount * 1000);
+              }
+            }
+            return;
+          }
           
           // Create a generation context.
           GenerationContext generationContext;
@@ -380,7 +396,7 @@ struct RenderShader {
             pixelCoords, renderArgs.frameSeed);
           
           // Iterate over the AO samples.
-          for (uint i = 0; i < sampleCount; ++i) {
+          for (float i = 0; i < sampleCount; ++i) {
             // Spawn a secondary ray.
             float3 secondaryRayOrigin = hitPoint + 1e-4 * float3(hitNormal);
             float3 secondaryRayDirection = generationContext
@@ -410,8 +426,8 @@ struct RenderShader {
           }
           
           // Divide the sum by the AO sample count.
-          ambientOcclusion.diffuseAccumulator /= float(sampleCount);
-          ambientOcclusion.specularAccumulator /= float(sampleCount);
+          ambientOcclusion.diffuseAccumulator /= sampleCount;
+          ambientOcclusion.specularAccumulator /= sampleCount;
         }
         
         // Prepare the Blinn-Phong lighting.

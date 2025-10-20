@@ -5,13 +5,13 @@ enum GeneralCountersRegion: Int, CaseIterable {
   // dispatch removeProcess3
   case atomsRemovedVoxelCount
   
-  // removeProcess4
+  // modified in removeProcess4
   case vacantSlotCount
   
   // dispatch addProcess2
   case addedGroupCount
   
-  // addProcess2
+  // modified in addProcess2
   case allocatedSlotCount
   
   // dispatch rebuildProcess1

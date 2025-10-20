@@ -1,5 +1,3 @@
-
-
 public struct Camera {
   /// The origin point of all primary rays.
   public var position: SIMD3<Float>
@@ -20,11 +18,10 @@ public struct Camera {
   public var secondaryRayCount: Int?
   
   /// The number of pixels an atom spans on-screen, before the secondary ray
-  /// count starts dropping off with the reciprocal of distance. The secondary
-  /// ray count will never drop below 3.
+  /// count starts dropping off with the reciprocal of distance.
   ///
-  /// Defaults to (TODO: finalize to default value). Change to `nil` to disable
-  /// the critical pixel count heuristic.
+  /// Defaults to 50. Change to `nil` to disable the critical pixel count
+  /// heuristic.
   public var criticalPixelCount: Float?
   
   init() {

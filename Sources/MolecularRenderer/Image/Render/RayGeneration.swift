@@ -146,6 +146,7 @@ func createRayGeneration() -> String {
         float minimum = i * sampleCountRecip;
         float maximum = minimum + sampleCountRecip;
         
+        // WARNING: Floating point equality.
         maximum = (i == sampleCount - 1) ? 1 : maximum;
         random1 = \(lerp())(minimum, maximum, random1);
       }
