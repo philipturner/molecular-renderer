@@ -11,7 +11,7 @@ extension RemoveProcess {
     // counters.general.atomsRemovedVoxelCount
     // voxels.group.atomsRemovedMarks
     // voxels.group.rebuiltMarks
-    // voxels.group.atomsRemovedGroupCoords [TODO]
+    // voxels.group.atomsRemovedGroupCoords
     // voxels.dense.atomsRemovedMarks
     // voxels.sparse.atomsRemovedVoxelCoords
     func functionSignature() -> String {
@@ -22,8 +22,9 @@ extension RemoveProcess {
         device atomic_uint *atomsRemovedVoxelCount [[buffer(1)]],
         device uint *voxelGroupAtomsRemovedMarks [[buffer(2)]],
         device uint *voxelGroupRebuiltMarks [[buffer(3)]],
-        device uchar *atomsRemovedMarks [[buffer(4)]],
-        device uint *atomsRemovedVoxelCoords [[buffer(5)]],
+        device uint *dispatchedGroupCoords [[buffer(4)]],
+        device uchar *atomsRemovedMarks [[buffer(5)]],
+        device uint *atomsRemovedVoxelCoords [[buffer(6)]],
         uint3 groupID [[threadgroup_position_in_grid]],
         uint3 localID [[thread_position_in_threadgroup]])
       """
@@ -33,8 +34,9 @@ extension RemoveProcess {
       RWStructuredBuffer<uint> atomsRemovedVoxelCount : register(u1);
       RWStructuredBuffer<uint> voxelGroupAtomsRemovedMarks : register(u2);
       RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u3);
-      RWBuffer<uint> atomsRemovedMarks : register(u4);
-      RWStructuredBuffer<uint> atomsRemovedVoxelCoords : register(u5);
+      RWStructuredBuffer<uint> dispatchedGroupCoords : register(u4);
+      RWBuffer<uint> atomsRemovedMarks : register(u5);
+      RWStructuredBuffer<uint> atomsRemovedVoxelCoords : register(u6);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
@@ -42,8 +44,9 @@ extension RemoveProcess {
         "UAV(u1),"
         "UAV(u2),"
         "UAV(u3),"
-        "DescriptorTable(UAV(u4, numDescriptors = 1)),"
-        "UAV(u5),"
+        "UAV(u4),"
+        "DescriptorTable(UAV(u5, numDescriptors = 1)),"
+        "UAV(u6),"
       )]
       void removeProcess2(
         uint3 groupID : SV_GroupID,
@@ -116,23 +119,23 @@ extension BVHBuilder {
         voxels.group.atomsRemovedMarks, index: 2)
       commandList.setBuffer(
         voxels.group.rebuiltMarks, index: 3)
+      commandList.setBuffer(
+        voxels.group.atomsRemovedGroupCoords, index: 4)
       
       #if os(macOS)
       commandList.setBuffer(
-        voxels.dense.atomsRemovedMarks, index: 4)
+        voxels.dense.atomsRemovedMarks, index: 5)
       #else
       commandList.setDescriptor(
-        handleID: voxels.dense.atomsRemovedMarksHandleID, index: 4)
+        handleID: voxels.dense.atomsRemovedMarksHandleID, index: 6)
       #endif
       commandList.setBuffer(
-        voxels.sparse.atomsRemovedVoxelCoords, index: 5)
+        voxels.sparse.atomsRemovedVoxelCoords, index: 6)
       
-      let gridSize = Int(voxels.worldDimension / 8)
-      let threadgroupCount = SIMD3<UInt32>(
-        UInt32(gridSize),
-        UInt32(gridSize),
-        UInt32(gridSize))
-      commandList.dispatch(groups: threadgroupCount)
+      let offset = GeneralCounters.offset(.atomsRemovedGroupCount)
+      commandList.dispatchIndirect(
+        buffer: counters.general,
+        offset: offset)
     }
     
     #if os(Windows)

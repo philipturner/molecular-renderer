@@ -9,7 +9,7 @@ extension RebuildProcess {
   static func createSource1(worldDimension: Float) -> String {
     // counters.general.rebuiltVoxelCount
     // voxels.group.rebuiltMarks
-    // voxels.group.rebuiltGroupCoords [TODO]
+    // voxels.group.rebuiltGroupCoords
     // voxels.dense.rebuiltMarks
     // voxels.sparse.rebuiltVoxelCoords
     func functionSignature() -> String {
@@ -19,8 +19,9 @@ extension RebuildProcess {
         \(CrashBuffer.functionArguments),
         device atomic_uint *rebuiltVoxelCount [[buffer(1)]],
         device uint *voxelGroupRebuiltMarks [[buffer(2)]],
-        device uchar *rebuiltMarks [[buffer(6)]],
-        device uint *rebuiltVoxelCoords [[buffer(7)]],
+        device uint *dispatchedGroupCoords [[buffer(3)]],
+        device uchar *rebuiltMarks [[buffer(4)]],
+        device uint *rebuiltVoxelCoords [[buffer(5)]],
         uint3 groupID [[threadgroup_position_in_grid]],
         uint3 localID [[thread_position_in_threadgroup]])
       """
@@ -29,16 +30,18 @@ extension RebuildProcess {
       \(CrashBuffer.functionArguments)
       RWStructuredBuffer<uint> rebuiltVoxelCount : register(u1);
       RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u2);
-      RWBuffer<uint> rebuiltMarks : register(u6);
-      RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u7);
+      RWStructuredBuffer<uint> dispatchedGroupCoords : register(u3);
+      RWBuffer<uint> rebuiltMarks : register(u4);
+      RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u5);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
         "UAV(u1),"
         "UAV(u2),"
-        "DescriptorTable(UAV(u6, numDescriptors = 1)),"
-        "UAV(u7),"
+        "UAV(u3),"
+        "DescriptorTable(UAV(u4, numDescriptors = 1)),"
+        "UAV(u5),"
       )]
       void rebuildProcess1(
         uint3 groupID : SV_GroupID,
@@ -109,28 +112,22 @@ extension BVHBuilder {
       commandList.setBuffer(
         voxels.group.rebuiltMarks, index: 2)
       commandList.setBuffer(
-        voxels.group.occupiedMarks8, index: 3)
-      commandList.setBuffer(
-        voxels.group.occupiedMarks32, index: 4)
-      commandList.setBuffer(
-        voxels.dense.assignedSlotIDs, index: 5)
+        voxels.group.rebuiltGroupCoords, index: 3)
       
       #if os(macOS)
       commandList.setBuffer(
-        voxels.dense.rebuiltMarks, index: 6)
+        voxels.dense.rebuiltMarks, index: 4)
       #else
       commandList.setDescriptor(
-        handleID: voxels.dense.rebuiltMarksHandleID, index: 6)
+        handleID: voxels.dense.rebuiltMarksHandleID, index: 4)
       #endif
       commandList.setBuffer(
-        voxels.sparse.rebuiltVoxelCoords, index: 7)
+        voxels.sparse.rebuiltVoxelCoords, index: 5)
       
-      let gridSize = Int(voxels.worldDimension / 8)
-      let threadgroupCount = SIMD3<UInt32>(
-        UInt32(gridSize),
-        UInt32(gridSize),
-        UInt32(gridSize))
-      commandList.dispatch(groups: threadgroupCount)
+      let offset = GeneralCounters.offset(.rebuiltGroupCount)
+      commandList.dispatchIndirect(
+        buffer: counters.general,
+        offset: offset)
     }
     
     #if os(Windows)
