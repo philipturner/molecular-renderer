@@ -2,6 +2,12 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
+let crossThickness: Int = 16
+let crossSize: Int = 120
+let beamDepth: Int = 16 // 16 is reproducer for a bug, originally 10
+let actualWorldDimension: Float = 96
+let paddedWorldDimension: Float = 128
+
 // MARK: - Compile Structures
 
 func passivate(topology: inout Topology) {
@@ -40,12 +46,6 @@ func passivate(topology: inout Topology) {
   topology.atoms += insertedAtoms
   topology.bonds += insertedBonds
 }
-
-let crossThickness: Int = 16
-let crossSize: Int = 120
-let beamDepth: Int = 16 // 16 is reproducer for a bug, originally 10
-let actualWorldDimension: Float = 96
-let paddedWorldDimension: Float = 128
 
 func createCross() -> Topology {
   let lattice = Lattice<Cubic> { h, k, l in
