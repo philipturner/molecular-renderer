@@ -16,6 +16,11 @@ import MolecularRenderer
 //       8 nm voxel groups to dispatch.
 //   - Clean up the codebase into a state that can compile and execute.
 //   - Test for correctness by running several tests in the Tests folder.
+//     - Recycle the rotating beam test, re-activate the code for inspecting
+//       the general counters. Remember 164, 184, 190-194 growing all the way
+//       to ~230 after 16 iterations with beamDepth = 2 (80k atoms in cross,
+//       40k atoms in beam). Make the shader code intentionally wrong and watch
+//       the results change.
 //   - Validate a substantial improvement to latency on the GPU timeline
 //     (several hundred microseconds at large world dimensions).
 // - Integrate the critical pixel count heuristic into the code base.

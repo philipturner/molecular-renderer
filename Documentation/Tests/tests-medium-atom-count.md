@@ -14,12 +14,6 @@ Uses the same {100} reconstructed cube as the previous test. Quite literally a v
 
 TODO: Create and link a YouTube video in a future commit.
 
-## Voxel Group Marks
-
-Test for a case that would trigger a compute cost bottleneck, if 8 nm scoping of the per-dense-voxel compute work went wrong. A small object that moves through many cells in the world volume, ultimately covering a massive volume.
-
-> TODO: Nevermind; we can recycle the rotating beam test, re-activate the code for inspecting the general counters. Remember 164, 184, 190-194 growing all the way to ~230 after 16 iterations with beamDepth = 2 (80k atoms in cross, 40k atoms in beam). Make the shader code intentionally wrong and watch the results change.
-
 ## Critical Pixel Count
 
 Test obviously bad thresholds for the critical pixel count heuristic and check for unacceptable quality.
