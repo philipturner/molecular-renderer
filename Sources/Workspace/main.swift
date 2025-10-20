@@ -10,11 +10,17 @@ import MolecularRenderer
 //   - Find a good data distribution between world limit, percentage of
 //     interior volume open to viewing, and atom count.
 
+// Task: rotate a topology, analyze the spatial extent, and confirm it looks
+// sensible by rendering it.
+
 // MARK: - Compile Structure
 
 let latticeSize: Float = 23
-let worldDimension: Float = 384
 let isDenselyPacked: Bool = false
+
+let addressSpaceSize: Int = 4_000_000
+let voxelAllocationSize: Int = 500_000_000
+let worldDimension: Float = 384
 
 func passivate(topology: inout Topology) {
   func createHydrogen(
@@ -191,5 +197,56 @@ func createRandomRotation() -> RotationBasis {
   return (xAxis, yAxis, zAxis)
 }
 
-// Task: rotate a topology, analyze the spatial extent, and confirm it looks
-// sensible by rendering it.
+func rotate(topology: inout Topology, basis: RotationBasis) {
+  for atomID in topology.atoms.indices {
+    var atom = topology.atoms[atomID]
+    
+    var rotatedPosition: SIMD3<Float> = .zero
+    rotatedPosition += basis.0 * atom.position[0]
+    rotatedPosition += basis.1 * atom.position[1]
+    rotatedPosition += basis.2 * atom.position[2]
+    atom.position = rotatedPosition
+    
+    topology.atoms[atomID] = atom
+  }
+}
+
+// MARK: - Launch Application
+
+@MainActor
+func createApplication() -> Application {
+  // Set up the device.
+  var deviceDesc = DeviceDescriptor()
+  deviceDesc.deviceID = Device.fastestDeviceID
+  let device = Device(descriptor: deviceDesc)
+  
+  // Set up the display.
+  var displayDesc = DisplayDescriptor()
+  displayDesc.device = device
+  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
+  displayDesc.monitorID = device.fastestMonitorID
+  let display = Display(descriptor: displayDesc)
+  
+  // Set up the application.
+  var applicationDesc = ApplicationDescriptor()
+  applicationDesc.device = device
+  applicationDesc.display = display
+  applicationDesc.upscaleFactor = 3
+  
+  applicationDesc.addressSpaceSize = addressSpaceSize
+  applicationDesc.voxelAllocationSize = voxelAllocationSize
+  applicationDesc.worldDimension = worldDimension
+  let application = Application(descriptor: applicationDesc)
+  
+  return application
+}
+let application = createApplication()
+
+do {
+  let rotated = topology
+  
+  
+  // let rotated = ...
+  // analyze()
+  // write to the address space
+}
