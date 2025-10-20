@@ -217,31 +217,30 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-#if false
-// Drafting the (111) basis vectors.
-let basisX = SIMD3<Float>(1, 0, -1) / Float(2).squareRoot()
-let basisY = SIMD3<Float>(-1, 2, -1) / Float(6).squareRoot()
-let basisZ = SIMD3<Float>(1, 1, 1) / Float(3).squareRoot()
-print((basisX * basisX).sum())
-print((basisY * basisY).sum())
-print((basisZ * basisZ).sum())
-print((basisX * basisY).sum())
-print((basisY * basisZ).sum())
-print((basisZ * basisX).sum())
-#endif
-
-#if false
-// Drafting the (110) basis vectors.
-let basisX = SIMD3<Float>(1, 0, 0) / Float(1).squareRoot()
-let basisY = SIMD3<Float>(0, 1, -1) / Float(2).squareRoot()
-let basisZ = SIMD3<Float>(0, 1, 1) / Float(2).squareRoot()
-print((basisX * basisX).sum())
-print((basisY * basisY).sum())
-print((basisZ * basisZ).sum())
-print((basisX * basisY).sum())
-print((basisY * basisZ).sum())
-print((basisZ * basisX).sum())
-#endif
+@MainActor
+func modifyCamera() {
+  let latticeConstant = Constant(.square) { material }
+  
+  var basisX: SIMD3<Float>
+  var basisY: SIMD3<Float>
+  var basisZ: SIMD3<Float>
+  if is111 {
+    basisX = SIMD3<Float>(1, 0, -1) / Float(2).squareRoot()
+    basisY = SIMD3<Float>(-1, 2, -1) / Float(6).squareRoot()
+    basisZ = SIMD3<Float>(1, 1, 1) / Float(3).squareRoot()
+  } else {
+    basisX = SIMD3<Float>(1, 0, 0) / Float(1).squareRoot()
+    basisY = SIMD3<Float>(0, 1, -1) / Float(2).squareRoot()
+    basisZ = SIMD3<Float>(0, 1, 1) / Float(2).squareRoot()
+  }
+  application.camera.basis = (basisX, basisY, basisZ)
+  
+  // TODO: Fix this
+  application.camera.position = SIMD3<Float>(
+    latticeSize / 2 * latticeConstant,
+    latticeSize / 2 * latticeConstant,
+    latticeSize / 2 * latticeConstant)
+}
 
 for atomID in topology.atoms.indices {
   let atom = topology.atoms[atomID]
@@ -249,13 +248,6 @@ for atomID in topology.atoms.indices {
 }
 
 application.run {
-  let latticeConstant = Constant(.square) { material }
-  
-  application.camera.position = SIMD3<Float>(
-    latticeSize / 2 * latticeConstant,
-    latticeSize / 2 * latticeConstant,
-    latticeSize * 2 * latticeConstant)
-  
   var image = application.render()
   image = application.upscale(image: image)
   application.present(image: image)
