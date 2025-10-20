@@ -374,22 +374,6 @@ struct RenderShader {
           sampleCount = max(sampleCount, float(3));
           sampleCount = min(sampleCount, float(100));
           
-          // Temporarily check that sample count is forced to an integer with a crash.
-          if (float(uint(sampleCount)) != sampleCount) {
-            if (\(Reduction.waveIsFirstLane())) {
-              bool acquiredLock = false;
-              \(CrashBuffer.acquireLock(errorCode: 3))
-              if (acquiredLock) {
-                crashBuffer[1] = 0;
-                crashBuffer[2] = 0;
-                crashBuffer[3] = 0;
-                crashBuffer[4] = uint(sampleCount);
-                crashBuffer[5] = uint(sampleCount * 1000);
-              }
-            }
-            return;
-          }
-          
           // Create a generation context.
           GenerationContext generationContext;
           generationContext.seed = RayGeneration::createSeed(
