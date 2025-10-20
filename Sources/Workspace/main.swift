@@ -210,8 +210,8 @@ func rotate(topology: inout Topology, basis: RotationBasis) {
   }
 }
 
-@MainActor
 func createPartPositions(
+  spacing: Float,
   approximatePartCount: Int
 ) -> [SIMD3<Float>] {
   // Takes an approximate square root, biasing all calculations to round down.
@@ -226,12 +226,29 @@ func createPartPositions(
     return outputInt
   }
   
-  // Find a cube size, iterate until we converge on the desired count.
-  print(cubeRoot(approximatePartCount))
+  func candidateOutput(approximatePartCount: Int) -> [SIMD3<Float>] {
+    let cubeSize = cubeRoot(approximatePartCount)
+    let lowerCoordBound = -cubeSize / 2
+    let upperCoordBound = cubeSize / 2
+    
+    var output: [SIMD3<Float>] = []
+    for z in lowerCoordBound..<upperCoordBound {
+      for y in lowerCoordBound..<upperCoordBound {
+        for x in lowerCoordBound..<upperCoordBound {
+          var coordinates = SIMD3<Float>(
+            Float(x),
+            Float(y),
+            Float(z))
+          coordinates += 0.5
+          
+          
+        }
+      }
+    }
+  }
   
-  // Not needed to find part count
-  // let spacing = getSafeSpacing(topology: topology)
-  fatalError("Not implemented.")
+  // Find a cube size, iterate until we converge on the desired count.
+  
 }
 
 // MARK: - Launch Application
