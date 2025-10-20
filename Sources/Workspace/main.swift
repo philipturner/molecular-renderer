@@ -2,12 +2,19 @@ import HDL
 import MolecularRenderer
 
 // Remaining tasks of this PR:
-// - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
-//   - Validate a substantial improvement to latency on the GPU timeline
-//     (several hundred microseconds at large world dimensions).
+// - Insert check that the camera basis is orthogonal and normalized. Test that
+//   this check effectively catches API misuse.
 // - Integrate the critical pixel count heuristic into the code base.
-//   - Implement the critical pixel count test; shouldn't take much time.
-//   - Implement the heuristic once this test is set up.
+//   - Implement the heuristic, using the long distances test as a testing
+//     ground. We need computational tractability before designing additional
+//     tests without worry.
+// - Implement the critical pixel count test; shouldn't take much time.
+//   - Move the camera into the basis of the lattice, instead of the other
+//     way around.
+//   - Inspect the diamond and GaAs structures after compiling, to see the
+//     cleaned up surfaces.
+//   - Use a common lattice dimension for all structures. Start with a small
+//     number, then scale it when other components of the test are working.
 // - Clean up the documentation and implement the remaining tests.
 
 @MainActor
