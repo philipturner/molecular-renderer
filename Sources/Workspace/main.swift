@@ -18,7 +18,7 @@ import MolecularRenderer
 let latticeSize: Float = 23
 let isDenselyPacked: Bool = false
 
-let addressSpaceSize: Int = 4_000_000
+let desiredAtomCount: Int = 4_000_000
 let voxelAllocationSize: Int = 500_000_000
 let worldDimension: Float = 384
 
@@ -279,12 +279,14 @@ func createPartPositions(
     partCountFloat /= ratio
     partCountFloat.round(.down)
     improvedPartCount = Int(partCountFloat)
-    
   }
-  print("improved approximate part count:", improvedPartCount)
   
   var output = candidateOutput(approximatePartCount: improvedPartCount)
+  print("improved approximate part count:", improvedPartCount)
   print("after culling interior parts:", output.count)
+  guard output.count >= partCount else {
+    fatalError("Could not converge.")
+  }
   
   output.sort { lhs, rhs in
     let lhsDistanceSquared = (lhs * lhs).sum()
@@ -295,10 +297,10 @@ func createPartPositions(
       return false
     }
   }
+  
   guard output.count >= 6 else {
     fatalError("Could not display representation of list.")
   }
-  
   print("first positions after sorting:")
   print("- \(output[0])")
   print("- \(output[1])")
@@ -308,7 +310,25 @@ func createPartPositions(
   print("- \(output[output.count - 2])")
   print("- \(output[output.count - 1])")
   
-  fatalError("Not implemented.")
+  while output.count > partCount {
+    output.removeLast()
+  }
+  
+  guard output.count >= 6 else {
+    fatalError("Could not display representation of list.")
+  }
+  print("last positions after trimming to desired size:")
+  print("- \(output[output.count - 3])")
+  print("- \(output[output.count - 2])")
+  print("- \(output[output.count - 1])")
+  
+  return output
+}
+
+struct SceneDescriptor {
+  // WARNING: Use the address space size after initializing the application. It
+  // is rounded down from the number entered into the program.
+  var targetAtomCount: Int?
 }
 
 // MARK: - Launch Application
@@ -333,7 +353,7 @@ func createApplication() -> Application {
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 3
   
-  applicationDesc.addressSpaceSize = addressSpaceSize
+  applicationDesc.addressSpaceSize = desiredAtomCount
   applicationDesc.voxelAllocationSize = voxelAllocationSize
   applicationDesc.worldDimension = worldDimension
   let application = Application(descriptor: applicationDesc)
@@ -345,8 +365,9 @@ let application = createApplication()
 let spacing = getSafeSpacing(topology: topology)
 let partPositions = createPartPositions(
   spacing: spacing,
-  partCount: 2000)
+  partCount: 100)
 print(partPositions.count)
+print(application.atoms.addressSpaceSize)
 
 application.run {
   application.camera.position = SIMD3<Float>(0, 0, 20)

@@ -1,6 +1,11 @@
 import Dispatch
 
 public class Atoms {
+  /// The user specifies a desired limit to address space size in the
+  /// application descriptor, to put an upper bound on its memory allocation
+  /// size. However, the actual size will be slightly smaller. Users should
+  /// either give some generous wiggle room to the address space size, or
+  /// check the exact value from 'application.atoms.addressSpaceSize'.
   public let addressSpaceSize: Int
   private static let blockSize: Int = 512
   
