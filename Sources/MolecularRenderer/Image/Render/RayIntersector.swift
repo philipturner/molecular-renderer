@@ -206,6 +206,10 @@ private func createFillMemoryTape(
         // - Flip the negative-pointing axes upside down.
         // - Reduces the divergence cost of the ceil/floor instructions by 2x.
         // - Correct the final value upon exit.
+        //
+        // WARNING: This algorithm requires that voxel groups are aligned to a
+        // grid centered on the origin. If the number of 32 nm voxel groups is
+        // odd, it will render incorrectly.
         largeCellBorder = largeCellBorder * sign;
         largeCellBorder = dda.nextCellGroup(largeCellBorder,
                                             flippedRayOrigin,

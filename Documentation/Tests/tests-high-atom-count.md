@@ -9,7 +9,7 @@ Objective is to reach as many atoms as possible, until the Metal Performance HUD
 | Theoretical        | 1,546,000    | 954,000        |
 | Actual             | ~934,000 (TODO) | TODO           |
 
-In the source code, look for the declaration of `beamDepth`. The default value is 10. Increase this number as much as possible.
+In the source code, look for the declaration of `beamDepth`. The default value is 16. Increase this number as much as possible.
 
 <details>
 <summary>Guide to figuring out what beam depths to try</summary>

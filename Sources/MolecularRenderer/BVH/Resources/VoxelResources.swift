@@ -25,8 +25,10 @@ class VoxelResources {
     }
     
     // Initialize the world dimension.
-    guard worldDimension.remainder(dividingBy: 32) == 0 else {
-      fatalError("World dimension was not divisible by 32.")
+    //
+    // 64 instead of 32 because of an issue with 32 nm scoped DDA traversal.
+    guard worldDimension.remainder(dividingBy: 64) == 0 else {
+      fatalError("World dimension was not divisible by 64.")
     }
     guard worldDimension > 0 else {
       fatalError("World dimension was zero.")

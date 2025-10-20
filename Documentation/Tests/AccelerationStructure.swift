@@ -89,7 +89,7 @@ func createApplication() -> Application {
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
-  applicationDesc.worldDimension = 32
+  applicationDesc.worldDimension = 64
   let application = Application(descriptor: applicationDesc)
   
   return application
