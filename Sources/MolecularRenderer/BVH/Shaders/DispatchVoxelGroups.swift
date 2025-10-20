@@ -4,10 +4,10 @@ struct DispatchVoxelGroups {
   // dispatch groups  SIMD3(repeating: worldDimension / 32)
   //
   // Affected kernels:
-  // - addProcess2
   // - removeProcess2
+  // - addProcess2
   // - rebuildProcess1
-  // - resetIdle
+  // - resetVoxelMarks
   //
   // scan for marked voxel groups
   // create a compact list of these voxel groups (SIMD + global reduction)
@@ -104,5 +104,55 @@ struct DispatchVoxelGroups {
       }
     }
     """
+  }
+}
+
+extension BVHBuilder {
+  func dispatchVoxelCoords(
+    commandList: CommandList,
+    marks1: Buffer,
+    marks2: Buffer,
+    marks3: Buffer,
+    dispatchedGroupCoords: Buffer,
+    region: GeneralCountersRegion
+  ) {
+    commandList.withPipelineState(shaders.dispatchVoxelGroups) {
+      counters.crashBuffer.setBufferBindings(
+        commandList: commandList)
+      
+      commandList.setBuffer(
+        counters.general,
+        index: 1,
+        offset: GeneralCounters.offset(region))
+      commandList.setBuffer(
+        marks1, index: 2)
+      commandList.setBuffer(
+        marks2, index: 3)
+      commandList.setBuffer(
+        marks3, index: 4)
+      commandList.setBuffer(
+        dispatchedGroupCoords, index: 5)
+      
+      let gridSize = Int(voxels.worldDimension / 32)
+      let threadgroupCount = SIMD3<UInt32>(
+        UInt32(gridSize),
+        UInt32(gridSize),
+        UInt32(gridSize))
+      commandList.dispatch(groups: threadgroupCount)
+    }
+    
+    #if os(Windows)
+    computeUAVBarrier(commandList: commandList)
+    #endif
+  }
+  
+  func dispatchAddProcess2(commandList: CommandList) {
+    dispatchVoxelCoords(
+      commandList: commandList,
+      marks1: voxels.group.atomsRemovedMarks,
+      marks2: voxels.group.atomsRemovedMarks,
+      marks3: voxels.group.atomsRemovedMarks,
+      dispatchedGroupCoords: voxels.group.atomsRemovedGroupCoords,
+      region: .allocatedSlotCount)
   }
 }

@@ -100,19 +100,15 @@ extension BVHBuilder {
     computeUAVBarrier(commandList: commandList)
     #endif
     
-    do {
-      var offset = GeneralCounters.offset(.atomsRemovedVoxelCount)
-      offset += 4
-      clearBuffer(
-        commandList: commandList,
-        clearValue: UInt32(1),
-        clearedBuffer: counters.general,
-        size: 2 * 4,
-        offset: offset)
-    }
-    
-    do {
-      var offset = GeneralCounters.offset(.rebuiltVoxelCount)
+    for region in GeneralCountersRegion.allCases {
+      if region == .vacantSlotCount {
+        continue
+      }
+      if region == .allocatedSlotCount {
+        continue
+      }
+      
+      var offset = GeneralCounters.offset(region)
       offset += 4
       clearBuffer(
         commandList: commandList,

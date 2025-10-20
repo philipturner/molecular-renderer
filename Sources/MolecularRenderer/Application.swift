@@ -57,18 +57,6 @@ public class Application {
           let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
-    print(GeneralCounters.offset(.atomsRemovedVoxelCount))
-    print(GeneralCounters.offset(.vacantSlotCount))
-    print(GeneralCounters.offset(.allocatedSlotCount))
-    print(GeneralCounters.offset(.rebuiltVoxelCount))
-    print(GeneralCounters.totalSize)
-    /*
-    0
-    16
-    20
-    24
-    40
-    */
     
     // Set up the public API.
     self.device = device

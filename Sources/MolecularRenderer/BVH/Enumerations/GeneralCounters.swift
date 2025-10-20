@@ -1,25 +1,35 @@
 enum GeneralCountersRegion: Int, CaseIterable {
-  // removeProcess2 + removeProcess3
-  case atomsRemovedVoxelCount = 0
+  // dispatch removeProcess2
+  case atomsRemovedGroupCount = 0
+  
+  // dispatch removeProcess3
+  case atomsRemovedVoxelCount
   
   // removeProcess4
-  case vacantSlotCount = 1
+  case vacantSlotCount
+  
+  // dispatch addProcess2
+  case addedGroupCount
   
   // addProcess2
-  case allocatedSlotCount = 2
+  case allocatedSlotCount
   
-  // rebuildProcess1 + rebuildProcess2
-  case rebuiltVoxelCount = 3
+  // dispatch rebuildProcess1
+  case rebuiltGroupCount
+  
+  // dispatch rebuildProcess2
+  case rebuiltVoxelCount
+  
+  // dispatch resetVoxelMarks
+  case resetGroupCount
   
   var size: Int {
     switch self {
-    case .atomsRemovedVoxelCount:
-      return 16
     case .vacantSlotCount:
       return 4
     case .allocatedSlotCount:
       return 4
-    case .rebuiltVoxelCount:
+    default:
       return 16
     }
   }
