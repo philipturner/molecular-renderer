@@ -18,7 +18,7 @@ TODO: Create and link a YouTube video in a future commit.
 
 Test obviously bad thresholds for the critical pixel count heuristic and check for unacceptable quality. The correct value is 50 pixels.
 
-The camera slowly moves away and activates different tiers of the ray count. Test the following surfaces: hydrogen passivated C(111), unpassivated C(110), Au(111), GaAs(110).
+The camera slowly moves away and activates different tiers of the ray count. Test the following surfaces: hydrogen passivated C(111), unpassivated C(110), unpassivated GaAs(110), Au(111).
 
 | Surface   | 500 px | 250 px | 150 px | 50 px  | 15 px  |
 | --------- | ------ | ------ | ------ | ------ | ------ |
@@ -31,18 +31,18 @@ _Whether self-shadowing appears grainy at 60 Hz._
 
 | Surface   | 500 px | 250 px | 150 px | 50 px  | 15 px  |
 | --------- | ------ | ------ | ------ | ------ | ------ |
-| C(111)    |
-| C(110)    |
-| GaAs(110) |
-| Au(111)   |
+| C(111)    | yes    | barely | no     | no     | no     |
+| C(110)    | yes    | barely | no     | no     | no     |
+| GaAs(110) | yes    | yes    | barely | no     | no     |
+| Au(111)   | yes    | barely | no     | no     | no     |
 
 _Whether self-shadowing appears grainy at 120 Hz._
 
 | Surface   | 500 px | 250 px | 150 px | 50 px  | 15 px  |
 | --------- | ------ | ------ | ------ | ------ | ------ |
-| C(111)    |
-| C(110)    |
-| GaAs(110) |
-| Au(111)   |
+| C(111)    | yes    | yes    | barely | no     | no     |
+| C(110)    | yes    | yes    | barely | no     | no     |
+| GaAs(110) | yes    | yes    | yes    | no     | no     |
+| Au(111)   | yes    | yes    | barely | no     | no     |
 
 _Whether self-shadowing appears grainy at 120 Hz, with the secondary ray count overridden to 7._
