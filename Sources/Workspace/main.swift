@@ -518,8 +518,9 @@ func createTime() -> Float {
 @MainActor
 func modifyCamera() {
   // 0.1 Hz rotation rate
+  // Starts out at 30° to capture more of the action.
   let time = createTime()
-  let angleDegrees = 0.1 * time * 360
+  let angleDegrees = 0.1 * time * 360 + 30
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * -angleDegrees,
     axis: SIMD3(0, 1, 0))
