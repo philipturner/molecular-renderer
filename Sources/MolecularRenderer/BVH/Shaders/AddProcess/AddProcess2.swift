@@ -173,7 +173,7 @@ extension AddProcess {
         if (needsNewSlot) {
           assignedSlotIDs[voxelID] = slotID;
           
-          uint encoded = \(VoxelResources.encode("globalID"));
+          uint encoded = \(VoxelResources.encode("voxelCoords"));
           assignedVoxelCoords[slotID] = encoded;
           
           uint headerAddress = slotID * \(MemorySlot.header.size / 4);

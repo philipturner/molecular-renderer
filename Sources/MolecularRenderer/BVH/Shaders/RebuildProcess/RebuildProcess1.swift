@@ -113,7 +113,7 @@ extension RebuildProcess {
       
       allocatedOffset += \(Reduction.wavePrefixSum("uint(needsRebuild)"));
       if (needsRebuild) {
-        uint encoded = \(VoxelResources.encode("globalID"));
+        uint encoded = \(VoxelResources.encode("voxelCoords"));
         rebuiltVoxelCoords[allocatedOffset] = encoded;
       }
     }

@@ -94,7 +94,7 @@ extension RemoveProcess {
       
       allocatedOffset += \(Reduction.wavePrefixSum("uint(hasAtomsRemoved)"));
       if (hasAtomsRemoved) {
-        uint encoded = \(VoxelResources.encode("globalID"));
+        uint encoded = \(VoxelResources.encode("voxelCoords"));
         atomsRemovedVoxelCoords[allocatedOffset] = encoded;
       }
     }
