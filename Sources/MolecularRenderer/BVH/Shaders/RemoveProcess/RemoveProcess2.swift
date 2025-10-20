@@ -127,7 +127,7 @@ extension BVHBuilder {
         voxels.dense.atomsRemovedMarks, index: 5)
       #else
       commandList.setDescriptor(
-        handleID: voxels.dense.atomsRemovedMarksHandleID, index: 6)
+        handleID: voxels.dense.atomsRemovedMarksHandleID, index: 5)
       #endif
       commandList.setBuffer(
         voxels.sparse.atomsRemovedVoxelCoords, index: 6)

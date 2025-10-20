@@ -120,7 +120,6 @@ extension Application {
   
   public func updateBVH(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
-    
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
       try! commandList.d3d12CommandList.EndQuery(
