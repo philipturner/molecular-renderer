@@ -12,8 +12,8 @@ import MolecularRenderer
 // - Clean up the documentation and implement the remaining tests.
 
 let latticeSize: Float = 20
-let material: MaterialType = .elemental(.carbon)
-let is111: Bool = false
+let material: MaterialType = .elemental(.gold)
+let is111: Bool = true
 
 #if false
 // Drafting the (111) basis vectors.
@@ -100,7 +100,7 @@ func analyze(topology: Topology) {
 func createTopology() -> Topology {
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { latticeSize * (h + k + l) }
-    Material { .elemental(.carbon) }
+    Material { material }
     
     let frontPlaneDistance = latticeSize / 2
     let backPlaneDistance = frontPlaneDistance - 2
@@ -129,14 +129,6 @@ func createTopology() -> Topology {
     }
   }
   
-  #if false
-  
-  // Temporary path to check the effect of Reconstruction on surfaces.
-  var topology = Topology()
-  topology.atoms = lattice.atoms
-  
-  #else
-  
   var canPassivate: Bool
   switch material {
   case .elemental(.carbon):
@@ -155,35 +147,27 @@ func createTopology() -> Topology {
     
   func createReconstructedTopology() -> Topology {
     if canReconstruct {
-      print("did reconstruct")
       var reconstruction = Reconstruction()
       reconstruction.atoms = lattice.atoms
       reconstruction.material = material
+      return reconstruction.compile()
     } else {
-      print("did not reconstruct")
+      var topology = Topology()
+      topology.atoms = lattice.atoms
+      return topology
     }
   }
   
-  var topology = reconstruction.compile()
-  
-  
-  
+  var topology = createReconstructedTopology()
   if is111 && canPassivate {
-    print("did passivate")
     passivate(topology: &topology)
-  } else {
-    print("did not passivate")
   }
-  
-  #endif
   
   return topology
 }
 
 let topology = createTopology()
 analyze(topology: topology)
-
-/*
 
 // MARK: - Launch Application
 
@@ -233,4 +217,3 @@ application.run {
   image = application.upscale(image: image)
   application.present(image: image)
 }
-*/
