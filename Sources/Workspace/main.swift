@@ -56,9 +56,16 @@ func createIs111() -> Bool {
   }
 }
 
-let latticeSize: Float = 20
+let latticeSize: Float = 80
 let material = createMaterial()
 let is111 = createIs111()
+do {
+  let latticeConstant = Constant(.square) { material }
+  let latticeSpan = latticeSize * latticeConstant
+  let latticeSpanRepr = String(format: "%.3f", latticeSpan)
+  print()
+  print("The lattice spans \(latticeSpanRepr) nm along each cardinal axis.")
+}
 
 func passivate(topology: inout Topology) {
   func createHydrogen(

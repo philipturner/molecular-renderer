@@ -111,11 +111,13 @@ extension Application {
       Self.upscaleMeter.integrate(upscaleLatency)
       
       // TODO Remove the following code before merging the PR.
+      #if false
       print(
         PerformanceMeter.pad(updateLatency),
         PerformanceMeter.pad(renderLatency),
         PerformanceMeter.pad(forgetLatency),
         PerformanceMeter.pad(upscaleLatency))
+      #endif
     }
   }
   
