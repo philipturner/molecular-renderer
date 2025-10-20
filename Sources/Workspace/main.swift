@@ -26,7 +26,7 @@ enum SurfaceType {
   // Au(111) surface
   case gold111
 }
-let surfaceType: SurfaceType = .diamond111
+let surfaceType: SurfaceType = .galliumArsenide110
 
 // MARK: - Compile Structure
 
@@ -235,11 +235,13 @@ func modifyCamera() {
   }
   application.camera.basis = (basisX, basisY, basisZ)
   
-  // TODO: Fix this
-  application.camera.position = SIMD3<Float>(
-    latticeSize / 2 * latticeConstant,
-    latticeSize / 2 * latticeConstant,
-    latticeSize / 2 * latticeConstant)
+  var position = SIMD3<Float>(
+    repeating: latticeSize / 2 * latticeConstant)
+  
+  // Shift the starting position 1.000 nm away from the surface.
+  position += 1.000 * basisZ
+  
+  application.camera.position = position
 }
 
 for atomID in topology.atoms.indices {
@@ -248,6 +250,8 @@ for atomID in topology.atoms.indices {
 }
 
 application.run {
+  modifyCamera()
+  
   var image = application.render()
   image = application.upscale(image: image)
   application.present(image: image)
