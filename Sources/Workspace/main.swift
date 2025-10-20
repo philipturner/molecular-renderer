@@ -26,8 +26,8 @@ enum SurfaceType {
   // Au(111) surface
   case gold111
 }
-let surfaceType: SurfaceType = .galliumArsenide110
-let criticalPixelCount: Float = 50
+let surfaceType: SurfaceType = .diamond111
+let criticalPixelCount: Float = 500
 
 // MARK: - Compile Structure
 

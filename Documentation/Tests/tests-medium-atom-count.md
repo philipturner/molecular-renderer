@@ -16,8 +16,19 @@ TODO: Create and link a YouTube video in a future commit.
 
 ## Critical Pixel Count
 
-Test obviously bad thresholds for the critical pixel count heuristic and check for unacceptable quality.
+Test obviously bad thresholds for the critical pixel count heuristic and check for unacceptable quality. The correct value is 50 pixels.
 
 The camera slowly moves away and activates different tiers of the ray count. Test the following surfaces: hydrogen passivated C(111), unpassivated C(110), Au(111), GaAs(110).
 
-Unlike the long distances test, the lattice doesn't need to cover 100% of the FOV for the entire duration of the test. We can compile a small lattice that shows some empty space when the user is far away.
+| Surface   |
+| --------- |
+| C(111)    |
+| C(110)    |
+| GaAs(110) |
+| Au(111)   |
+
+_Whether self-shadowing appears grainy at 60 Hz._
+
+_Whether self-shadowing appears grainy at 120 Hz._
+
+_Whether self-shadowing appears grainy at 120 Hz, with the secondary ray count overridden to 7._
