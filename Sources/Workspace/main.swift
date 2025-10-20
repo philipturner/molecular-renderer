@@ -13,7 +13,7 @@ import MolecularRenderer
 
 let latticeSize: Float = 20
 let material: MaterialType = .elemental(.carbon)
-let is111: Bool = false
+let is111: Bool = true
 
 #if false
 // Drafting the (111) basis vectors.
@@ -129,7 +129,7 @@ func createTopology() -> Topology {
     }
   }
   
-  #if true
+  #if false
   
   // Temporary path to check the effect of Reconstruction on surfaces.
   var topology = Topology()
@@ -139,7 +139,7 @@ func createTopology() -> Topology {
   
   var reconstruction = Reconstruction()
   reconstruction.atoms = lattice.atoms
-  reconstruction.material = .elemental(.silicon)
+  reconstruction.material = material
   var topology = reconstruction.compile()
   
   var canPassivate: Bool
@@ -204,7 +204,7 @@ application.run {
   application.camera.position = SIMD3<Float>(
     latticeSize / 2 * latticeConstant,
     latticeSize / 2 * latticeConstant,
-    latticeSize * 1.5 * latticeConstant)
+    latticeSize * 2 * latticeConstant)
   
   var image = application.render()
   image = application.upscale(image: image)
