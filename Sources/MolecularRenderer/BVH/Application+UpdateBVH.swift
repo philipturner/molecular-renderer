@@ -173,6 +173,7 @@ extension Application {
         commandList: commandList)
       bvhBuilder.rebuildProcess2(
         commandList: commandList)
+      fatalError("TODO: Encode rebuildProcess3")
       
       #if os(Windows)
       try! commandList.d3d12CommandList.EndQuery(

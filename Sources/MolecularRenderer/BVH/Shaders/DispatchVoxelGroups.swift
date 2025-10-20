@@ -25,8 +25,7 @@ struct DispatchVoxelGroups {
         device uint *marks2 [[buffer(3)]],
         device uint *marks3 [[buffer(4)]],
         device uint *dispatchedGroupCoords [[buffer(5)]],
-        uint3 globalID [[thread_position_in_grid]],
-        uint3 groupID [[threadgroup_position_in_grid]])
+        uint3 voxelGroupCoords [[thread_position_in_grid]])
       """
       #else
       """
@@ -47,8 +46,7 @@ struct DispatchVoxelGroups {
         "UAV(u5),"
       )]
       void dispatchVoxelCoords(
-        uint3 globalID : SV_DispatchThreadID,
-        uint3 groupID : SV_GroupID)
+        uint3 voxelGroupCoords : SV_DispatchThreadID)
       """
       #endif
     }
@@ -70,18 +68,18 @@ struct DispatchVoxelGroups {
         return;
       }
       
-      uint voxelGroup8ID =
-      \(VoxelResources.generate("globalID", worldDimension / 8));
+      uint voxelGroupID =
+      \(VoxelResources.generate("voxelGroupCoords", worldDimension / 8));
       
       // scan for marked voxel groups
       bool needsDispatch = false;
-      if (marks1[voxelGroup8ID]) {
+      if (marks1[voxelGroupID]) {
         needsDispatch = true;
       }
-      if (marks2[voxelGroup8ID]) {
+      if (marks2[voxelGroupID]) {
         needsDispatch = true;
       }
-      if (marks3[voxelGroup8ID]) {
+      if (marks3[voxelGroupID]) {
         needsDispatch = true;
       }
       uint countBitsResult = \(Reduction.waveActiveCountBits("needsDispatch"));
@@ -99,7 +97,7 @@ struct DispatchVoxelGroups {
       
       allocatedOffset += \(Reduction.wavePrefixSum("uint(needsDispatch)"));
       if (needsDispatch) {
-        uint encoded = \(VoxelResources.encode("globalID"));
+        uint encoded = \(VoxelResources.encode("voxelGroupCoords"));
         dispatchedGroupCoords[allocatedOffset] = encoded;
       }
     }

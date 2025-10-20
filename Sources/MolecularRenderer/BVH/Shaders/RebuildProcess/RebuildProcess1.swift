@@ -71,25 +71,11 @@ extension RebuildProcess {
     
     \(functionSignature())
     {
-      // TODO: When the kernel is migrated, do not check the crash buffer.
       if (crashBuffer[0] != 1) {
         return;
       }
       
       \(DispatchVoxelGroups.setupKernel(worldDimension: worldDimension))
-      
-      // read from dense.assignedSlotIDs
-      uint slotID = assignedSlotIDs[voxelID];
-      if (slotID != \(UInt32.max)) {
-        // TODO: When the kernel is migrated, avoid computation of the
-        // voxel group ID until absolutely necessary.
-        voxelGroup8OccupiedMarks[voxelGroup8ID] = 1;
-        
-        uint3 voxelGroup32Coords = groupID / 4;
-        uint voxelGroup32ID =
-        \(VoxelResources.generate("voxelGroup32Coords", worldDimension / 32));
-        voxelGroup32OccupiedMarks[voxelGroup32ID] = 1;
-      }
       
       if (voxelGroupRebuiltMarks[voxelGroup8ID] == 0) {
         return;
