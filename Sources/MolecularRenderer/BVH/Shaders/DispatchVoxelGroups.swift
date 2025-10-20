@@ -70,8 +70,6 @@ struct DispatchVoxelGroups {
         return;
       }
       
-      uint voxelGroup32ID =
-      \(VoxelResources.generate("groupID", worldDimension / 32));
       uint voxelGroup8ID =
       \(VoxelResources.generate("globalID", worldDimension / 8));
       

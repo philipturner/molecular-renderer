@@ -128,6 +128,11 @@ class GroupVoxelResources {
     self.rebuiltMarks = createBuffer(size: voxelGroupCount * 4)
     self.occupiedMarks8 = createBuffer(size: voxelGroupCount * 4)
     self.occupiedMarks32 = createBuffer(size: (voxelGroupCount / 64) * 4)
+    
+    self.atomsRemovedGroupCoords = createBuffer(size: voxelGroupCount * 4)
+    self.addedGroupCoords = createBuffer(size: voxelGroupCount * 4)
+    self.rebuiltGroupCoords = createBuffer(size: voxelGroupCount * 4)
+    self.resetGroupCoords = createBuffer(size: voxelGroupCount * 4)
   }
 }
 

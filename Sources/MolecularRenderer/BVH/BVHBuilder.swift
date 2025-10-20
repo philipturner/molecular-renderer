@@ -154,6 +154,27 @@ class BVHBuilder {
     clearBuffer(
       commandList: commandList,
       clearValue: UInt32.max,
+      clearedBuffer: voxels.group.atomsRemovedGroupCoords,
+      size: voxelGroupCount * 4)
+    clearBuffer(
+      commandList: commandList,
+      clearValue: UInt32.max,
+      clearedBuffer: voxels.group.addedGroupCoords,
+      size: voxelGroupCount * 4)
+    clearBuffer(
+      commandList: commandList,
+      clearValue: UInt32.max,
+      clearedBuffer: voxels.group.rebuiltGroupCoords,
+      size: voxelGroupCount * 4)
+    clearBuffer(
+      commandList: commandList,
+      clearValue: UInt32.max,
+      clearedBuffer: voxels.group.resetGroupCoords,
+      size: voxelGroupCount * 4)
+    
+    clearBuffer(
+      commandList: commandList,
+      clearValue: UInt32.max,
       clearedBuffer: voxels.sparse.atomsRemovedVoxelCoords,
       size: voxels.memorySlotCount * 4)
     clearBuffer(
