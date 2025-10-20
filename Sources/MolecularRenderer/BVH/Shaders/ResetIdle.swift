@@ -1,4 +1,6 @@
 struct ResetIdle {
+  // [numthreads(128, 1, 1)]
+  // dispatch threads SIMD3(movedCount, 1, 1)
   static func resetMotionVectors() -> String {
     func functionSignature() -> String {
       #if os(macOS)
@@ -56,6 +58,9 @@ struct ResetIdle {
     """
   }
   
+  // [numthreads(4, 4, 4)]
+  // dispatch threads SIMD3(repeating: worldDimension / 2)
+  // dispatch groups  SIMD3(repeating: worldDimension / 8)
   static func resetVoxelMarks(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
