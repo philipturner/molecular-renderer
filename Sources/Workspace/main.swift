@@ -435,8 +435,32 @@ print("- \(scene.partRotations[scene.partRotations.count - 3])")
 print("- \(scene.partRotations[scene.partRotations.count - 2])")
 print("- \(scene.partRotations[scene.partRotations.count - 1])")
 
+@MainActor
+func load(frameID: Int) {
+  // Specify the atom count...
+  let atomCount: Int = 1000
+  
+  let start = Date()
+  // Do the loading...
+  let end = Date()
+  
+  // Report latency diagnostics.
+  let latency = end.timeIntervalSince(start)
+  let latencyMicroseconds = Int(latency)
+  let latencyNanoseconds = latency * 1e9
+  
+  // Calculate atom count here...
+  let nsPerAtom = latencyNanoseconds / Double(atomCount)
+  let nsPerAtomRepr = String(format: "%.1f", nsPerAtom)
+  print(latencyMicroseconds, "μs", nsPerAtomRepr, "ns/atom")
+}
+
+load(frameID: 0)
+load(frameID: 1)
+load(frameID: 2)
+
 application.run {
-  application.camera.position = SIMD3<Float>(0, 0, 20)
+  // TODO: Make the camera rotate.
   
   var image = application.render()
   image = application.upscale(image: image)
