@@ -108,6 +108,9 @@ struct DispatchVoxelGroups {
 }
 
 extension BVHBuilder {
+  // TODO: Create some utility functions for encoding the target buffers
+  // into the target kernels. For both the CPU-side and GPU-side code.
+  
   func dispatchVoxelCoords(
     commandList: CommandList,
     marks1: Buffer,
@@ -146,13 +149,43 @@ extension BVHBuilder {
     #endif
   }
   
-  func dispatchAddProcess2(commandList: CommandList) {
+  func dispatchRemoveProcess2(commandList: CommandList) {
     dispatchVoxelCoords(
       commandList: commandList,
       marks1: voxels.group.atomsRemovedMarks,
       marks2: voxels.group.atomsRemovedMarks,
       marks3: voxels.group.atomsRemovedMarks,
       dispatchedGroupCoords: voxels.group.atomsRemovedGroupCoords,
-      region: .allocatedSlotCount)
+      region: .atomsRemovedGroupCount)
+  }
+  
+  func dispatchAddProcess2(commandList: CommandList) {
+    dispatchVoxelCoords(
+      commandList: commandList,
+      marks1: voxels.group.addedMarks,
+      marks2: voxels.group.addedMarks,
+      marks3: voxels.group.addedMarks,
+      dispatchedGroupCoords: voxels.group.addedGroupCoords,
+      region: .addedGroupCount)
+  }
+  
+  func dispatchRebuildProcess1(commandList: CommandList) {
+    dispatchVoxelCoords(
+      commandList: commandList,
+      marks1: voxels.group.rebuiltMarks,
+      marks2: voxels.group.rebuiltMarks,
+      marks3: voxels.group.rebuiltMarks,
+      dispatchedGroupCoords: voxels.group.rebuiltGroupCoords,
+      region: .rebuiltGroupCount)
+  }
+  
+  func dispatchResetVoxelMarks(commandList: CommandList) {
+    dispatchVoxelCoords(
+      commandList: commandList,
+      marks1: voxels.group.atomsRemovedMarks,
+      marks2: voxels.group.addedMarks,
+      marks3: voxels.group.rebuiltMarks,
+      dispatchedGroupCoords: voxels.group.resetGroupCoords,
+      region: .resetGroupCount)
   }
 }

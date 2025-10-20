@@ -68,11 +68,11 @@ struct ResetIdle {
       kernel void resetVoxelMarks(
         \(CrashBuffer.functionArguments),
         device uint *voxelGroupAtomsRemovedMarks [[buffer(1)]],
-        device uint *voxelGroupRebuiltMarks [[buffer(2)]],
-        device uint *voxelGroupAddedMarks [[buffer(3)]],
+        device uint *voxelGroupAddedMarks [[buffer(2)]],
+        device uint *voxelGroupRebuiltMarks [[buffer(3)]],
         device uchar *atomsRemovedMarks [[buffer(4)]],
-        device uchar *rebuiltMarks [[buffer(5)]],
-        device uint4 *atomicCounters [[buffer(6)]],
+        device uint4 *atomicCounters [[buffer(5)]],
+        device uchar *rebuiltMarks [[buffer(6)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
@@ -80,11 +80,11 @@ struct ResetIdle {
       """
       \(CrashBuffer.functionArguments)
       RWStructuredBuffer<uint> voxelGroupAtomsRemovedMarks : register(u1);
-      RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u2);
-      RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u3);
+      RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u2);
+      RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u3);
       RWBuffer<uint> atomsRemovedMarks : register(u4);
-      RWBuffer<uint> rebuiltMarks : register(u5);
-      RWStructuredBuffer<uint4> atomicCounters : register(u6);
+      RWStructuredBuffer<uint4> atomicCounters : register(u5);
+      RWBuffer<uint> rebuiltMarks : register(u6);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
@@ -93,8 +93,8 @@ struct ResetIdle {
         "UAV(u2),"
         "UAV(u3),"
         "DescriptorTable(UAV(u4, numDescriptors = 1)),"
-        "DescriptorTable(UAV(u5, numDescriptors = 1)),"
-        "UAV(u6),"
+        "UAV(u5),"
+        "DescriptorTable(UAV(u6, numDescriptors = 1)),"
       )]
       void resetVoxelMarks(
         uint3 globalID : SV_DispatchThreadID,
@@ -121,13 +121,13 @@ struct ResetIdle {
         atomsRemovedMarks[voxelID] = 0;
       }
       
-      if (voxelGroupRebuiltMarks[voxelGroupID]) {
-        rebuiltMarks[voxelID] = 0;
-      }
-      
       if (voxelGroupAddedMarks[voxelGroupID]) {
         atomicCounters[2 * voxelID + 0] = 0;
         atomicCounters[2 * voxelID + 1] = 0;
+      }
+      
+      if (voxelGroupRebuiltMarks[voxelGroupID]) {
+        rebuiltMarks[voxelID] = 0;
       }
     }
     """
@@ -180,24 +180,27 @@ extension BVHBuilder {
       commandList.setBuffer(
         voxels.group.atomsRemovedMarks, index: 1)
       commandList.setBuffer(
-        voxels.group.rebuiltMarks, index: 2)
+        voxels.group.addedMarks, index: 2)
       commandList.setBuffer(
-        voxels.group.addedMarks, index: 3)
+        voxels.group.rebuiltMarks, index: 3)
       
       // Bind the dense buffers.
       #if os(macOS)
       commandList.setBuffer(
         voxels.dense.atomsRemovedMarks, index: 4)
-      commandList.setBuffer(
-        voxels.dense.rebuiltMarks, index: 5)
       #else
       commandList.setDescriptor(
         handleID: voxels.dense.atomsRemovedMarksHandleID, index: 4)
-      commandList.setDescriptor(
-        handleID: voxels.dense.rebuiltMarksHandleID, index: 5)
       #endif
       commandList.setBuffer(
-        voxels.dense.atomicCounters, index: 6)
+        voxels.dense.atomicCounters, index: 5)
+      #if os(macOS)
+      commandList.setBuffer(
+        voxels.dense.rebuiltMarks, index: 6)
+      #else
+      commandList.setDescriptor(
+        handleID: voxels.dense.rebuiltMarksHandleID, index: 6)
+      #endif
       
       let gridSize = Int(voxels.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(
