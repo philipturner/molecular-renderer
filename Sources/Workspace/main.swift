@@ -13,16 +13,28 @@ import QuaternionModule
 // MARK: - User-Facing Options
 
 let isDenselyPacked: Bool = true
-let desiredAtomCount: Int = 4_000_000
+let desiredAtomCount: Int = 8_000_000
 let voxelAllocationSize: Int = 1_500_000_000
 
 // Loading speed in parts/frame (107k atoms/part).
-let loadingSpeed: Int = 3
+//
+// Multithreading may have annihilated the CPU-side bottleneck. We are getting
+// 2.4 ns/atom for combined 'rotate animation' and 'API usage'. That reduces
+// the CPU-side bottleneck from 17.47 ns/atom -> 9.65 nm/atom on the Windows
+// machine. Still not enough to overtake the GPU-side bottleneck.
+//
+// CPU: 9.55 ns/atom -> 9.55 ms @ 1M atoms
+// GPU: 7.33 ns/atom -> 7.33 ms @ 1M atoms
+let loadingSpeed: Int = 10
 let loadingUsesMultithreading: Bool = true
 
 // Check whether console output for sorted positions falls inside
 // [-worldDimension / 2, worldDimension / 2].
 let worldDimension: Float = 384
+
+//  60° - good for avoiding moiré patterns
+// 110° - good for actually seeing what's going on
+let fovAngleDegrees: Float = 110
 
 // MARK: - Compile Structure
 
@@ -528,6 +540,7 @@ func modifyCamera() {
   application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
   application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
   application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
+  application.camera.fovAngleVertical = Float.pi / 180 * 110
 }
 
 application.run {
