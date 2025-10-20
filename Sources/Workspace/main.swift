@@ -243,10 +243,21 @@ func createApplication() -> Application {
 let application = createApplication()
 
 do {
-  let rotated = topology
+  let basis = createRandomRotation()
+  var rotated = topology
+  rotate(topology: &rotated, basis: basis)
+  analyze(topology: rotated)
   
+  for atomID in rotated.atoms.indices {
+    let atom = rotated.atoms[atomID]
+    application.atoms[atomID] = atom
+  }
+}
+
+application.run {
+  application.camera.position = SIMD3<Float>(0, 0, 20)
   
-  // let rotated = ...
-  // analyze()
-  // write to the address space
+  var image = application.render()
+  image = application.upscale(image: image)
+  application.present(image: image)
 }
