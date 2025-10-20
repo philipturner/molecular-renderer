@@ -3,15 +3,11 @@ import MolecularRenderer
 
 // Remaining tasks of this PR:
 // - Work on setting up the large scene test.
-//   - Create a method for generating a random rotational basis.
 //   - Dry run the loading process. A cube almost at the world's dimension
 //     limits, and a hollow sphere inside with a specified radius. Both the
 //     cube side length and sphere radius are specified independently.
 //   - Find a good data distribution between world limit, percentage of
 //     interior volume open to viewing, and atom count.
-
-// Task: rotate a topology, analyze the spatial extent, and confirm it looks
-// sensible by rendering it.
 
 // MARK: - Compile Structure
 
