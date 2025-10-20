@@ -241,14 +241,32 @@ func createPartPositions(
             Float(z))
           coordinates += 0.5
           
+          // Exclude some parts close to the camera, so the user can see.
+          let taxicabDistance =
+          coordinates[0].magnitude +
+          coordinates[1].magnitude +
+          coordinates[2].magnitude
+          let plane111Distance = Float(cubeSize / 2)
+          guard taxicabDistance > plane111Distance else {
+            continue
+          }
           
+          let position = coordinates * spacing
+          output.append(position)
         }
       }
     }
+    
+    var filling = Float(output.count)
+    filling /= Float(cubeSize * cubeSize * cubeSize)
+    print(filling)
+    
+    return output
   }
   
   // Find a cube size, iterate until we converge on the desired count.
-  
+  _ = candidateOutput(approximatePartCount: approximatePartCount)
+  fatalError("Not implemented.")
 }
 
 // MARK: - Launch Application
@@ -282,7 +300,10 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-let partPositions = createPartPositions(approximatePartCount: 130)
+let spacing = getSafeSpacing(topology: topology)
+let partPositions = createPartPositions(
+  spacing: spacing,
+  approximatePartCount: 1000)
 print(partPositions.count)
 
 application.run {
