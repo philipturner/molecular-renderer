@@ -145,6 +145,8 @@ extension Application {
       bvhBuilder.removeProcess1(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+      bvhBuilder.dispatchRemoveProcess2(
+        commandList: commandList)
       bvhBuilder.removeProcess2(
         commandList: commandList)
       bvhBuilder.removeProcess3(
@@ -156,6 +158,8 @@ extension Application {
       bvhBuilder.addProcess1(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+      bvhBuilder.dispatchAddProcess2(
+        commandList: commandList)
       bvhBuilder.addProcess2(
         commandList: commandList)
       bvhBuilder.addProcess3(
@@ -163,6 +167,8 @@ extension Application {
         inFlightFrameID: inFlightFrameID)
       
       // Encode the rebuild process.
+      bvhBuilder.dispatchRebuildProcess1(
+        commandList: commandList)
       bvhBuilder.rebuildProcess1(
         commandList: commandList)
       bvhBuilder.rebuildProcess2(
@@ -216,6 +222,8 @@ extension Application {
       bvhBuilder.resetMotionVectors(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+      bvhBuilder.dispatchResetVoxelMarks(
+        commandList: commandList)
       bvhBuilder.resetVoxelMarks(
         commandList: commandList)
       bvhBuilder.counters.crashBuffer.download(
