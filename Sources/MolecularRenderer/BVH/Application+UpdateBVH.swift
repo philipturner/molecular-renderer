@@ -111,7 +111,9 @@ extension Application {
       Self.upscaleMeter.integrate(upscaleLatency)
       
       // TODO Remove the following code before merging the PR.
-      let sum = updateLatency + renderLatency + forgetLatency + upscaleLatency
+      var sum: Int = .zero
+      sum += Self.updateMeter.minimum
+      sum += Self.forgetMeter.minimum
       print(PerformanceMeter.pad(sum))
     }
   }
