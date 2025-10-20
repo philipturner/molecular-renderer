@@ -207,6 +207,13 @@ func rotate(topology: inout Topology, basis: RotationBasis) {
   }
 }
 
+@MainActor
+func createPartPositions(
+  approximatePartCount: Int
+) -> [SIMD3<Float>] {
+  fatalError("Not implemented.")
+}
+
 // MARK: - Launch Application
 
 @MainActor
@@ -238,17 +245,8 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-do {
-  let basis = createRandomRotation()
-  var rotated = topology
-  rotate(topology: &rotated, basis: basis)
-  analyze(topology: rotated)
-  
-  for atomID in rotated.atoms.indices {
-    let atom = rotated.atoms[atomID]
-    application.atoms[atomID] = atom
-  }
-}
+let partPositions = createPartPositions(approximatePartCount: 100)
+print(partPositions.count)
 
 application.run {
   application.camera.position = SIMD3<Float>(0, 0, 20)
