@@ -50,8 +50,10 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
+/*
 application.run {
   var image = application.render()
   image = application.upscale(image: image)
   application.present(image: image)
 }
+*/
