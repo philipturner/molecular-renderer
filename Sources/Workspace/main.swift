@@ -285,6 +285,29 @@ func createPartPositions(
   
   var output = candidateOutput(approximatePartCount: improvedPartCount)
   print("after culling interior parts:", output.count)
+  
+  output.sort { lhs, rhs in
+    let lhsDistanceSquared = (lhs * lhs).sum()
+    let rhsDistanceSquared = (rhs * rhs).sum()
+    if lhsDistanceSquared >= rhsDistanceSquared {
+      return true
+    } else {
+      return false
+    }
+  }
+  guard output.count >= 6 else {
+    fatalError("Could not display representation of list.")
+  }
+  
+  print("first positions after sorting:")
+  print("- \(output[0])")
+  print("- \(output[1])")
+  print("- \(output[2])")
+  print("last positions after sorting:")
+  print("- \(output[output.count - 3])")
+  print("- \(output[output.count - 2])")
+  print("- \(output[output.count - 1])")
+  
   fatalError("Not implemented.")
 }
 
