@@ -3,6 +3,7 @@ import func Foundation.pow
 import struct Foundation.Date
 import HDL
 import MolecularRenderer
+import QuaternionModule
 
 // Remaining tasks of this PR:
 // - Work on setting up the large scene test.
@@ -17,7 +18,7 @@ let voxelAllocationSize: Int = 1_500_000_000
 
 // Loading speed in parts/frame (107k atoms/part).
 let loadingSpeed: Int = 3
-let loadingUsesMultithreading: Bool = false
+let loadingUsesMultithreading: Bool = true
 
 // Check whether console output for sorted positions falls inside
 // [-worldDimension / 2, worldDimension / 2].
@@ -506,13 +507,37 @@ func load(frameID: Int) {
   print(partRange.count, latencyMicroseconds, "μs", nsPerAtomRepr, "ns/atom")
 }
 
+@MainActor
+func createTime() -> Float {
+  let elapsedFrames = application.clock.frames
+  let frameRate = application.display.frameRate
+  let seconds = Float(elapsedFrames) / Float(frameRate)
+  return seconds
+}
+
+@MainActor
+func modifyCamera() {
+  // 0.1 Hz rotation rate
+  let time = createTime()
+  let angleDegrees = 0.1 * time * 360
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * -angleDegrees,
+    axis: SIMD3(0, 1, 0))
+  
+  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
+  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
+  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
+}
+
 application.run {
   // Use 'frameID' instead of 'clock.frames' for timing the loading. We want to
   // make sure every frame is handled, and not a single one is skipped.
-  // Conversely, real-time animations want to skip frames when it's actually
-  // skipped ahead in time from a random instance of lag.
   load(frameID: application.frameID)
-  // TODO: Make the camera rotate.
+  
+  // Conversely, real-time animations want to skip frames when it's actually
+  // skipped ahead in time from a random instance of lag. The camera rotation
+  // animation uses 'clock.frames'.
+  modifyCamera()
   
   var image = application.render()
   image = application.upscale(image: image)
