@@ -106,7 +106,7 @@ struct ResetIdle {
         "UAV(u6),"
         "DescriptorTable(UAV(u7, numDescriptors = 1)),"
       )]
-      void addProcess2(
+      void resetVoxelMarks(
         uint3 groupID : SV_GroupID,
         uint3 localID : SV_GroupThreadID)
       """

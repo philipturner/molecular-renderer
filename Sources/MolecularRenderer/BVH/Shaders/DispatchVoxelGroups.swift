@@ -44,7 +44,7 @@ struct DispatchVoxelGroups {
         "UAV(u4),"
         "UAV(u5),"
       )]
-      void dispatchVoxelCoords(
+      void dispatchVoxelGroups(
         uint3 voxelGroupCoords : SV_DispatchThreadID)
       """
       #endif

@@ -3,15 +3,6 @@ import MolecularRenderer
 
 // Remaining tasks of this PR:
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
-//   - Implement the proposed changes.
-//     - Sort out the rearrangement to GeneralCounters, with 4 new indirect
-//       dispatch arguments.
-//     - Modify the pseudocode for relevant existing kernels.
-//     - Sort out the decoding of voxel group coords, similar to the decoding
-//       of 2 nm voxel coords.
-//     - Create a single utility kernel that reads from 3 marks, which may be
-//       duplicates of each other. This kernel globally reduces into a list of
-//       8 nm voxel groups to dispatch.
 //   - Clean up the codebase into a state that can compile and execute.
 //   - Test for correctness by running several tests in the Tests folder.
 //     - Recycle the rotating beam test, re-activate the code for inspecting
@@ -55,10 +46,8 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-/*
 application.run {
   var image = application.render()
   image = application.upscale(image: image)
   application.present(image: image)
 }
-*/
