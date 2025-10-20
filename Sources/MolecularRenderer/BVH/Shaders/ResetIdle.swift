@@ -60,8 +60,7 @@ struct ResetIdle {
   }
   
   // [numthreads(4, 4, 4)]
-  // dispatch threads SIMD3(repeating: worldDimension / 2)
-  // dispatch groups  SIMD3(repeating: worldDimension / 8)
+  // dispatch indirect groups SIMD3(atomic counter, 1, 1)
   static func resetVoxelMarks(worldDimension: Float) -> String {
     // voxels.group.atomsRemovedMarks
     // voxels.group.addedMarks
@@ -81,8 +80,8 @@ struct ResetIdle {
         device uchar *atomsRemovedMarks [[buffer(4)]],
         device uint4 *atomicCounters [[buffer(5)]],
         device uchar *rebuiltMarks [[buffer(6)]],
-        uint3 globalID [[thread_position_in_grid]],
-        uint3 groupID [[threadgroup_position_in_grid]])
+        uint3 groupID [[threadgroup_position_in_grid]],
+        uint3 localID [[thread_position_in_threadgroup]])
       """
       #else
       """
@@ -104,9 +103,9 @@ struct ResetIdle {
         "UAV(u5),"
         "DescriptorTable(UAV(u6, numDescriptors = 1)),"
       )]
-      void resetVoxelMarks(
-        uint3 globalID : SV_DispatchThreadID,
-        uint3 groupID : SV_GroupID)
+      void addProcess2(
+        uint3 groupID : SV_GroupID,
+        uint3 localID : SV_GroupThreadID)
       """
       #endif
     }
@@ -120,10 +119,7 @@ struct ResetIdle {
         return;
       }
       
-      uint voxelGroupID =
-      \(VoxelResources.generate("groupID", worldDimension / 8));
-      uint voxelID =
-      \(VoxelResources.generate("globalID", worldDimension / 2));
+      \(DispatchVoxelGroups.setupKernel(worldDimension: worldDimension))
       
       if (voxelGroupAtomsRemovedMarks[voxelGroupID]) {
         atomsRemovedMarks[voxelID] = 0;

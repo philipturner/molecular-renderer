@@ -1,7 +1,6 @@
 extension AddProcess {
   // [numthreads(4, 4, 4)]
-  // dispatch threads SIMD3(repeating: worldDimension / 2)
-  // dispatch groups  SIMD3(repeating: worldDimension / 8)
+  // dispatch indirect groups SIMD3(atomic counter, 1, 1)
   //
   // write to group.rebuiltMarks
   // scan for voxels with atoms added
@@ -47,8 +46,8 @@ extension AddProcess {
         device uint *assignedVoxelCoords [[buffer(8)]],
         device uint *vacantSlotIDs [[buffer(9)]],
         device uint *headers [[buffer(10)]],
-        uint3 globalID [[thread_position_in_grid]],
-        uint3 groupID [[threadgroup_position_in_grid]])
+        uint3 groupID [[threadgroup_position_in_grid]],
+        uint3 localID [[thread_position_in_threadgroup]])
       """
       #else
       """
@@ -79,8 +78,8 @@ extension AddProcess {
         "UAV(u10),"
       )]
       void addProcess2(
-        uint3 globalID : SV_DispatchThreadID,
-        uint3 groupID : SV_GroupID)
+        uint3 groupID : SV_GroupID,
+        uint3 localID : SV_GroupThreadID)
       """
       #endif
     }
@@ -113,10 +112,7 @@ extension AddProcess {
         return;
       }
       
-      uint voxelGroupID =
-      \(VoxelResources.generate("groupID", worldDimension / 8));
-      uint voxelID =
-      \(VoxelResources.generate("globalID", worldDimension / 2));
+      \(DispatchVoxelGroups.setupKernel(worldDimension: worldDimension))
       
       if (voxelGroupAddedMarks[voxelGroupID] == 0) {
         return;

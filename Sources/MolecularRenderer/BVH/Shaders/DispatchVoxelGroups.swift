@@ -105,6 +105,21 @@ struct DispatchVoxelGroups {
     }
     """
   }
+  
+  // Shader code to decode voxel coords and find the thread's assigned voxel.
+  static func setupKernel(worldDimension: Float) -> String {
+    """
+    uint encodedGroupCoords = dispatchedGroupCoords[groupID[0]];
+    uint3 voxelGroupCoords =
+    \(VoxelResources.decode("encodedGroupCoords"));
+    uint3 voxelCoords = voxelGroupCoords * 4 + localID;
+    
+    uint voxelGroupID =
+    \(VoxelResources.generate("voxelGroupCoords", worldDimension / 8));
+    uint voxelID =
+    \(VoxelResources.generate("voxelCoords", worldDimension / 2));
+    """
+  }
 }
 
 extension BVHBuilder {

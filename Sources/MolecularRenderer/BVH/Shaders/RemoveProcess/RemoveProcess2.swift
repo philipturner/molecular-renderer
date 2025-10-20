@@ -1,7 +1,6 @@
 extension RemoveProcess {
   // [numthreads(4, 4, 4)]
-  // dispatch threads SIMD3(repeating: worldDimension / 2)
-  // dispatch groups  SIMD3(repeating: worldDimension / 8)
+  // dispatch indirect groups SIMD3(atomic counter, 1, 1)
   //
   // write to group.rebuiltMarks
   // scan for voxels with atoms removed
@@ -25,8 +24,8 @@ extension RemoveProcess {
         device uint *voxelGroupRebuiltMarks [[buffer(3)]],
         device uchar *atomsRemovedMarks [[buffer(4)]],
         device uint *atomsRemovedVoxelCoords [[buffer(5)]],
-        uint3 globalID [[thread_position_in_grid]],
-        uint3 groupID [[threadgroup_position_in_grid]])
+        uint3 groupID [[threadgroup_position_in_grid]],
+        uint3 localID [[thread_position_in_threadgroup]])
       """
       #else
       """
@@ -47,8 +46,8 @@ extension RemoveProcess {
         "UAV(u5),"
       )]
       void removeProcess2(
-        uint3 globalID : SV_DispatchThreadID,
-        uint3 groupID : SV_GroupID)
+        uint3 groupID : SV_GroupID,
+        uint3 localID : SV_GroupThreadID)
       """
       #endif
     }
@@ -70,15 +69,7 @@ extension RemoveProcess {
         return;
       }
       
-      uint encodedGroupCoords = dispatchedGroupCoords[globalID];
-      uint3 voxelGroupCoords =
-      \(VoxelResources.decode("encodedGroupCoords"));
-      uint3 voxelCoords = voxelGroupCoords * 4 + localID;
-      
-      uint voxelGroupID =
-      \(VoxelResources.generate("voxelGroupCoords", worldDimension / 8));
-      uint voxelID =
-      \(VoxelResources.generate("voxelCoords", worldDimension / 2));
+      \(DispatchVoxelGroups.setupKernel(worldDimension: worldDimension))
       
       if (voxelGroupAtomsRemovedMarks[voxelGroupID] == 0) {
         return;

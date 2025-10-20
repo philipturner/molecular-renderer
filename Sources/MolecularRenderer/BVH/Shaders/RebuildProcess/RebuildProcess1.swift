@@ -1,7 +1,6 @@
 extension RebuildProcess {
   // [numthreads(4, 4, 4)]
-  // dispatch threads SIMD3(repeating: worldDimension / 2)
-  // dispatch groups  SIMD3(repeating: worldDimension / 8)
+  // dispatch indirect groups SIMD3(atomic counter, 1, 1)
   //
   // scan for rebuilt voxels
   // create a compact list of these voxels (SIMD + global reduction)
@@ -27,8 +26,8 @@ extension RebuildProcess {
         device uint *assignedSlotIDs [[buffer(5)]],
         device uchar *rebuiltMarks [[buffer(6)]],
         device uint *rebuiltVoxelCoords [[buffer(7)]],
-        uint3 globalID [[thread_position_in_grid]],
-        uint3 groupID [[threadgroup_position_in_grid]])
+        uint3 groupID [[threadgroup_position_in_grid]],
+        uint3 localID [[thread_position_in_threadgroup]])
       """
       #else
       """
@@ -53,8 +52,8 @@ extension RebuildProcess {
         "UAV(u7),"
       )]
       void rebuildProcess1(
-        uint3 globalID : SV_DispatchThreadID,
-        uint3 groupID : SV_GroupID)
+        uint3 groupID : SV_GroupID,
+        uint3 localID : SV_GroupThreadID)
       """
       #endif
     }
@@ -77,10 +76,7 @@ extension RebuildProcess {
         return;
       }
       
-      uint voxelGroup8ID =
-      \(VoxelResources.generate("groupID", worldDimension / 8));
-      uint voxelID =
-      \(VoxelResources.generate("globalID", worldDimension / 2));
+      \(DispatchVoxelGroups.setupKernel(worldDimension: worldDimension))
       
       // read from dense.assignedSlotIDs
       uint slotID = assignedSlotIDs[voxelID];
