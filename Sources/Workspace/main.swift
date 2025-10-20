@@ -1,3 +1,4 @@
+import func Foundation.pow
 import HDL
 import MolecularRenderer
 
@@ -6,8 +7,10 @@ import MolecularRenderer
 //   - Dry run the loading process. A cube almost at the world's dimension
 //     limits, and a hollow sphere inside with a specified radius. Both the
 //     cube side length and sphere radius are specified independently.
-//   - Find a good data distribution between world limit, percentage of
-//     interior volume open to viewing, and atom count.
+//     - Create all of the positions
+//     - Sort the positions by spatial extent
+//     - Report the spatial extent at the start and end of the list.
+//     - Check that this falls within the world volume.
 
 // MARK: - Compile Structure
 
@@ -211,6 +214,23 @@ func rotate(topology: inout Topology, basis: RotationBasis) {
 func createPartPositions(
   approximatePartCount: Int
 ) -> [SIMD3<Float>] {
+  // Takes an approximate square root, biasing all calculations to round down.
+  func cubeRoot(_ x: Int) -> Int {
+    var output = Float(x)
+    output = pow(output, Float(1) / 3)
+    output = output.rounded(.down)
+    
+    // We want an even number for a symmetric arrangement about the origin.
+    var outputInt = Int(output)
+    outputInt = (outputInt / 2) * 2
+    return outputInt
+  }
+  
+  // Find a cube size, iterate until we converge on the desired count.
+  print(cubeRoot(approximatePartCount))
+  
+  // Not needed to find part count
+  // let spacing = getSafeSpacing(topology: topology)
   fatalError("Not implemented.")
 }
 
@@ -245,7 +265,7 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-let partPositions = createPartPositions(approximatePartCount: 100)
+let partPositions = createPartPositions(approximatePartCount: 130)
 print(partPositions.count)
 
 application.run {
