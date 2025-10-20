@@ -1,6 +1,4 @@
-// TODO: Remove public modifier after debugging. Remove from all places where
-// it appears in this file.
-public enum GeneralCountersRegion: Int, CaseIterable {
+enum GeneralCountersRegion: Int, CaseIterable {
   // dispatch removeProcess2
   case atomsRemovedGroupCount = 0
   
@@ -25,7 +23,7 @@ public enum GeneralCountersRegion: Int, CaseIterable {
   // dispatch resetVoxelMarks
   case resetGroupCount
   
-  public var size: Int {
+  var size: Int {
     switch self {
     case .vacantSlotCount:
       return 4
@@ -38,9 +36,9 @@ public enum GeneralCountersRegion: Int, CaseIterable {
 }
 
 // Container for several small counters involved in global reductions.
-public struct GeneralCounters {
+struct GeneralCounters {
   // Offset (in bytes) of the region's start.
-  public static func offset(_ region: GeneralCountersRegion) -> Int {
+  static func offset(_ region: GeneralCountersRegion) -> Int {
     let rawValue = region.rawValue
     
     var output: Int = .zero
@@ -51,7 +49,7 @@ public struct GeneralCounters {
     return output
   }
   
-  public static var totalSize: Int {
+  static var totalSize: Int {
     var output: Int = .zero
     for region in GeneralCountersRegion.allCases {
       output += region.size
