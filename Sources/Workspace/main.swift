@@ -3,9 +3,17 @@ import MolecularRenderer
 
 // Remaining tasks of this PR:
 // - Implement 32 nm scoping to further optimize the per-dense-voxel cost.
-//   - Benchmark existing cost of an empty scene with a thorough range of
-//     values for world size.
-//   - Implement the proposed changes and test for correctness.
+//   - Implement the proposed changes.
+//     - Sort out the rearrangement to GeneralCounters, with 4 new indirect
+//       dispatch arguments.
+//     - Modify the pseudocode for relevant existing kernels.
+//     - Sort out the decoding of voxel group coords, similar to the decoding
+//       of 2 nm voxel coords.
+//     - Create a single utility kernel that reads from 3 marks, which may be
+//       duplicates of each other. This kernel globally reduces into a list of
+//       8 nm voxel groups to dispatch.
+//   - Clean up the codebase into a state that can compile and execute.
+//   - Test for correctness by running several tests in the Tests folder.
 //   - Validate a substantial improvement to latency on the GPU timeline
 //     (several hundred microseconds at large world dimensions).
 // - Integrate the critical pixel count heuristic into the code base.
