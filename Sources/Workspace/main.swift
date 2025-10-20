@@ -13,7 +13,7 @@ import MolecularRenderer
 
 let isDenselyPacked: Bool = true
 let desiredAtomCount: Int = 4_000_000
-let voxelAllocationSize: Int = 500_000_000
+let voxelAllocationSize: Int = 1_500_000_000
 
 // Loading speed in parts/frame (107k atoms/part).
 let loadingSpeed: Int = 3
@@ -413,7 +413,12 @@ sceneDesc.isDenselyPacked = isDenselyPacked
 sceneDesc.targetAtomCount = application.atoms.addressSpaceSize
 sceneDesc.topology = topology
 let scene = Scene(descriptor: sceneDesc)
-print("part count:", scene.partPositions.count)
+do {
+  let partCount = scene.partPositions.count
+  print("part count:", partCount)
+  print("achieved atom count:", partCount * topology.atoms.count)
+}
+print()
 
 guard scene.partPositions.count >= 6 else {
   fatalError("Could not display representation of list.")
@@ -501,11 +506,12 @@ func load(frameID: Int) {
   print(partRange.count, latencyMicroseconds, "μs", nsPerAtomRepr, "ns/atom")
 }
 
-for frameID in 0..<20 {
-  load(frameID: frameID)
-}
-
 application.run {
+  // Use 'frameID' instead of 'clock.frames' for timing the loading. We want to
+  // make sure every frame is handled, and not a single one is skipped.
+  // Conversely, real-time animations want to skip frames when it's actually
+  // skipped ahead in time from a random instance of lag.
+  load(frameID: application.frameID)
   // TODO: Make the camera rotate.
   
   var image = application.render()
