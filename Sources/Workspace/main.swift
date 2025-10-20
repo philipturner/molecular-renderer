@@ -455,11 +455,24 @@ func load(frameID: Int) {
   let atomsReference = application.atoms
   @Sendable
   func load(partID: Int) {
-    let position = scene.partPositions[partID]
-    let rotation = scene.partRotations[partID]
+    let partPosition = scene.partPositions[partID]
+    let partRotation = scene.partRotations[partID]
     
-    let topologyCopy2 = topologyCopy
-    let atomsReference2 = atomsReference
+    // The base address in the address space for atoms.
+    let baseAddress = partID * topologyCopy.atoms.count
+    
+    for atomID in topologyCopy.atoms.indices {
+      var atom = topologyCopy.atoms[atomID]
+      
+      var position: SIMD3<Float> = .zero
+      position += partRotation.0 * atom.position[0]
+      position += partRotation.1 * atom.position[1]
+      position += partRotation.2 * atom.position[2]
+      position += partPosition
+      atom.position = position
+      
+      atomsReference[baseAddress + atomID] = atom
+    }
   }
   
   let start = Date()
@@ -479,7 +492,7 @@ func load(frameID: Int) {
   
   // Report latency diagnostics.
   let latency = end.timeIntervalSince(start)
-  let latencyMicroseconds = Int(latency)
+  let latencyMicroseconds = Int(latency * 1e6)
   let latencyNanoseconds = latency * 1e9
   
   let atomCount = partRange.count * topology.atoms.count
