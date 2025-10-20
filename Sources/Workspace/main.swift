@@ -129,6 +129,14 @@ func createTopology() -> Topology {
     }
   }
   
+  #if true
+  
+  // Temporary path to check the effect of Reconstruction on surfaces.
+  var topology = Topology()
+  topology.atoms = lattice.atoms
+  
+  #else
+  
   var reconstruction = Reconstruction()
   reconstruction.atoms = lattice.atoms
   reconstruction.material = .elemental(.silicon)
@@ -146,8 +154,59 @@ func createTopology() -> Topology {
     passivate(topology: &topology)
   }
   
+  #endif
+  
   return topology
 }
 
 let topology = createTopology()
 analyze(topology: topology)
+
+// MARK: - Launch Application
+
+@MainActor
+func createApplication() -> Application {
+  // Set up the device.
+  var deviceDesc = DeviceDescriptor()
+  deviceDesc.deviceID = Device.fastestDeviceID
+  let device = Device(descriptor: deviceDesc)
+  
+  // Set up the display.
+  var displayDesc = DisplayDescriptor()
+  displayDesc.device = device
+  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
+  displayDesc.monitorID = device.fastestMonitorID
+  let display = Display(descriptor: displayDesc)
+  
+  // Set up the application.
+  var applicationDesc = ApplicationDescriptor()
+  applicationDesc.device = device
+  applicationDesc.display = display
+  applicationDesc.upscaleFactor = 3
+  
+  applicationDesc.addressSpaceSize = 4_000_000
+  applicationDesc.voxelAllocationSize = 500_000_000
+  applicationDesc.worldDimension = 256
+  let application = Application(descriptor: applicationDesc)
+  
+  return application
+}
+let application = createApplication()
+
+for atomID in topology.atoms.indices {
+  let atom = topology.atoms[atomID]
+  application.atoms[atomID] = atom
+}
+
+application.run {
+  let latticeConstant = Constant(.square) { material }
+  
+  application.camera.position = SIMD3<Float>(
+    latticeSize / 2 * latticeConstant,
+    latticeSize / 2 * latticeConstant,
+    latticeSize * 1.5 * latticeConstant)
+  
+  var image = application.render()
+  image = application.upscale(image: image)
+  application.present(image: image)
+}
