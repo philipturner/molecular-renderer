@@ -27,6 +27,7 @@ enum SurfaceType {
   case gold111
 }
 let surfaceType: SurfaceType = .galliumArsenide110
+let criticalPixelCount: Float = 50
 
 // MARK: - Compile Structure
 
@@ -225,6 +226,14 @@ func createApplication() -> Application {
 let application = createApplication()
 
 @MainActor
+func createTime() -> Float {
+  let elapsedFrames = application.clock.frames
+  let frameRate = application.display.frameRate
+  let seconds = Float(elapsedFrames) / Float(frameRate)
+  return seconds
+}
+
+@MainActor
 func modifyCamera() {
   let latticeConstant = Constant(.square) { material }
   
@@ -248,7 +257,21 @@ func modifyCamera() {
   // Shift the starting position 1.000 nm away from the surface.
   position += 1.000 * basisZ
   
+  // Animate the camera moving away at 3 nm/s.
+  // - Start at 1 nm away after 1 second pause for the FPS to stabilize.
+  // - Stop at 50 nm away.
+  let time = createTime()
+  if time > 1 {
+    let nmPerSecond: Float = 3
+    let maxDistance: Float = 50
+    
+    var distance = nmPerSecond * (time - 1)
+    distance = min(maxDistance - 1, distance)
+    position += distance * basisZ
+  }
+  
   application.camera.position = position
+  application.camera.criticalPixelCount = criticalPixelCount
 }
 
 for atomID in topology.atoms.indices {
