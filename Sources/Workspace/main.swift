@@ -6,17 +6,16 @@ import MolecularRenderer
 
 // Remaining tasks of this PR:
 // - Work on setting up the large scene test.
-//   - Finish setting up the 'Scene' structure.
 //   - Dry run the loading process.
 //   - Implement the option to use multithreading.
 
 // MARK: - User-Facing Options
 
-let isDenselyPacked: Bool = false
+let isDenselyPacked: Bool = true
 let desiredAtomCount: Int = 4_000_000
 let voxelAllocationSize: Int = 500_000_000
 
-// Loading speed in parts/frame (106k atoms/part).
+// Loading speed in parts/frame (107k atoms/part).
 let loadingSpeed: Int = 3
 let loadingUsesMultithreading: Bool = false
 
@@ -138,12 +137,13 @@ func getCartesianExtent(topology: Topology) -> Float {
   }
   return cartesianExtent
 }
-print("radial extent:", getRadialExtent(topology: topology))
-print("cartesian extent:", getCartesianExtent(topology: topology))
 
 // Add 0.5 nm of padding on both sides of the object, to create the spacing
 // between objects.
-func getSafeSpacing(topology: Topology) -> Float {
+func getSafeSpacing(
+  topology: Topology,
+  isDenselyPacked: Bool
+) -> Float {
   var extent: Float
   if isDenselyPacked {
     extent = getCartesianExtent(topology: topology)
@@ -154,7 +154,6 @@ func getSafeSpacing(topology: Topology) -> Float {
   
   return 2 * extent
 }
-print("safe spacing:", getSafeSpacing(topology: topology))
 
 // Utility function for creating a random rotational basis, without relying on
 // quaternions.
@@ -338,17 +337,43 @@ struct SceneDescriptor {
   // is rounded down from the number entered into the program.
   var targetAtomCount: Int?
   
+  // We do not hold a reference / copy of the topology. The original topology in
+  // the global scope should remain the source of truth.
   var topology: Topology?
 }
 
-// We do not hold a reference / copy of the topology. The original topology in
-// the global scope should remain the source of truth.
 struct Scene {
-  var partPositions: [SIMD3<Float>] = []
-  var partRotations: [RotationBasis] = []
+  var partPositions: [SIMD3<Float>]
+  var partRotations: [RotationBasis]
   
   init(descriptor: SceneDescriptor) {
-    fatalError("Not implemented.")
+    guard let isDenselyPacked = descriptor.isDenselyPacked,
+          let targetAtomCount = descriptor.targetAtomCount,
+          let topology = descriptor.topology else {
+      fatalError("Descriptor was incomplete.")
+    }
+    
+    let partCount = targetAtomCount / topology.atoms.count
+    let spacing = getSafeSpacing(
+      topology: topology,
+      isDenselyPacked: isDenselyPacked)
+    self.partPositions = createPartPositions(
+      spacing: spacing,
+      partCount: partCount)
+    
+    self.partRotations = []
+    for _ in 0..<partCount {
+      var basis: RotationBasis
+      if isDenselyPacked {
+        basis = (
+          SIMD3<Float>(1, 0, 0),
+          SIMD3<Float>(0, 1, 0),
+          SIMD3<Float>(0, 0, 1))
+      } else {
+        basis = createRandomRotation()
+      }
+      partRotations.append(basis)
+    }
   }
 }
 
@@ -383,12 +408,32 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-let spacing = getSafeSpacing(topology: topology)
-let partPositions = createPartPositions(
-  spacing: spacing,
-  partCount: 100)
-print(partPositions.count)
-print(application.atoms.addressSpaceSize)
+var sceneDesc = SceneDescriptor()
+sceneDesc.isDenselyPacked = isDenselyPacked
+sceneDesc.targetAtomCount = application.atoms.addressSpaceSize
+sceneDesc.topology = topology
+let scene = Scene(descriptor: sceneDesc)
+print("part count:", scene.partPositions.count)
+
+guard scene.partPositions.count >= 6 else {
+  fatalError("Could not display representation of list.")
+}
+print("first positions in scene:")
+print("- \(scene.partPositions[0])")
+print("- \(scene.partPositions[1])")
+print("- \(scene.partPositions[2])")
+print("last positions in scene:")
+print("- \(scene.partPositions[scene.partPositions.count - 3])")
+print("- \(scene.partPositions[scene.partPositions.count - 2])")
+print("- \(scene.partPositions[scene.partPositions.count - 1])")
+print("first rotations in scene:")
+print("- \(scene.partRotations[0])")
+print("- \(scene.partRotations[1])")
+print("- \(scene.partRotations[2])")
+print("last rotations in scene:")
+print("- \(scene.partRotations[scene.partRotations.count - 3])")
+print("- \(scene.partRotations[scene.partRotations.count - 2])")
+print("- \(scene.partRotations[scene.partRotations.count - 1])")
 
 application.run {
   application.camera.position = SIMD3<Float>(0, 0, 20)
