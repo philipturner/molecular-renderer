@@ -9,9 +9,7 @@ extension RebuildProcess {
   static func createSource1(worldDimension: Float) -> String {
     // counters.general.rebuiltVoxelCount
     // voxels.group.rebuiltMarks
-    // voxels.group.occupiedMarks
     // voxels.group.rebuiltGroupCoords [TODO]
-    // voxels.dense.assignedSlotIDs
     // voxels.dense.rebuiltMarks
     // voxels.sparse.rebuiltVoxelCoords
     func functionSignature() -> String {
@@ -21,9 +19,6 @@ extension RebuildProcess {
         \(CrashBuffer.functionArguments),
         device atomic_uint *rebuiltVoxelCount [[buffer(1)]],
         device uint *voxelGroupRebuiltMarks [[buffer(2)]],
-        device uint *voxelGroup8OccupiedMarks [[buffer(3)]],
-        device uint *voxelGroup32OccupiedMarks [[buffer(4)]],
-        device uint *assignedSlotIDs [[buffer(5)]],
         device uchar *rebuiltMarks [[buffer(6)]],
         device uint *rebuiltVoxelCoords [[buffer(7)]],
         uint3 groupID [[threadgroup_position_in_grid]],
@@ -34,9 +29,6 @@ extension RebuildProcess {
       \(CrashBuffer.functionArguments)
       RWStructuredBuffer<uint> rebuiltVoxelCount : register(u1);
       RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u2);
-      RWStructuredBuffer<uint> voxelGroup8OccupiedMarks : register(u3);
-      RWStructuredBuffer<uint> voxelGroup32OccupiedMarks : register(u4);
-      RWStructuredBuffer<uint> assignedSlotIDs : register(u5);
       RWBuffer<uint> rebuiltMarks : register(u6);
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u7);
       
@@ -45,9 +37,6 @@ extension RebuildProcess {
         \(CrashBuffer.rootSignatureArguments)
         "UAV(u1),"
         "UAV(u2),"
-        "UAV(u3),"
-        "UAV(u4),"
-        "UAV(u5),"
         "DescriptorTable(UAV(u6, numDescriptors = 1)),"
         "UAV(u7),"
       )]
@@ -77,7 +66,7 @@ extension RebuildProcess {
       
       \(DispatchVoxelGroups.setupKernel(worldDimension: worldDimension))
       
-      if (voxelGroupRebuiltMarks[voxelGroup8ID] == 0) {
+      if (voxelGroupRebuiltMarks[voxelGroupID] == 0) {
         return;
       }
       
