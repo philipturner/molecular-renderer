@@ -59,7 +59,8 @@ func passivate(topology: inout Topology) {
 let crossThickness: Int = 16
 let crossSize: Int = 120
 let beamDepth: Int = 16 // 16 is reproducer for a bug, originally 10
-let worldDimension: Float = 96
+let actualWorldDimension: Float = 96
+let paddedWorldDimension: Float = 128
 
 func createCross() -> Topology {
   let lattice = Lattice<Cubic> { h, k, l in
@@ -112,7 +113,7 @@ func createCross() -> Topology {
     atom.position += SIMD3(0, 0, -0.800)
     
     // Shift the origin to allow larger beam depth, with fixed world dimension.
-    atom.position.z -= worldDimension / 2
+    atom.position.z -= actualWorldDimension / 2
     atom.position.z += 8
     
     // Shift so the structure is centered in X and Y.
@@ -157,7 +158,7 @@ func createBeam() -> Topology {
     atom.position.z += 2
     
     // Shift the origin to allow larger beam depth, with fixed world dimension.
-    atom.position.z -= worldDimension / 2
+    atom.position.z -= actualWorldDimension / 2
     atom.position.z += 8
     
     // Shift so the structure is centered in X and Y.
@@ -208,7 +209,7 @@ func createRotatedBeam(frameID: Int) -> Topology {
   //
   // Solution: animate by clock.frames instead of the actual time. On 120 Hz
   // systems, the benchmark will rotate 2x faster than on 60 Hz systems.
-  let angleDegrees: Float = 0 * Float(frameID)
+  let angleDegrees: Float = 3 * Float(frameID)
   let rotation = Quaternion<Float>(
     angle: angleDegrees * Float.pi / 180,
     axis: SIMD3(0, 0, 1))
@@ -258,7 +259,7 @@ func createApplication() -> Application {
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
-  applicationDesc.worldDimension = worldDimension
+  applicationDesc.worldDimension = paddedWorldDimension
   let application = Application(descriptor: applicationDesc)
   
   return application
@@ -287,7 +288,7 @@ func addRotatedBeam(frameID: Int) {
 
 application.run {
   addRotatedBeam(frameID: application.clock.frames)
-  application.camera.position = SIMD3(1, 0, 0)
+  application.camera.position = SIMD3(0, 0, (actualWorldDimension / 2) - 8)
   
   let image = application.render()
   application.present(image: image)
