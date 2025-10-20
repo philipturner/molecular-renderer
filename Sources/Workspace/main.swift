@@ -176,17 +176,20 @@ func createRandomRotation() -> RotationBasis {
   
   let random1 = createRandomDirection()
   let random2 = createRandomDirection()
+  
   var cross12 = cross(random1, random2)
   let cross12Length = (cross12 * cross12).sum().squareRoot()
   if cross12Length < 0.001 || cross12Length > 1 {
     fatalError("Could not take cross product.")
   }
-  print(cross12Length)
+  cross12 /= cross12Length
   
-  return (
-    createRandomDirection(),
-    createRandomDirection(),
-    createRandomDirection())
+  let xAxis = random1
+  let yAxis = cross12
+  let zAxis = cross(xAxis, yAxis)
+  
+  return (xAxis, yAxis, zAxis)
 }
 
-print(createRandomRotation())
+// Task: rotate a topology, analyze the spatial extent, and confirm it looks
+// sensible by rendering it.
