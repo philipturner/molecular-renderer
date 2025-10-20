@@ -2,12 +2,18 @@
 
 ## Rotating Beam
 
-Objective is to reach as many atoms as possible, until the Metal Performance HUD shows the FPS dropping below the display's native refresh rate. Windows users can detect the drop by observing stuttering in the animation.
+Objective is to reach as many atoms as possible, until the Metal Performance HUD shows the FPS dropping below the display's native refresh rate. Windows users can detect the drop by observing stuttering in the animation. When you are just at the limit of atom count, it may take a few seconds for the FPS to stabilize at the target value.
 
-| Maximum Atom Count | macOS System | Windows System |
-| ------------------ | -----------: | -------------: |
-| Theoretical        | 1,546,000    | 954,000        |
-| Actual             | ~934,000 (TODO) | TODO           |
+|                        | macOS  | Windows            |
+| ---------------------- | :----: | :----------------: |
+| FPS target             | 120    | 60                 |
+| CPU model              | M1 Max | Intel Core i5-4460 |
+| CPU cores used in test | 1      | 1                  |
+
+| Maximum Atom Count | macOS     | Windows   |
+| ------------------ | --------: | --------: |
+| Theoretical        | 1,546,000 | 954,000   |
+| Actual             | 933,742   | 820,503   |
 
 In the source code, look for the declaration of `beamDepth`. The default value is 16. Increase this number as much as possible.
 
@@ -36,7 +42,7 @@ In the source code, look for the declaration of `beamDepth`. The default value i
 
 </details>
 
-For high-end GPUs, this test should be bottlenecked by the system's CPU. There is room to improve by multithreading the Swift code for animating the beam and writing to `application.atoms`. For detailed explanation of the performance limits, study the source code in "Sources/MolecularRenderer/Atoms.swift".
+For high-end GPUs, this test should be bottlenecked by the system's CPU. There is room to improve by multithreading the Swift code for animating the beam and writing to `application.atoms`. For detailed explanation of the performance limits, see the comments in "Sources/MolecularRenderer/Atoms.swift".
 
 ## Long Distances
 

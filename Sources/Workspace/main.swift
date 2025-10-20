@@ -2,7 +2,6 @@ import HDL
 import MolecularRenderer
 
 // Remaining tasks of this PR:
-// - Revisit the rotating beam test to establish limits to atoms/frame.
 // - Work on setting up the large scene test.
 //   - Prepare compiled structures
 //   - Measure the largest spatial distance of any atom from the lattice's
@@ -19,7 +18,7 @@ import QuaternionModule
 
 let crossThickness: Int = 16
 let crossSize: Int = 120
-let beamDepth: Int = 16 // 16 is reproducer for a bug, originally 10
+let beamDepth: Int = 50 // 16 is reproducer for a bug, originally 10
 let actualWorldDimension: Float = 96
 let paddedWorldDimension: Float = 128
 
