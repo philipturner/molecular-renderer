@@ -445,10 +445,35 @@ func load(frameID: Int) {
     return startPartID..<endPartID
   }
   let partRange = createPartRange()
+  guard partRange.count > 0 else {
+    return
+  }
+  
+  nonisolated(unsafe)
+  let topologyCopy = topology
+  nonisolated(unsafe)
+  let atomsReference = application.atoms
+  @Sendable
+  func load(partID: Int) {
+    let position = scene.partPositions[partID]
+    let rotation = scene.partRotations[partID]
+    
+    let topologyCopy2 = topologyCopy
+    let atomsReference2 = atomsReference
+  }
   
   let start = Date()
-  for partID in partRange {
-    
+  if loadingUsesMultithreading {
+    DispatchQueue.concurrentPerform(
+      iterations: partRange.count
+    ) { taskID in
+      let partID = partRange.startIndex + taskID
+      load(partID: partID)
+    }
+  } else {
+    for partID in partRange {
+      load(partID: partID)
+    }
   }
   let end = Date()
   
@@ -457,12 +482,10 @@ func load(frameID: Int) {
   let latencyMicroseconds = Int(latency)
   let latencyNanoseconds = latency * 1e9
   
-  if partRange.count > 0 {
-    let atomCount = partRange.count * topology.atoms.count
-    let nsPerAtom = latencyNanoseconds / Double(atomCount)
-    let nsPerAtomRepr = String(format: "%.1f", nsPerAtom)
-    print(partRange.count, latencyMicroseconds, "μs", nsPerAtomRepr, "ns/atom")
-  }
+  let atomCount = partRange.count * topology.atoms.count
+  let nsPerAtom = latencyNanoseconds / Double(atomCount)
+  let nsPerAtomRepr = String(format: "%.1f", nsPerAtom)
+  print(partRange.count, latencyMicroseconds, "μs", nsPerAtomRepr, "ns/atom")
 }
 
 for frameID in 0..<20 {

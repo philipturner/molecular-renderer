@@ -76,8 +76,4 @@ A large number of 100k atom cubes, each with a random orientation. All packed in
 
 Another limiter to atom count might be moiré patterns. CAD workflows at the million atom scale should strive to maximize window size and minimize camera distance. By packing the nanoparts less closely, this test follows a bad practice and increases the camera distance. Therefore, we provide an option to pack the nanoparts densely and see how this affects both performance and quality.
 
-It should not be too hard to use a multithreaded loader.
-- Since `Atoms` is a class, we might be able to hold a nonisolated reference to it. Confirmed this is true.
-- Provide metrics of both ns/atom and latency of the entire function. Profile the dry run of this.
-
 TODO: Create and link a YouTube video in a future commit.
