@@ -62,6 +62,13 @@ struct ResetIdle {
   // dispatch threads SIMD3(repeating: worldDimension / 2)
   // dispatch groups  SIMD3(repeating: worldDimension / 8)
   static func resetVoxelMarks(worldDimension: Float) -> String {
+    // voxels.group.atomsRemovedMarks
+    // voxels.group.addedMarks
+    // voxels.group.rebuiltMarks
+    // voxels.group.resetGroupCoords
+    // voxels.dense.atomsRemovedMarks
+    // voxels.dense.atomicCounters
+    // voxels.dense.rebuiltMarks
     func functionSignature() -> String {
       #if os(macOS)
       """

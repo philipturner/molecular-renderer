@@ -91,13 +91,13 @@ class BVHBuilder {
       clearBuffer(
         commandList: commandList,
         clearValue: 0,
-        clearedBuffer: voxels.dense.rebuiltMarks,
-        size: voxelCount)
+        clearedBuffer: voxels.dense.atomicCounters,
+        size: voxelCount * 32)
       clearBuffer(
         commandList: commandList,
         clearValue: 0,
-        clearedBuffer: voxels.dense.atomicCounters,
-        size: voxelCount * 32)
+        clearedBuffer: voxels.dense.rebuiltMarks,
+        size: voxelCount)
       
       clearBuffer(
         commandList: commandList,

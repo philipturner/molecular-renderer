@@ -108,9 +108,6 @@ struct DispatchVoxelGroups {
 }
 
 extension BVHBuilder {
-  // TODO: Create some utility functions for encoding the target buffers
-  // into the target kernels. For both the CPU-side and GPU-side code.
-  
   func dispatchVoxelCoords(
     commandList: CommandList,
     marks1: Buffer,

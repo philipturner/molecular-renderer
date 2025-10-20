@@ -143,8 +143,8 @@ class DenseVoxelResources {
   // initialize to 0 with shader
   // purge to 0 with idle/active
   let atomsRemovedMarks: Buffer
-  let rebuiltMarks: Buffer
   let atomicCounters: Buffer
+  let rebuiltMarks: Buffer
   
   #if os(Windows)
   var atomsRemovedMarksHandleID: Int = -1
@@ -162,8 +162,8 @@ class DenseVoxelResources {
     
     self.assignedSlotIDs = createBuffer(size: voxelCount * 4)
     self.atomsRemovedMarks = createBuffer(size: voxelCount)
-    self.rebuiltMarks = createBuffer(size: voxelCount)
     self.atomicCounters = createBuffer(size: voxelCount * 32)
+    self.rebuiltMarks = createBuffer(size: voxelCount)
   }
 }
 
