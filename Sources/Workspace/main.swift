@@ -9,7 +9,8 @@ import MolecularRenderer
 //     cleaned up surfaces.
 //   - Use a common lattice dimension for all structures. Start with a small
 //     number, then scale it when other components of the test are working.
-// - Clean up the documentation and implement the remaining tests.
+//   - When done, migrate the test to the appropriate folder.
+// - Work on the large scenes test next.
 
 // MARK: - User-Facing Options
 
@@ -27,6 +28,7 @@ enum SurfaceType {
   case gold111
 }
 let surfaceType: SurfaceType = .diamond111
+let secondaryRayCount: Int = 15
 let criticalPixelCount: Float = 500
 
 // MARK: - Compile Structure
@@ -271,6 +273,7 @@ func modifyCamera() {
   }
   
   application.camera.position = position
+  application.camera.secondaryRayCount = secondaryRayCount
   application.camera.criticalPixelCount = criticalPixelCount
 }
 

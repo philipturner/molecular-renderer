@@ -20,15 +20,29 @@ Test obviously bad thresholds for the critical pixel count heuristic and check f
 
 The camera slowly moves away and activates different tiers of the ray count. Test the following surfaces: hydrogen passivated C(111), unpassivated C(110), Au(111), GaAs(110).
 
-| Surface   |
-| --------- |
+| Surface   | 500 px | 250 px | 150 px | 50 px  | 15 px  |
+| --------- | ------ | ------ | ------ | ------ | ------ |
+| C(111)    | yes    | yes    | barely | no     | no     |
+| C(110)    | yes    | barely | barely | no     | no     |
+| GaAs(110) | yes!   | yes    | yes    | barely | no     |
+| Au(111)   | yes!   | yes    | barely | no     | no     |
+
+_Whether self-shadowing appears grainy at 60 Hz._
+
+| Surface   | 500 px | 250 px | 150 px | 50 px  | 15 px  |
+| --------- | ------ | ------ | ------ | ------ | ------ |
 | C(111)    |
 | C(110)    |
 | GaAs(110) |
 | Au(111)   |
 
-_Whether self-shadowing appears grainy at 60 Hz._
-
 _Whether self-shadowing appears grainy at 120 Hz._
+
+| Surface   | 500 px | 250 px | 150 px | 50 px  | 15 px  |
+| --------- | ------ | ------ | ------ | ------ | ------ |
+| C(111)    |
+| C(110)    |
+| GaAs(110) |
+| Au(111)   |
 
 _Whether self-shadowing appears grainy at 120 Hz, with the secondary ray count overridden to 7._
