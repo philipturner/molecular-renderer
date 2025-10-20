@@ -11,37 +11,54 @@ import MolecularRenderer
 //     number, then scale it when other components of the test are working.
 // - Clean up the documentation and implement the remaining tests.
 
-let latticeSize: Float = 20
-let material: MaterialType = .elemental(.gold)
-let is111: Bool = true
+// MARK: - User-Facing Options
 
-#if false
-// Drafting the (111) basis vectors.
-let basisX = SIMD3<Float>(1, 0, -1) / Float(2).squareRoot()
-let basisY = SIMD3<Float>(-1, 2, -1) / Float(6).squareRoot()
-let basisZ = SIMD3<Float>(1, 1, 1) / Float(3).squareRoot()
-print((basisX * basisX).sum())
-print((basisY * basisY).sum())
-print((basisZ * basisZ).sum())
-print((basisX * basisY).sum())
-print((basisY * basisZ).sum())
-print((basisZ * basisX).sum())
-#endif
-
-#if false
-// Drafting the (110) basis vectors.
-let basisX = SIMD3<Float>(1, 0, 0) / Float(1).squareRoot()
-let basisY = SIMD3<Float>(0, 1, -1) / Float(2).squareRoot()
-let basisZ = SIMD3<Float>(0, 1, 1) / Float(2).squareRoot()
-print((basisX * basisX).sum())
-print((basisY * basisY).sum())
-print((basisZ * basisZ).sum())
-print((basisX * basisY).sum())
-print((basisY * basisZ).sum())
-print((basisZ * basisX).sum())
-#endif
+enum SurfaceType {
+  // Hydrogen passivated C(111) surface
+  case diamond111
+  
+  // Unpassivated C(110) surface
+  case diamond110
+  
+  // Unpassivated GaAs(110) surface
+  case galliumArsenide110
+  
+  // Au(111) surface
+  case gold111
+}
+let surfaceType: SurfaceType = .diamond111
 
 // MARK: - Compile Structure
+
+func createMaterial() -> MaterialType {
+  switch surfaceType {
+  case .diamond111:
+    return .elemental(.carbon)
+  case .diamond110:
+    return .elemental(.carbon)
+  case .galliumArsenide110:
+    return .checkerboard(.gallium, .arsenic)
+  case .gold111:
+    return .elemental(.gold)
+  }
+}
+
+func createIs111() -> Bool {
+  switch surfaceType {
+  case .diamond111:
+    return true
+  case .diamond110:
+    return false
+  case .galliumArsenide110:
+    return false
+  case .gold111:
+    return true
+  }
+}
+
+let latticeSize: Float = 20
+let material = createMaterial()
+let is111 = createIs111()
 
 func passivate(topology: inout Topology) {
   func createHydrogen(
@@ -199,6 +216,32 @@ func createApplication() -> Application {
   return application
 }
 let application = createApplication()
+
+#if false
+// Drafting the (111) basis vectors.
+let basisX = SIMD3<Float>(1, 0, -1) / Float(2).squareRoot()
+let basisY = SIMD3<Float>(-1, 2, -1) / Float(6).squareRoot()
+let basisZ = SIMD3<Float>(1, 1, 1) / Float(3).squareRoot()
+print((basisX * basisX).sum())
+print((basisY * basisY).sum())
+print((basisZ * basisZ).sum())
+print((basisX * basisY).sum())
+print((basisY * basisZ).sum())
+print((basisZ * basisX).sum())
+#endif
+
+#if false
+// Drafting the (110) basis vectors.
+let basisX = SIMD3<Float>(1, 0, 0) / Float(1).squareRoot()
+let basisY = SIMD3<Float>(0, 1, -1) / Float(2).squareRoot()
+let basisZ = SIMD3<Float>(0, 1, 1) / Float(2).squareRoot()
+print((basisX * basisX).sum())
+print((basisY * basisY).sum())
+print((basisZ * basisZ).sum())
+print((basisX * basisY).sum())
+print((basisY * basisZ).sum())
+print((basisZ * basisX).sum())
+#endif
 
 for atomID in topology.atoms.indices {
   let atom = topology.atoms[atomID]
