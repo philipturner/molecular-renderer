@@ -6,9 +6,17 @@ Minimum OS version: Windows 10
 
 Minimum GPU architecture: [Maxwell 2.0 (NVIDIA)](https://en.wikipedia.org/wiki/Maxwell_(microarchitecture)), [RDNA 1.0 (AMD)](https://en.wikipedia.org/wiki/RDNA_(microarchitecture))
 
-## Downloading Binaries
+## Setting Up IDE
 
-Run `./install-libraries.bat` in Git Bash, at the repo directory.
+Open Git Bash in a location convenient for accessing in File Explorer. Run the following commands:
+
+```
+git clone https://github.com/philipturner/molecular-renderer
+cd molecular-renderer
+./install-libraries.bat
+```
+
+Follow the program startup instructions. Confirm that the template in `main.swift` prints "Hello, world." to the VS Code terminal.
 
 ## Program Startup
 

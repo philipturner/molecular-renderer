@@ -1,4 +1,4 @@
-# User Interface
+# Renderer Window
 
 With the renderer API, a window of your chosen resolution appears at program startup. You specify the monitor on which it appears, upscale factor (1x, 2x, 3x), and resolution after upscaling.
 

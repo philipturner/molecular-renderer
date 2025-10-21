@@ -4,15 +4,9 @@
 
 Molecular Renderer employs a GUI-free, IDE-like workflow. You download the Swift package, open the source code in an IDE, and edit Swift files in the `Workspace` directory. These files compile on every program startup.
 
-You open a renderer window through an API. You can also perform other operations, like running simulations, accessing files on disk, and saving rendered frames into a video file. You incorporate external Swift modules through `Package.swift`. `run.sh` can be edited to link external C libraries and set environment variables.
+You open the renderer window through an API. You can also perform other operations, like running simulations, accessing files on disk, and saving rendered frames into a video file. You incorporate external Swift modules through `Package.swift`. `run.sh` can be edited to link external C libraries and set environment variables.
 
 ## Installation
-
-Open a terminal in a location convenient for accessing in the File Explorer. Download the source code:
-
-```
-git clone https://github.com/philipturner/molecular-renderer
-```
 
 [macOS Instructions](./Documentation/macos-instructions.md)
 
@@ -20,7 +14,7 @@ git clone https://github.com/philipturner/molecular-renderer
 
 ## Usage
 
-[User Interface](./Documentation/user-interface.md)
+[Renderer Window](./Documentation/renderer-window.md)
 
 [Tests](./Documentation/Tests/README.md)
 
