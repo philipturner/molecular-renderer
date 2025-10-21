@@ -222,8 +222,6 @@ func modifyCamera() {
   }
   
   func createPosition() -> SIMD3<Float> {
-    // WARNING: Restore the correct expression here.
-    //
     // latticeSizeXY / 2 for debugging correctness
     // latticeSizeXY / 3 for benchmark
     var output = SIMD3<Float>(

@@ -561,4 +561,3 @@ application.run {
   image = application.upscale(image: image)
   application.present(image: image)
 }
-
