@@ -4,7 +4,7 @@
 
 Animation where both the molecule and camera are rotating. Alternates between isopropanol and silane every 3 seconds. Checks that the upscaler can correctly keep track of motion vectors, while upscaling the resolution by 3x.
 
-Reference video for users to compare their upscaling quality: [YouTube](https://www.youtube.com/shorts/4LudSkOQRgs)
+Reference video for users to compare their upscaling quality: [YouTube](https://youtube.com/shorts/4LudSkOQRgs)
 
 ## OpenMM Plugin Test
 
@@ -22,7 +22,7 @@ Temperature, calculated from $\frac{3}{2}$ kT of kinetic energy per atom, should
 
 With 2 fs time steps and 10 fs frames, the energy rises to -29 zJ after only 3 frames. It randomly fluctuates between -29 zJ and -41 zJ for the rest of the simulation. The MM4 default of 2.5 fs changes this envelope to -19 zJ and -36 zJ.
 
-Reference video: [YouTube](https://www.youtube.com/shorts/JQeyLJWGyVU)
+Reference video: [YouTube](https://youtube.com/shorts/JQeyLJWGyVU)
 
 ## xTB
 
@@ -40,4 +40,4 @@ Compile a Ge-substituted adamantane cage, and use this base to procedurally grow
 
 At the time of writing, the Windows xTB executable is compiled with OpenBLAS to "work at all". The macOS executable uses Accelerate, which exploits Apple-specific AMX hardware to speed up operations on very small matrices. The region of ~70 atoms or ~200 orbitals (200x200 Hamiltonian matrix) is where the AMX shines the most. The minimization completed in 5.5 s on macOS and 29 s on Windows.
 
-Reference video: [YouTube](https://www.youtube.com/shorts/rV1UGau20xQ)
+Reference video: [YouTube](https://youtube.com/shorts/rV1UGau20xQ)

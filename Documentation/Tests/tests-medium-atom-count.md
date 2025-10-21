@@ -22,7 +22,7 @@ The trajectory of the minimization varies slightly due to randomness. Perhaps ra
 | 269       | -6216.90 eV |
 | 291       | -6216.91 eV |
 
-TODO: Create and link a YouTube video
+Reference video: [YouTube](https://youtube.com/shorts/2B3KiKqO_Wc)
 
 ## Critical Pixel Count
 
