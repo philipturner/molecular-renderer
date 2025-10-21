@@ -12,15 +12,15 @@ Proof of concept of energy minimization using custom FIRE algorithm, proving the
 
 The trajectory of the minimization varies slightly due to randomness. Perhaps random accumulation of atomics in the GPU code, or random reordering of floating point operations. The convergence criterion is that all atoms have under 10 pN of force. Perhaps floating point rounding error can be the deciding factor for this. Here are the outcomes I have seen:
 
-| end trial | energy      |
-| --------: | ----------: |
-| 230       | -6216.84 eV |
-| 236       | -6216.85 eV |
-| 238       | -6216.88 eV |
-| 252       | -6216.88 eV |
-| 260       | -6216.90 eV |
-| 269       | -6216.90 eV |
-| 291       | -6216.91 eV |
+| end iteration ID | energy      |
+| ---------------: | ----------: |
+| 230              | -6216.84 eV |
+| 236              | -6216.85 eV |
+| 238              | -6216.88 eV |
+| 252              | -6216.88 eV |
+| 260              | -6216.90 eV |
+| 269              | -6216.90 eV |
+| 291              | -6216.91 eV |
 
 Reference video: [YouTube](https://youtube.com/shorts/2B3KiKqO_Wc)
 
