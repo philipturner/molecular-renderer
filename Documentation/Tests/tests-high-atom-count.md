@@ -77,7 +77,7 @@ Another limiter to atom count might be moiré patterns. CAD workflows at the mil
 | Maximum Atom Count           | macOS       | Windows    |
 | ---------------------------- | ----------: | ---------: |
 | Theoretical                  | 300,000,000 | 33,000,000 |
-| Actual (Dense Packing)       |             | 18,818,624 |
+| Actual (Dense Packing)       | 153,970,560 | 18,818,624 |
 | Actual (Inefficient Packing) |             | 14,007,004 |
 
 When the Windows machine reaches the limit of atom count, the BVH update process is sometimes noticeably slower. Probably the ~50 ms, $O(1)$ latency for paging data. There is a small amount of wiggle room (~10% difference) where out-of-memory issues may plague the BVH update process, but not the render process. I took data until rendering showed signs of breaking down.
