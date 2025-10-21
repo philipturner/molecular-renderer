@@ -22,6 +22,8 @@ The trajectory of the minimization varies slightly due to randomness. Perhaps ra
 | 269              | -6216.90 eV |
 | 291              | -6216.91 eV |
 
+I could not try with the 0.3 pN tolerance recommended in the `FIRE.swift` utility. After a few hundred frames, the max force started fluctuating at 3.0&ndash;5.5 pN. The energy stabilized at -6216.93 eV. If this is a limitation due to precision in OpenMM, perhaps 10 pN is cutting it too close. MM4 energy minimizations might need to use a larger force tolerance.
+
 Reference video: [YouTube](https://youtube.com/shorts/2B3KiKqO_Wc)
 
 ## Critical Pixel Count
