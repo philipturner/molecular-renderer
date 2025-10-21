@@ -5,13 +5,9 @@ import QuaternionModule
 import xTB
 
 // Remaining tasks of this PR:
-// - Re-activate the simulators.
-// - Clean up the documentation.
-//   - Fix the binary license for the xTB downloads.
-//   - Test whether alternative file hosters are more reliable on Windows. I
-//     don't need to use the GitHub releases section of the respective repos.
-//     If needed, I could even make a dedicated repo for binary releases.
-//   - 'molecular-renderer-simulator-binaries' repo name?
+// - Clean up the documentation
+//   - Package the binaries in 'molecular-renderer-simulator-binaries'.
+//   - Refactor into a single 'install-libraries' script on each platform.
 // - Verify the existing tests and correct the GitHub Gist one.
 // - Implement the last test.
 
