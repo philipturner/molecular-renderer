@@ -4,6 +4,8 @@ Prerequisites: [Swift (Manual Installation)](https://www.swift.org/install/windo
 
 Minimum OS version: Windows 10
 
+Minimum GPU architecture: [Maxwell 2.0 (NVIDIA)](https://en.wikipedia.org/wiki/Maxwell_(microarchitecture)), [RDNA 1.0 (AMD)](https://en.wikipedia.org/wiki/RDNA_(microarchitecture))
+
 ## Downloading Binaries
 
 Run `./install-libraries.bat` in Git Bash, at the repo directory.

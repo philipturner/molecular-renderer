@@ -4,6 +4,8 @@ Prerequisites: [Xcode](https://developer.apple.com/xcode)
 
 Minimum OS version: macOS 15
 
+Minimum GPU architecture: [M1 (Apple)](https://en.wikipedia.org/wiki/Apple_silicon)
+
 ## Downloading Binaries
 
 Run `bash install-libraries.sh` in Terminal, at the repo directory.
