@@ -56,8 +56,6 @@ The structure is a hydrogen-passivated, Si(100)-(2×1) lattice generated with [`
 
 ## Large Scenes
 
-> TODO: Implement in the acceleration structure PR. We can make this more doable by removing the need to build the BVH super quick. Instead, just the camera rotating around the Y axis to survey the entire scene.
-
 Objective is to reach as many atoms as possible, until your GPU runs out of memory.
 
 A large number of 100k atom cubes, each with a random orientation. All packed in a grid, with a spacing to ensure they don't overlap. This hits the pain points of partial filling that waste memory, therefore being a realistic example of achievable atom count.

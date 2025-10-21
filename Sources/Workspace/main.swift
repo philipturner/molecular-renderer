@@ -6,9 +6,10 @@ import MolecularRenderer
 import QuaternionModule
 
 // Remaining tasks of this PR:
-// - Work on setting up the large scene test.
-//   - Dry run the loading process.
-//   - Implement the option to use multithreading.
+// - Gather benchmark data on macOS.
+// - Clean up the code base (all TODOs).
+// - Install OpenMM and implement the last test.
+// - Clean up the documentation.
 
 // MARK: - User-Facing Options
 
@@ -35,7 +36,7 @@ let worldDimension: Float = 384
 //  60° - good for avoiding moiré patterns
 // 110° - good for actually seeing what's going on
 //
-// moiré patterns are a little bit less severe on macOS, probably due to the
+// Moiré patterns are a little bit less severe on macOS, probably due to the
 // use of MetalFX instead of FidelityFX.
 let fovAngleDegrees: Float = 110
 
