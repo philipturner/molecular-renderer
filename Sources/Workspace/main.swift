@@ -14,8 +14,8 @@ import QuaternionModule
 // MARK: - User-Facing Options
 
 let isDenselyPacked: Bool = true
-let desiredAtomCount: Int = 120_000_000
-let voxelAllocationSize: Int = 12_000_000_000
+let desiredAtomCount: Int = 156_000_000
+let voxelAllocationSize: Int = 15_000_000_000
 
 // Loading speed in parts/frame (107k atoms/part).
 //
@@ -286,7 +286,7 @@ func createPartPositions(
   
   // Find a cube size, iterate until we converge on the desired count.
   var improvedPartCount = partCount
-  for _ in 0..<10 {
+  for _ in 0..<30 {
     let candidate = candidateOutput(
       approximatePartCount: improvedPartCount)
     
