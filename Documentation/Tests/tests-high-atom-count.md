@@ -62,15 +62,15 @@ A large number of 107k atom cubes, each with a random orientation. All packed in
 
 | Chip            | RAM    | Theoretical Max Atoms | Actual Max Atoms |
 | --------------- | -----: | --------------------: | ---------------: |
-| GTX 970         | 3.5 GB | 33M   |     |
-| M1 @ 60 Hz      |   8 GB | 75M   | n/a |
-| M1 Pro @ 120 Hz |  16 GB | 150M  | n/a |
-| 7900 XTX        |  24 GB | 225M  | n/a |
-| RTX 4090        |  24 GB | 225M  | n/a |
-| M1 Max          |  32 GB | 300M  |     |
-| RTX 5090        |  32 GB | 300M  | n/a |
-| M3 Max          | 128 GB | 1200M | n/a |
-| M3 Ultra        | 512 GB | 4800M | n/a |
+| GTX 970         | 3.5 GB | 33M   |  14M |
+| M1 @ 60 Hz      |   8 GB | 75M   |  n/a |
+| M1 Pro @ 120 Hz |  16 GB | 150M  |  n/a |
+| 7900 XTX        |  24 GB | 225M  |  n/a |
+| RTX 4090        |  24 GB | 225M  |  n/a |
+| M1 Max          |  32 GB | 300M  | 109M |
+| RTX 5090        |  32 GB | 300M  |  n/a |
+| M3 Max          | 128 GB | 1200M |  n/a |
+| M3 Ultra        | 512 GB | 4800M |  n/a |
 
 Another limiter to atom count might be moiré patterns. CAD workflows at the million atom scale should strive to maximize window size and minimize camera distance. By packing the nanoparts less closely, this test follows a bad practice and increases the camera distance. Therefore, we provide an option to pack the nanoparts densely and see how this affects both performance and quality.
 
@@ -78,7 +78,7 @@ Another limiter to atom count might be moiré patterns. CAD workflows at the mil
 | ---------------------------- | ----------: | ---------: |
 | Theoretical                  | 300,000,000 | 33,000,000 |
 | Actual (Dense Packing)       | 153,970,560 | 18,818,624 |
-| Actual (Inefficient Packing) |             | 14,007,004 |
+| Actual (Inefficient Packing) | 109,917,872 | 14,007,004 |
 
 When the Windows machine reaches the limit of atom count, the BVH update process is sometimes noticeably slower. Probably the ~50 ms, $O(1)$ latency for paging data. There is a small amount of wiggle room (~10% difference) where out-of-memory issues may plague the BVH update process, but not the render process. I took data until rendering showed signs of breaking down.
 
@@ -88,4 +88,4 @@ I boosted the resolution to 1620x1620 and the FPS stabilized at 110 FPS. That is
 
 macOS also had problems with the BVH update process breaking down earlier than the render process. In one instance, the entire application broke down at 160M atoms. I switched to 150M atoms and noticed an unavoidable FPS drop to 60 FPS during the loading sequence. However, the application could chonk 1.07M atoms/frame easily at 120M atoms while retaining 120 FPS during the loading.
 
-TODO: Create and link a YouTube video in a future commit.
+Reference video: [YouTube](https://youtube.com/shorts/_FhmSKeUxDQ)

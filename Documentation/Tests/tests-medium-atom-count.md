@@ -12,7 +12,7 @@ Proof of concept of energy minimization using custom FIRE algorithm, proving the
 
 Uses the same {100} reconstructed cube as the previous test. Quite literally a visualization of atoms moving to reconstruct into dimers. Since the nanopart is a cube, surface strain does not significantly warp the physical dimensions.
 
-TODO: Create and link a YouTube video in a future commit.
+TODO: Create and link a YouTube video
 
 ## Critical Pixel Count
 
