@@ -6,11 +6,21 @@ Simple test that the ray tracing acceleration structure works correctly, with no
 
 ## MM4 Energy Minimization
 
-> TODO: Implement in the acceleration structure PR. We can make this more doable by omitting key-value SSD caching.
-
-Proof of concept of energy minimization using custom FIRE algorithm, proving there is no need for the built-in minimizer from OpenMM. Relies on GitHub gist.
+Proof of concept of energy minimization using custom FIRE algorithm, proving there is no need for the built-in minimizer from OpenMM.
 
 Uses the same {100} reconstructed cube as the previous test. Quite literally a visualization of atoms moving to reconstruct into dimers. Since the nanopart is a cube, surface strain does not significantly warp the physical dimensions.
+
+The trajectory of the minimization varies slightly due to randomness. Perhaps random accumulation of atomics in the GPU code, or random reordering of floating point operations. The convergence criterion is that all atoms have under 10 pN of force. Perhaps floating point rounding error can be the deciding factor for this. Here are the outcomes I have seen:
+
+| end trial | energy      |
+| --------: | ----------: |
+| 230       | -6216.84 eV |
+| 236       | -6216.85 eV |
+| 238       | -6216.88 eV |
+| 252       | -6216.88 eV |
+| 260       | -6216.90 eV |
+| 269       | -6216.90 eV |
+| 291       | -6216.91 eV |
 
 TODO: Create and link a YouTube video
 
