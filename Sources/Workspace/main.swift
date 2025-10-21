@@ -22,7 +22,7 @@ let voxelAllocationSize: Int = 2_050_000_000
 // Multithreading may have annihilated the CPU-side bottleneck. We are getting
 // 2.4 ns/atom for combined 'rotate animation' and 'API usage'. That reduces
 // the CPU-side bottleneck from 17.47 ns/atom -> 9.65 nm/atom on the Windows
-// machine. Still not enough to overtake the GPU-side bottleneck.
+// machine. Still not enough to make the GPU-side bottleneck dominate.
 //
 // CPU: 9.55 ns/atom -> 9.55 ms @ 1M atoms
 // GPU: 7.33 ns/atom -> 7.33 ms @ 1M atoms
