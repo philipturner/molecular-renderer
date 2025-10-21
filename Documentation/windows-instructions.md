@@ -24,6 +24,8 @@ Open the source code in VS Code by double-clicking `Package.swift`. Navigate to 
 
 Go to <b>Terminal</b> > <b>New Terminal</b> in the top menu bar, then <b>TERMINAL</b> in the sub-window that appears at the bottom of the IDE. Run `./run.bat` in the interactive terminal. Run on every program startup.
 
-On the first ever program startup, it is normal for the compilation to take over a minute on older hardware. `-Xswiftc -Ounchecked` allows these build products to be reused on subsequent program runs.
+## Issues
+
+On the first ever program startup, compilation may take over a minute on older CPUs. `-Xswiftc -Ounchecked` allows these build products to be reused on subsequent program runs.
 
 During some program startups, the renderer window is hidden behind the VS Code window. Check for something new appearing in the task bar at the bottom of your screen. Click that icon to bring the renderer into focus.
