@@ -49,8 +49,10 @@ enum BufferType {
     switch self {
     case .input:
       return D3D12_RESOURCE_STATE_GENERIC_READ
-    case .native:
-      return D3D12_RESOURCE_STATE_COMMON
+    case .native(.constant):
+      return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+    case .native(.device):
+      return D3D12_RESOURCE_STATE_UNORDERED_ACCESS
     case .output:
       return D3D12_RESOURCE_STATE_COPY_DEST
     }
@@ -166,11 +168,14 @@ class Buffer {
   /// Write data to the buffer.
   ///
   /// The data must be the input to a future GPU copy command.
-  func write(input: UnsafeRawBufferPointer) {
+  func write(
+    input: UnsafeRawBufferPointer,
+    offset: Int = 0
+  ) {
     guard let baseAddress = input.baseAddress else {
       fatalError("Input was invalid.")
     }
-    guard input.count <= size else {
+    guard offset + input.count <= size else {
       fatalError("Input exceeded buffer allocation size.")
     }
     
@@ -183,19 +188,25 @@ class Buffer {
     default:
       fatalError("Can only write to input buffers.")
     }
+    guard let mappedPointer else {
+      fatalError("Could not retrieve mapped pointer.")
+    }
     #endif
     
-    memcpy(mappedPointer, baseAddress, input.count)
+    memcpy(mappedPointer + offset, baseAddress, input.count)
   }
   
   /// Read data from the buffer.
   ///
   /// The data must be the output of a previous GPU copy command.
-  func read(output: UnsafeMutableRawBufferPointer) {
+  func read(
+    output: UnsafeMutableRawBufferPointer,
+    offset: Int = 0
+  ) {
     guard let baseAddress = output.baseAddress else {
       fatalError("Input was invalid.")
     }
-    guard output.count <= size else {
+    guard offset + output.count <= size else {
       fatalError("Input exceeded buffer allocation size.")
     }
     
@@ -208,9 +219,12 @@ class Buffer {
     default:
       fatalError("Can only read from output buffers.")
     }
+    guard let mappedPointer else {
+      fatalError("Could not retrieve mapped pointer.")
+    }
     #endif
     
-    memcpy(baseAddress, mappedPointer, output.count)
+    memcpy(baseAddress, mappedPointer + offset, output.count)
   }
   
   #if os(Windows)
@@ -218,8 +232,7 @@ class Buffer {
   /// barrier representing the transition.
   ///
   /// Never call this function if it will transition between two identical
-  /// states. As of writing, it is assumed that client code will always be able
-  /// to anticipate the resource state.
+  /// states.
   func transition(
     state: D3D12_RESOURCE_STATES
   ) -> D3D12_RESOURCE_BARRIER {

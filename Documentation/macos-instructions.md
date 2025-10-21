@@ -4,11 +4,19 @@ Prerequisites: [Xcode](https://developer.apple.com/xcode)
 
 Minimum OS version: macOS 15
 
-## Downloading Binaries
+Minimum GPU architecture: [M1 (Apple)](https://en.wikipedia.org/wiki/Apple_silicon)
 
-Run `bash install-openmm.sh` in Terminal, at the repo directory.
+## Setting Up IDE
 
-Run `bash install-xtb.sh` in Terminal, at the repo directory.
+Open Terminal in a location convenient for accessing in Finder. Run the following commands:
+
+```
+git clone https://github.com/philipturner/molecular-renderer
+cd molecular-renderer
+bash install-libraries.sh
+```
+
+Follow the program startup instructions. Confirm that the template in `main.swift` prints "Hello, world." to Terminal.
 
 ## Program Startup
 

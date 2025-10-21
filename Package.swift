@@ -92,10 +92,6 @@ packageDependencies.append(.package(
 // make any changes to the code. Nonetheless, it's workable.
 //
 // WARNING: Do not launch the application from Git Bash on Windows.
-//
-// The problem may have been fixed by migrating the raw binary dependencies to
-// the 'MolecularRenderer' module. I have not tested this hypothesis, and am
-// sticking with the guidance above.
 
 #if os(Windows)
 packageDependencies.append(.package(

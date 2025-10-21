@@ -56,34 +56,16 @@ struct RingBuffer {
   #if os(Windows)
   func copy(
     commandList: CommandList,
-    inFlightFrameID: Int
+    inFlightFrameID: Int,
+    range: Range<Int>? = nil
   ) {
     let inputBuffer = inputBuffers[inFlightFrameID]
     let nativeBuffer = nativeBuffers[inFlightFrameID]
     
-    let copyDestBarrier = nativeBuffer
-      .transition(state: D3D12_RESOURCE_STATE_COPY_DEST)
-    try! commandList.d3d12CommandList.ResourceBarrier(
-      1, [copyDestBarrier])
-    
     commandList.upload(
       inputBuffer: inputBuffer,
-      nativeBuffer: nativeBuffer)
-    
-    func createState() -> D3D12_RESOURCE_STATES {
-      switch nativeBuffer.type {
-      case .native(.constant):
-        return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
-      case .native(.device):
-        return D3D12_RESOURCE_STATE_UNORDERED_ACCESS
-      default:
-        fatalError("This should never happen.")
-      }
-    }
-    let unorderedAccessBarrier = nativeBuffer
-      .transition(state: createState())
-    try! commandList.d3d12CommandList.ResourceBarrier(
-      1, [unorderedAccessBarrier])
+      nativeBuffer: nativeBuffer,
+      range: range)
   }
   #endif
 }

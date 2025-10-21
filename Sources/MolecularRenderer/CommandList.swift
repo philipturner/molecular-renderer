@@ -9,6 +9,7 @@ struct CommandListDescriptor {
   #if os(macOS)
   var mtlCommandBuffer: MTLCommandBuffer?
   #else
+  var commandSignature: SwiftCOM.ID3D12CommandSignature?
   var d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList?
   var fenceValue: UInt64?
   #endif
@@ -20,6 +21,7 @@ class CommandList {
   
   var mtlCommandEncoder: MTLComputeCommandEncoder
   #else
+  let commandSignature: SwiftCOM.ID3D12CommandSignature
   let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList
   
   // The fence value in the command queue that created this.
@@ -40,7 +42,8 @@ class CommandList {
       fatalError("Descriptor was incomplete.")
     }
     #else
-    guard let d3d12CommandList = descriptor.d3d12CommandList,
+    guard let commandSignature = descriptor.commandSignature,
+          let d3d12CommandList = descriptor.d3d12CommandList,
           let fenceValue = descriptor.fenceValue else {
       fatalError("Descriptor was incomplete.")
     }
@@ -50,6 +53,7 @@ class CommandList {
     self.mtlCommandBuffer = mtlCommandBuffer
     self.mtlCommandEncoder = mtlCommandBuffer.makeComputeCommandEncoder()!
     #else
+    self.commandSignature = commandSignature
     self.d3d12CommandList = d3d12CommandList
     self.fenceValue = fenceValue
     #endif
@@ -169,6 +173,52 @@ extension CommandList {
       groups[2]) // ThreadGroupCountZ
     #endif
   }
+  
+  /// Launch a kernel via indirect dispatch.
+  ///
+  /// WARNING: The buffer used for indirect arguments must not be bound to
+  /// the buffer table.
+  func dispatchIndirect(
+    buffer: Buffer,
+    offset: Int = 0
+  ) {
+    #if os(macOS)
+    guard let shader else {
+      fatalError("Pipeline state was not set.")
+    }
+    #else
+    guard shader != nil else {
+      fatalError("Pipeline state was not set.")
+    }
+    #endif
+    
+    #if os(macOS)
+    mtlCommandEncoder.dispatchThreadgroups(
+      indirectBuffer: buffer.mtlBuffer,
+      indirectBufferOffset: offset,
+      threadsPerThreadgroup: shader.threadsPerGroup)
+    #else
+    let desiredState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT
+    let originalState = buffer.state
+    if originalState != desiredState {
+      let barrier = buffer.transition(state: desiredState)
+      try! d3d12CommandList.ResourceBarrier(1, [barrier])
+    }
+    
+    try! d3d12CommandList.ExecuteIndirect(
+      commandSignature, // pCommandSignature
+      UInt32(1), // MaxCommandCount
+      buffer.d3d12Resource, // pArgumentBuffer
+      UInt64(offset), // ArgumentBufferOffset
+      nil, // pCountBuffer
+      UInt64(0)) // CountBufferOffset
+    
+    if originalState != desiredState {
+      let barrier = buffer.transition(state: originalState)
+      try! d3d12CommandList.ResourceBarrier(1, [barrier])
+    }
+    #endif
+  }
 }
 
 // MARK: - Copy Commands
@@ -177,7 +227,8 @@ extension CommandList {
 extension CommandList {
   func upload(
     inputBuffer: Buffer,
-    nativeBuffer: Buffer
+    nativeBuffer: Buffer,
+    range: Range<Int>? = nil
   ) {
     guard shader == nil else {
       fatalError(
@@ -189,22 +240,37 @@ extension CommandList {
       fatalError("Input buffer had an unexpected state.")
     }
     
-    // Set the state of the native buffer.
-    let desiredNativeState = D3D12_RESOURCE_STATE_COPY_DEST
-    if nativeBuffer.state != desiredNativeState {
-      let barrier = nativeBuffer.transition(state: desiredNativeState)
+    let desiredState = D3D12_RESOURCE_STATE_COPY_DEST
+    let originalState = nativeBuffer.state
+    if originalState != desiredState {
+      let barrier = nativeBuffer.transition(state: desiredState)
       try! d3d12CommandList.ResourceBarrier(1, [barrier])
     }
     
     // Encode the copy command.
-    try! d3d12CommandList.CopyResource(
-      nativeBuffer.d3d12Resource, // pDstResource
-      inputBuffer.d3d12Resource) // pSrcResource
+    if let range {
+      try! d3d12CommandList.CopyBufferRegion(
+        nativeBuffer.d3d12Resource, // pDstBuffer
+        UInt64(range.startIndex), // DstOffset
+        inputBuffer.d3d12Resource, // pSrcBuffer
+        UInt64(range.startIndex), // SrcOffset
+        UInt64(range.count))
+    } else {
+      try! d3d12CommandList.CopyResource(
+        nativeBuffer.d3d12Resource, // pDstResource
+        inputBuffer.d3d12Resource) // pSrcResource
+    }
+    
+    if originalState != desiredState {
+      let barrier = nativeBuffer.transition(state: originalState)
+      try! d3d12CommandList.ResourceBarrier(1, [barrier])
+    }
   }
   
   func download(
     nativeBuffer: Buffer,
-    outputBuffer: Buffer
+    outputBuffer: Buffer,
+    range: Range<Int>? = nil
   ) {
     guard shader == nil else {
       fatalError(
@@ -216,17 +282,31 @@ extension CommandList {
       fatalError("Output buffer had an unexpected state.")
     }
     
-    // Set the state of the native buffer.
-    let desiredNativeState = D3D12_RESOURCE_STATE_COPY_SOURCE
-    if nativeBuffer.state != desiredNativeState {
-      let barrier = nativeBuffer.transition(state: desiredNativeState)
+    let desiredState = D3D12_RESOURCE_STATE_COPY_SOURCE
+    let originalState = nativeBuffer.state
+    if originalState != desiredState {
+      let barrier = nativeBuffer.transition(state: desiredState)
       try! d3d12CommandList.ResourceBarrier(1, [barrier])
     }
     
     // Encode the copy command.
-    try! d3d12CommandList.CopyResource(
-      outputBuffer.d3d12Resource, // pDstResource
-      nativeBuffer.d3d12Resource) // pSrcResource
+    if let range {
+      try! d3d12CommandList.CopyBufferRegion(
+        outputBuffer.d3d12Resource, // pDstBuffer
+        UInt64(range.startIndex), // DstOffset
+        nativeBuffer.d3d12Resource, // pSrcBuffer
+        UInt64(range.startIndex), // SrcOffset
+        UInt64(range.count))
+    } else {
+      try! d3d12CommandList.CopyResource(
+        outputBuffer.d3d12Resource, // pDstResource
+        nativeBuffer.d3d12Resource) // pSrcResource
+    }
+    
+    if originalState != desiredState {
+      let barrier = nativeBuffer.transition(state: originalState)
+      try! d3d12CommandList.ResourceBarrier(1, [barrier])
+    }
   }
 }
 #endif

@@ -23,11 +23,12 @@ private func dxcompiler_compile(
 
 struct ShaderDescriptor {
   var device: Device?
+  #if os(macOS)
+  var maxTotalThreadsPerThreadgroup: Int?
+  #endif
   var name: String?
   var source: String?
-  #if os(macOS)
   var threadsPerGroup: SIMD3<UInt16>?
-  #endif
 }
 
 class Shader {
@@ -42,14 +43,10 @@ class Shader {
   init(descriptor: ShaderDescriptor) {
     guard let device = descriptor.device,
           let name = descriptor.name,
-          let source = descriptor.source else {
+          let source = descriptor.source,
+          let threadsPerGroup = descriptor.threadsPerGroup else {
       fatalError("Descriptor was incomplete.")
     }
-    #if os(macOS)
-    guard let threadsPerGroup = descriptor.threadsPerGroup else {
-      fatalError("Descriptor was incomplete.")
-    }
-    #endif
     
     #if os(macOS)
     // Create the library.
@@ -63,8 +60,22 @@ class Shader {
     }
     
     // Create the pipeline state.
-    self.mtlComputePipelineState = try! device.mtlDevice
-      .makeComputePipelineState(function: function)
+    func createPipelineState() -> MTLComputePipelineState {
+      if let maxGroupSize = descriptor.maxTotalThreadsPerThreadgroup {
+        let computePipelineDesc = MTLComputePipelineDescriptor()
+        computePipelineDesc.computeFunction = function
+        computePipelineDesc.maxTotalThreadsPerThreadgroup = maxGroupSize
+        
+        return try! device.mtlDevice.makeComputePipelineState(
+          descriptor: computePipelineDesc,
+          options: [],
+          reflection: nil)
+      } else {
+        return try! device.mtlDevice.makeComputePipelineState(
+          function: function)
+      }
+    }
+    self.mtlComputePipelineState = createPipelineState()
     
     // Store the number of threads per threadgroup.
     do {
@@ -128,6 +139,82 @@ class Shader {
     // Create the pipeline state.
     self.d3d12PipelineState = try! device.d3d12Device
       .CreateComputePipelineState(pipelineStateDesc)
+    #endif
+  }
+  
+  static var importStandardLibrary: String {
+    #if os(macOS)
+    """
+    #include <metal_stdlib>
+    using namespace metal;
+    """
+    #else
+    ""
+    #endif
+  }
+  
+  // Logical AND operation on vectors.
+  static func and(_ lhs: String, _ rhs: String) -> String {
+    #if os(macOS)
+    "(\(lhs)) && (\(rhs))"
+    #else
+    "and(\(lhs), \(rhs))"
+    #endif
+  }
+  
+  // Logical OR operation on vectors.
+  static func or(_ lhs: String, _ rhs: String) -> String {
+    #if os(macOS)
+    "(\(lhs)) || (\(rhs))"
+    #else
+    "or(\(lhs), \(rhs))"
+    #endif
+  }
+  
+  // Select operation with correct argument order.
+  static func select(
+    _ falseValue: String,
+    _ trueValue: String,
+    _ condition: String
+  ) -> String {
+    #if os(macOS)
+    "select(\(falseValue), \(trueValue), \(condition))"
+    #else
+    "select(\(condition), \(trueValue), \(falseValue))"
+    #endif
+  }
+  
+  static var asfloat: String {
+    #if os(macOS)
+    "as_type<float>"
+    #else
+    "asfloat"
+    #endif
+  }
+  
+  static var asuint: String {
+    #if os(macOS)
+    "as_type<uint>"
+    #else
+    "asuint"
+    #endif
+  }
+  
+  // Force a loop to unroll.
+  static var unroll: String {
+    #if os(macOS)
+    "#pragma clang loop unroll(full)"
+    #else
+    "[unroll]"
+    #endif
+  }
+  
+  // Disable unrolling for a loop
+  static var loop: String {
+    #if os(macOS)
+    "#pragma clang loop unroll(disable)"
+    #else
+    "[loop]"
     #endif
   }
 }

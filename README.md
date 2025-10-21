@@ -2,30 +2,24 @@
 
 # Molecular Renderer
 
-> The current code base is limited to handling a few hundred atoms. This is an interim commit until _CAD at the million atom scale_ is implemented by mid October 2025.
+Molecular Renderer employs a GUI-free, IDE-like workflow. You download the Swift package, open the source code in an IDE, and edit Swift files in the "Sources/Workspace" directory. These files compile on every program startup.
 
-Molecular Renderer employs a GUI-free, IDE-like workflow. You download the Swift package, open the source code in an IDE, and edit Swift files in the `Workspace` directory. These files compile on every program startup.
+You open the renderer window through an API. You can also perform other operations, like running simulations, accessing files on disk, and saving rendered frames into a video file.
 
-You open a renderer window through an API. You can also perform other operations, like running simulations, accessing files on disk, and saving rendered frames into a video file. You incorporate external Swift modules through `Package.swift`. `run.sh` can be edited to link external C libraries and set environment variables.
-
-## Usage
-
-Open a terminal in a location convenient for accessing in the File Explorer. Download the source code:
-
-```
-git clone https://github.com/philipturner/molecular-renderer
-```
+## Installation
 
 [macOS Instructions](./Documentation/macos-instructions.md)
 
 [Windows Instructions](./Documentation/windows-instructions.md)
 
-[Google Drive](https://drive.google.com/drive/folders/1zLNHuiN0CINJoaOwDX03eWMMOwJ3ljzW?usp=drive_link) folder for simulator binaries
+## Usage
+
+[Renderer Window](./Documentation/renderer-window.md)
+
+[Tests](./Documentation/Tests/README.md)
 
 ## Documentation
 
-[User Interface](./Documentation/user-interface.md)
+[Render Process](./Documentation/render-process.md)
 
-[Tests](./Documentation/tests.md)
-
-[Other Documentation](./Documentation/other-documentation.md)
+[BVH Update Process](./Documentation/bvh-update-process.md)
