@@ -10,8 +10,6 @@ powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSD
 powershell -c "Import-Module Microsoft.Powershell.Archive"
 powershell -c "Expand-Archive -Force 'dxc_2025_07_14.zip' 'dxc_2025_07_14'"
 
-:: Workaround for issue with the linker on Windows: binaries must all reside
-:: in the top-level folder.
 copy /Y dxc_2025_07_14\bin\x64\dxcompiler.dll "../dxcompiler.dll"
 copy /Y dxc_2025_07_14\lib\x64\dxcompiler.lib "../dxcompiler.lib"
 copy /Y amd_fidelityfx_upscaler_dx12.dll "../amd_fidelityfx_upscaler_dx12.dll"
