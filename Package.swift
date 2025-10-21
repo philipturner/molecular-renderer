@@ -17,18 +17,18 @@ workspaceDependencies += [
   .product(name: "Atomics", package: "swift-atomics"),
   .product(name: "HDL", package: "HDL"),
   .product(name: "Numerics", package: "swift-numerics"),
-//  .product(name: "MM4", package: "MM4"),
+  .product(name: "MM4", package: "MM4"),
   "MolecularRenderer",
-//  .product(name: "OpenMM", package: "swift-openmm"),
-//  .product(name: "xTB", package: "swift-xtb"),
+  .product(name: "OpenMM", package: "swift-openmm"),
+  .product(name: "xTB", package: "swift-xtb"),
 ]
-//workspaceLinkerSettings += [
-//  .linkedLibrary("OpenMM"),
-//]
-//#if os(macOS)
-//workspaceLinkerSettings.append(
-//  .unsafeFlags(["-L\(Context.packageDirectory)"]))
-//#endif
+workspaceLinkerSettings += [
+  .linkedLibrary("OpenMM"),
+]
+#if os(macOS)
+workspaceLinkerSettings.append(
+  .unsafeFlags(["-L\(Context.packageDirectory)"]))
+#endif
 
 // Windows dependencies.
 #if os(Windows)
@@ -71,17 +71,17 @@ packageDependencies.append(.package(
 
 // Simulator dependencies
 
-//packageDependencies.append(.package(
-//  url: "https://github.com/philipturner/MM4",
-//  branch: "main"))
-//
-//packageDependencies.append(.package(
-//  url: "https://github.com/philipturner/swift-openmm",
-//  branch: "main"))
-//
-//packageDependencies.append(.package(
-//  url: "https://github.com/philipturner/swift-xtb",
-//  branch: "main"))
+packageDependencies.append(.package(
+  url: "https://github.com/philipturner/MM4",
+  branch: "main"))
+
+packageDependencies.append(.package(
+  url: "https://github.com/philipturner/swift-openmm",
+  branch: "main"))
+
+packageDependencies.append(.package(
+  url: "https://github.com/philipturner/swift-xtb",
+  branch: "main"))
 
 // MARK: - Windows Targets
 
@@ -92,10 +92,6 @@ packageDependencies.append(.package(
 // make any changes to the code. Nonetheless, it's workable.
 //
 // WARNING: Do not launch the application from Git Bash on Windows.
-//
-// The problem may have been fixed by migrating the raw binary dependencies to
-// the 'MolecularRenderer' module. I have not tested this hypothesis, and am
-// sticking with the guidance above.
 
 #if os(Windows)
 packageDependencies.append(.package(
