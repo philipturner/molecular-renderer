@@ -29,9 +29,9 @@ copy /Y amd_fidelityfx_upscaler_dx12.lib "../amd_fidelityfx_upscaler_dx12.lib"
 :: I don't know why, but ZIP files packaged myself always have an extra level
 :: of directory hierarchy than the ZIP for DXCompiler. If I try to work around
 :: this, the OS marks 'openmm-windows.zip' as a virus and removes it before I
-:: can do anything with it. The way the binaries are now, it doesn't detect as
-:: a virus. However, downloading from Microsoft Edge causes some strange
-:: waiting period within the OS UI, before it can be unzipped.
+:: can do anything with it. The way the binaries are now, the OS doesn't flag
+:: OpenMM as a virus. However, downloading from Microsoft Edge causes some
+:: strange waiting period within the OS UI, before it can be unzipped.
 copy /Y openmm-windows\openmm-windows\OpenMM.dll "../OpenMM.dll"
 copy /Y openmm-windows\openmm-windows\OpenMM.lib "../OpenMM.lib"
 copy /Y openmm-windows\openmm-windows\OpenMMOpenCL.dll "../OpenMMOpenCL.dll"
