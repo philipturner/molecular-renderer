@@ -2,7 +2,7 @@
 
 # Molecular Renderer
 
-Molecular Renderer employs a GUI-free, IDE-like workflow. You download the Swift package, open the source code in an IDE, and edit Swift files in the `Workspace` directory. These files compile on every program startup.
+Molecular Renderer employs a GUI-free, IDE-like workflow. You download the Swift package, open the source code in an IDE, and edit Swift files in the "Sources/Workspace" directory. These files compile on every program startup.
 
 You open the renderer window through an API. You can also perform other operations, like running simulations, accessing files on disk, and saving rendered frames into a video file.
 
