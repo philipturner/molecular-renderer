@@ -2,13 +2,17 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
-let crossThickness: Int = 16
-let crossSize: Int = 120
-let beamDepth: Int = 16 // 16 is reproducer for a bug, originally 10
-let actualWorldDimension: Float = 96
-let paddedWorldDimension: Float = 128
+// MARK: - User-Facing Options
+
+// 16 is reproducer for a bug, originally 10.
+let beamDepth: Int = 16
 
 // MARK: - Compile Structures
+
+let crossThickness: Int = 16
+let crossSize: Int = 120
+let actualWorldDimension: Float = 96
+let paddedWorldDimension: Float = 128
 
 func passivate(topology: inout Topology) {
   func createHydrogen(

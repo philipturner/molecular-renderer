@@ -3,10 +3,9 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
-// MARK: - Compile Structure
+// MARK: - User-Facing Options
 
 let latticeSizeXY: Float = 32
-let latticeSizeZ: Float = 2
 let screenDimension: Int = 1440
 let worldDimension: Float = 256
 do {
@@ -21,6 +20,10 @@ do {
     fatalError("Lattice was too large for the world.")
   }
 }
+
+// MARK: - Compile Structure
+
+let latticeSizeZ: Float = 2
 
 func passivate(topology: inout Topology) {
   func createHydrogen(
