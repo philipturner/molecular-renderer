@@ -23,15 +23,15 @@ struct PerformanceMeter {
 
 extension Application {
   nonisolated(unsafe)
-  static var updateMeter = PerformanceMeter()
+  private static var updateMeter = PerformanceMeter()
   nonisolated(unsafe)
-  static var renderMeter = PerformanceMeter()
+  private static var renderMeter = PerformanceMeter()
   nonisolated(unsafe)
-  static var forgetMeter = PerformanceMeter()
+  private static var forgetMeter = PerformanceMeter()
   nonisolated(unsafe)
-  static var upscaleMeter = PerformanceMeter()
+  private static var upscaleMeter = PerformanceMeter()
   
-  public func checkCrashBuffer(frameID: Int) {
+  func checkCrashBuffer(frameID: Int) {
     if frameID >= 3 {
       let elementCount = CounterResources.crashBufferSize / 4
       var output = [UInt32](repeating: .zero, count: elementCount)
@@ -54,7 +54,7 @@ extension Application {
     }
   }
   
-  public func checkExecutionTime(frameID: Int) {
+  func checkExecutionTime(frameID: Int) {
     if frameID >= 3 {
       #if os(Windows)
       let destinationBuffer = bvhBuilder.counters
@@ -109,19 +109,10 @@ extension Application {
       Self.renderMeter.integrate(renderLatency)
       Self.forgetMeter.integrate(forgetLatency)
       Self.upscaleMeter.integrate(upscaleLatency)
-      
-      // TODO Remove the following code before merging the PR.
-      #if true
-      print(
-        PerformanceMeter.pad(updateLatency),
-        PerformanceMeter.pad(renderLatency),
-        PerformanceMeter.pad(forgetLatency),
-        PerformanceMeter.pad(upscaleLatency))
-      #endif
     }
   }
   
-  public func updateBVH(inFlightFrameID: Int) {
+  func updateBVH(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
@@ -211,7 +202,7 @@ extension Application {
     }
   }
   
-  public func forgetIdleState(inFlightFrameID: Int) {
+  func forgetIdleState(inFlightFrameID: Int) {
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
       try! commandList.d3d12CommandList.EndQuery(

@@ -65,7 +65,7 @@ struct ResetIdle {
     // voxels.group.atomsRemovedMarks
     // voxels.group.addedMarks
     // voxels.group.rebuiltMarks
-    // voxels.group.resetGroupCoords [TODO]
+    // voxels.group.resetGroupCoords
     // voxels.dense.atomsRemovedMarks
     // voxels.dense.atomicCounters
     // voxels.dense.rebuiltMarks
