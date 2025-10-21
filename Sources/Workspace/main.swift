@@ -58,7 +58,7 @@ func createTopology() -> Topology {
 }
 let topology = createTopology()
 
-// MARK: - Drafting the Minimization
+// MARK: - Run Minimization
 
 // Utility for logging quantities to the console.
 struct Format {
@@ -162,3 +162,48 @@ func minimize(atoms: [Atom], anchorIDs: [UInt32] = []) -> [[Atom]] {
   return frames
 }
 */
+
+var paramsDesc = MM4ParametersDescriptor()
+paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+paramsDesc.bonds = topology.bonds
+let parameters = try! MM4Parameters(descriptor: paramsDesc)
+
+var forceFieldDesc = MM4ForceFieldDescriptor()
+forceFieldDesc.parameters = parameters
+let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+
+var minimizationDesc = FIREMinimizationDescriptor()
+minimizationDesc.masses = parameters.atoms.masses
+minimizationDesc.positions = topology.atoms.map(\.position)
+var minimization = FIREMinimization(descriptor: minimizationDesc)
+
+let maxIterationCount: Int = 500
+for trialID in 0..<maxIterationCount {
+  forceField.positions = minimization.positions
+  
+  let forces = forceField.forces
+  var maximumForce: Float = .zero
+  for atomID in topology.atoms.indices {
+    let force = forces[atomID]
+    let forceMagnitude = (force * force).sum().squareRoot()
+    maximumForce = max(maximumForce, forceMagnitude)
+  }
+  
+  let energy = forceField.energy.potential
+  print("time: \(Format.time(minimization.time))", terminator: " | ")
+  print("energy: \(Format.energy(energy))", terminator: " | ")
+  print("max force: \(Format.force(maximumForce))", terminator: " | ")
+  
+  let converged = minimization.step(forces: forces)
+  if !converged {
+    print("Δt: \(Format.time(minimization.Δt))", terminator: " | ")
+  }
+  print()
+  
+  if converged {
+    print("converged at trial \(trialID)")
+    break
+  } else if trialID == maxIterationCount - 1 {
+    print("failed to converge!")
+  }
+}
