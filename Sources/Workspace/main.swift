@@ -14,12 +14,12 @@ import QuaternionModule
 // MARK: - User-Facing Options
 
 let isDenselyPacked: Bool = true
-let desiredAtomCount: Int = 156_000_000
-let voxelAllocationSize: Int = 15_000_000_000
+let desiredAtomCount: Int = 155_000_000
+let voxelAllocationSize: Int = 14_900_000_000
 
 // Loading speed in parts/frame (107k atoms/part).
 //
-// Multithreading may have annihilated the CPU-side bottleneck. We are getting
+// Multithreading may have eliminated the CPU-side bottleneck. We are getting
 // 2.4 ns/atom for combined 'rotate animation' and 'API usage'. That reduces
 // the CPU-side bottleneck from 17.47 ns/atom -> 9.65 nm/atom on the Windows
 // machine. Still not enough to make the GPU-side bottleneck dominate.
@@ -286,7 +286,7 @@ func createPartPositions(
   
   // Find a cube size, iterate until we converge on the desired count.
   var improvedPartCount = partCount
-  for _ in 0..<30 {
+  for i in 0..<30 {
     let candidate = candidateOutput(
       approximatePartCount: improvedPartCount)
     
@@ -299,6 +299,11 @@ func createPartPositions(
     
     var partCountFloat = Float(improvedPartCount)
     partCountFloat /= ratio
+    if i > 10 {
+      // Speed up convergence of the algorithm.
+      // 1.04^20 = 2.19
+      partCountFloat *= 1.04
+    }
     partCountFloat.round(.down)
     improvedPartCount = Int(partCountFloat)
   }
@@ -406,7 +411,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1200, 1200)
+  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   

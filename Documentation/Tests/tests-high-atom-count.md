@@ -84,7 +84,7 @@ When the Windows machine reaches the limit of atom count, the BVH update process
 
 For the macOS machine, the per-pixel cost was starting to skyrocket at ~120M atoms. While the FPS monitor technically showed 120 FPS sporadically, there was a constant pattern of spikes that never stabilized. I reduced the screen size from 1440x1440 -> 1200x1200. While the measured per-frame latency didn't change from 6.6 ms, the lag spikes disappeared. The change also started some incredibly severe moiré patterns.
 
-I boosted the resolution to 1620x1620 and the FPS stabilized at 110 FPS. That is 120 FPS with a very consistent pattern of lag spikes. For the remainder of the benchmark, I switched between 1200x1200 and 1440x1440 as desired.
+I boosted the resolution to 1620x1620 and the FPS stabilized at 110 FPS. That is 120 FPS with a very consistent pattern of lag spikes. For the remainder of the benchmark, I switched between 1200x1200 and 1440x1440 as desired. Switching from 110° FOV to 60° FOV drastically reduced the rendering cost, making 1440x1440 viable at 150M atoms and eliminating moiré patterns. Now, both 1200x1200 and 1440x1440 measure 3.3 ms on the GPU timeline.
 
 macOS also had problems with the BVH update process breaking down earlier than the render process. In one instance, the entire application broke down at 160M atoms. I switched to 150M atoms and noticed an unavoidable FPS drop to 60 FPS during the loading sequence. However, the application could chonk 1.07M atoms/frame easily at 120M atoms while retaining 120 FPS during the loading.
 
