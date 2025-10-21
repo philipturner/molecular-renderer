@@ -14,8 +14,8 @@ import QuaternionModule
 // MARK: - User-Facing Options
 
 let isDenselyPacked: Bool = true
-let desiredAtomCount: Int = 150_000_000
-let voxelAllocationSize: Int = 15_000_000_000
+let desiredAtomCount: Int = 120_000_000
+let voxelAllocationSize: Int = 12_000_000_000
 
 // Loading speed in parts/frame (107k atoms/part).
 //
@@ -38,7 +38,7 @@ let worldDimension: Float = 384
 //
 // Moiré patterns are a little bit less severe on macOS, probably due to the
 // use of MetalFX instead of FidelityFX.
-let fovAngleDegrees: Float = 110
+let fovAngleDegrees: Float = 60
 
 // MARK: - Compile Structure
 
@@ -544,7 +544,7 @@ func modifyCamera() {
   application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
   application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
   application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
-  application.camera.fovAngleVertical = Float.pi / 180 * 110
+  application.camera.fovAngleVertical = Float.pi / 180 * fovAngleDegrees
 }
 
 application.run {
