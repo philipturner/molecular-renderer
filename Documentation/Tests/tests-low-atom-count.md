@@ -34,7 +34,7 @@ At ~0.145 nm, the magnitude of the attractive force reaches its highest point. A
 
 ## Propargyl Alcohol Tripod
 
-Copy the four Swift files from this [GitHub Gist](https://gist.github.com/philipturner/5bd74838b1018ae68d23110622407a42) into the `Workspace` folder. It may be easiest to use <b>Download ZIP</b> on the GitHub Gist website and drag the files into the source folder.
+Copy the four Swift files from this [GitHub Gist](https://gist.github.com/philipturner/5bd74838b1018ae68d23110622407a42) into "Sources/Workspace". It may be easiest to use <b>Download ZIP</b> on the GitHub Gist website and drag the files into the source folder.
 
 Compile a Ge-substituted adamantane cage, and use this base to procedurally grow the legs. The orientations of the linkers have been modified, with feedback from earlier minimization attempts, to accelerate convergence of the minimization. The tripod's Ge apex connects to a carbon dimer feedstock, capped with a free radical. The entire molecule has an odd number of electrons.
 
