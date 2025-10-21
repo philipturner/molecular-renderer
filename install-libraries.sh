@@ -1,11 +1,14 @@
+mkdir .build
+
+## Install OpenMM
+
 # This is the only part of OpenMM that I couldn't isolate from Miniforge.
 # Luckily, configuring it requires no file URLs to the Miniforge directory.
 conda install -c conda-forge ocl_icd_wrapper_apple --yes
 
-mkdir .build
 cd .build
 
-curl -L -o "openmm-macos.zip" "https://drive.google.com/uc?export=download&id=1GkOZm8CR8ezRtOgvrittQMbny_fT3HXd"
+curl -L -o "openmm-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.0/openmm-macos.zip"
 unzip -o openmm-macos.zip
 
 cd ../ # balance 'cd .build'
@@ -35,3 +38,14 @@ codesign --verify --verbose libc++.1.dylib
 codesign --verify --verbose libOpenCL.1.dylib
 codesign --verify --verbose libOpenMM.dylib
 codesign --verify --verbose libOpenMMOpenCL.dylib
+
+## Install xTB
+
+cd .build
+
+curl -L -o "xtb-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.0/xtb-macos.zip"
+unzip -o xtb-macos.zip
+
+cd ../ # balance 'cd .build'
+
+cp ".build/xtb-macos/libxtb.dylib" libxtb.dylib
