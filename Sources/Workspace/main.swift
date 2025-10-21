@@ -12,9 +12,9 @@ import QuaternionModule
 
 // MARK: - User-Facing Options
 
-let isDenselyPacked: Bool = true
-let desiredAtomCount: Int = 8_000_000
-let voxelAllocationSize: Int = 1_500_000_000
+let isDenselyPacked: Bool = false
+let desiredAtomCount: Int = 14_100_000
+let voxelAllocationSize: Int = 2_050_000_000
 
 // Loading speed in parts/frame (107k atoms/part).
 //
@@ -34,6 +34,9 @@ let worldDimension: Float = 384
 
 //  60° - good for avoiding moiré patterns
 // 110° - good for actually seeing what's going on
+//
+// moiré patterns are a little bit less severe on macOS, probably due to the
+// use of MetalFX instead of FidelityFX.
 let fovAngleDegrees: Float = 110
 
 // MARK: - Compile Structure
