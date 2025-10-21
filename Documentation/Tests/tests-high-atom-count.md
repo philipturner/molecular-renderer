@@ -86,4 +86,6 @@ For the macOS machine, the per-pixel cost was starting to skyrocket at ~120M ato
 
 I boosted the resolution to 1620x1620 and the FPS stabilized at 110 FPS. That is 120 FPS with a very consistent pattern of lag spikes. For the remainder of the benchmark, I switched between 1200x1200 and 1440x1440 as desired.
 
+macOS also had problems with the BVH update process breaking down earlier than the render process. In one instance, the entire application broke down at 160M atoms. I switched to 150M atoms and noticed an unavoidable FPS drop to 60 FPS during the loading sequence. However, the application could chonk 1M atoms/frame easily at 120M atoms while retaining 120 FPS during the loading.
+
 TODO: Create and link a YouTube video in a future commit.
