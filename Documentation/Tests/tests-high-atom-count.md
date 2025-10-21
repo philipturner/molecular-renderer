@@ -82,4 +82,8 @@ Another limiter to atom count might be moiré patterns. CAD workflows at the mil
 
 When the Windows machine reaches the limit of atom count, the BVH update process is sometimes noticeably slower. Probably the ~50 ms, $O(1)$ latency for paging data. There is a small amount of wiggle room (~10% difference) where out-of-memory issues may plague the BVH update process, but not the render process. I took data until rendering showed signs of breaking down.
 
+For the macOS machine, the per-pixel cost was starting to skyrocket at ~120M atoms. While the FPS monitor technically showed 120 FPS sporadically, there was a constant pattern of spikes that never stabilized. I reduced the screen size from 1440x1440 -> 1200x1200. While the measured per-frame latency didn't change from 6.6 ms, the lag spikes disappeared. The change also started some incredibly severe moiré patterns.
+
+I boosted the resolution to 1620x1620 and the FPS stabilized at 110 FPS. That is 120 FPS with a very consistent pattern of lag spikes. For the remainder of the benchmark, I switched between 1200x1200 and 1440x1440 as desired.
+
 TODO: Create and link a YouTube video in a future commit.

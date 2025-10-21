@@ -13,9 +13,9 @@ import QuaternionModule
 
 // MARK: - User-Facing Options
 
-let isDenselyPacked: Bool = false
-let desiredAtomCount: Int = 14_100_000
-let voxelAllocationSize: Int = 2_050_000_000
+let isDenselyPacked: Bool = true
+let desiredAtomCount: Int = 120_000_000
+let voxelAllocationSize: Int = 12_000_000_000
 
 // Loading speed in parts/frame (107k atoms/part).
 //
@@ -406,7 +406,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
+  displayDesc.frameBufferSize = SIMD2<Int>(1620, 1620)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
