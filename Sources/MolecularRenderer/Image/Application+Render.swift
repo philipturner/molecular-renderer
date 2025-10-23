@@ -305,6 +305,24 @@ extension Application {
     }
     
     var output = Image()
+    if display.isOffline {
+      device.commandQueue.flush()
+      
+      #if os(macOS)
+      let buffer = imageResources.renderTarget.nativeBuffer!
+      #else
+      let buffer = imageResources.renderTarget.outputBuffer!
+      #endif
+      
+      let frameBufferSize = display.frameBufferSize
+      let pixelCount = frameBufferSize[0] * frameBufferSize[1]
+      var data = [SIMD4<Float16>](repeating: .zero, count: pixelCount)
+      data.withUnsafeMutableBytes { bufferPointer in
+        buffer.read(output: bufferPointer)
+      }
+      
+      output.pixels = data
+    }
     output.scaleFactor = 1
     return output
   }

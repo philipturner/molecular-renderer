@@ -42,9 +42,9 @@ class RenderTarget {
     }
     self.upscaleFactor = upscaleFactor
     
-    let intermediateSize = self.intermediateSize(display: display)
-    
     if !display.isOffline {
+      let intermediateSize = self.intermediateSize(display: display)
+      
       #if os(macOS)
       // Ensure the textures use lossless compression.
       device.commandQueue.withCommandList { commandList in
@@ -168,7 +168,8 @@ class RenderTarget {
       var bufferDesc = BufferDescriptor()
       bufferDesc.device = device
       
-      let size = intermediateSize[0] * intermediateSize[1] * 8
+      let frameBufferSize = display.frameBufferSize
+      let size = frameBufferSize[0] * frameBufferSize[1] * 8
       bufferDesc.size = size
       
       bufferDesc.type = .native(.device)

@@ -26,7 +26,7 @@ class Window: NSViewController, NSApplicationDelegate {
       defer: false,
       screen: display.nsScreen)
     
-    let workArea = display.nsScreen.visibleFrame
+    let workArea = display.nsScreen!.visibleFrame
     let workAreaCenter = SIMD2<Double>(workArea.midX, workArea.midY)
     
     let contentSize = display.contentSize
@@ -71,7 +71,7 @@ class Window {
   init(display: Display) {
     Self.registerWindowClass()
     
-    let monitor = Display.monitor(output: display.dxgiOutput)
+    let monitor = Display.monitor(output: display.dxgiOutput!)
     let workArea = Display.workArea(monitor: monitor)
     let workAreaCenter = (workArea.lowHalf &+ workArea.highHalf) / 2
     
