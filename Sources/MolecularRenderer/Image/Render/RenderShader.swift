@@ -299,25 +299,6 @@ struct RenderShader {
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersectPrimary(query);
       
-      // Leave this code here to save effort if you stumble upon another bug.
-      /*
-      if (\(Reduction.waveIsFirstLane())) {
-        if (intersect.atomID != 0) {
-          bool acquiredLock = false;
-          \(CrashBuffer.acquireLock(errorCode: 3))
-          if (acquiredLock) {
-            crashBuffer[1] = 0;
-            crashBuffer[2] = 0;
-            crashBuffer[3] = 0;
-            crashBuffer[4] = intersect.atomID;
-            crashBuffer[5] = 0;
-            crashBuffer[6] = 0;
-          }
-          return;
-        }
-      }
-      */
-      
       // Write the depth and motion vector ASAP, reducing register pressure.
       \(computeDepth())
       \(computeMotionVector())
