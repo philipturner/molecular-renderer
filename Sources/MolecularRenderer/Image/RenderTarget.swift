@@ -223,13 +223,5 @@ class RenderTarget {
       }
     }
   }
-  
-  var descriptorCount: Int {
-    if upscaleFactor == 1 {
-      return 2
-    } else {
-      return 8
-    }
-  }
   #endif
 }
