@@ -2,6 +2,8 @@
 
 ![Render Process Diagram](./RenderProcessDiagram.png)
 
+Revision: offline rendering uses synchronous code instead of asynchronous handlers. There is no triple-buffering in the backend, because speed is not the primary design goal for offline renders.
+
 ## Rendering Performance
 
 The time to render a frame is a multiplication of many variables. Like the Drake Equation, changing a few by 2x could change the end result by 10x. Users can tune these variables to render as many pixels as possible, while still producing one frame per display refresh period.
@@ -144,4 +146,8 @@ The behavior of `frameID` also changes in the offline mode. It starts at 0, and 
 ---
 
 First steps:
-- Modify the render target API
+- Get the current code working and tested with these revisions
+  - Test that frameID increments after `render()`, exclusively in the offline mode.
+  - Test this on both platforms.
+- Delete the text above
+- Start working on the first test that uses this new functionality
