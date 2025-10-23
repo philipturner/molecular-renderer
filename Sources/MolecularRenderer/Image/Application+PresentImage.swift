@@ -33,6 +33,16 @@ private func presentImageTransition(
 
 extension Application {
   public func present(image: Image) {
+    #if os(macOS)
+    guard let view else {
+      fatalError("Cannot call present for offline rendering.")
+    }
+    #else
+    guard let swapChain else {
+      fatalError("Cannot call present for offline rendering.")
+    }
+    #endif
+    
     guard image.scaleFactor == imageResources.renderTarget.upscaleFactor else {
       fatalError("Received image with incorrect scale factor.")
     }
