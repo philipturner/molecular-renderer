@@ -7,7 +7,7 @@ struct ImageResourcesDescriptor {
 
 class ImageResources {
   let renderShader: Shader
-  let renderTarget: RenderTarget
+  let renderTarget: RenderTarget // TODO: Make this optional
   let upscaler: Upscaler?
   
   var cameraArgsBuffer: RingBuffer

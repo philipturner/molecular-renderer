@@ -12,6 +12,13 @@ struct RenderShader {
     // voxels.dense.assignedSlotIDs
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
+      // TODO: Color texture argument, which depends on the rendering mode.
+      // - Online: color texture from render target
+      // - Offline: GPU-side buffer that will be copied back to CPU
+      //
+      // Also change render arguments to specify the framebuffer width and
+      // height, instead of relying on dimension queries in shader code.
+      
       func optionalFunctionArguments() -> String {
         guard upscaleFactor > 1 else {
           return ""

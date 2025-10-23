@@ -137,6 +137,15 @@ Offline rendering doesn't need to use a queue, triple-buffering, or asynchronous
 
 We can enforce the absence of upscaling for offline renders. `application.render()` can instead be a synchronous function. The output `Image` data type now owns an array or pointer, which the user reads to get raw pixel data. We can recycle existing `Buffer` functionality for this, and simply make a shader that converts image RGB10A2 to buffer RGBA8.
 
+> Edit the shader code generation to write directly to a buffer. All of this can be very, very simple.
+
 We don't need 10 bits of pixel precision because we aren't rendering to 10-bit displays. In fact, we degrade the quality for YUV 4:2:0. And 8 bits in 3 channels is still much better than GIF. PNG does not officially support 10-bit mode. For video, 10-bit is often for HDR and H.265.
 
 The behavior of `frameID` also changes in the offline mode. It starts at 0, and increases after every call to `render()`.
+
+---
+
+First steps:
+- Change the render target to be optional (but always initialized)
+- Change how the shader queries color texture dimensions
+- Get a test working with these changes
