@@ -15,9 +15,6 @@ struct RenderShader {
       // TODO: Color texture argument, which depends on the rendering mode.
       // - Online: color texture from render target
       // - Offline: GPU-side buffer that will be copied back to CPU
-      //
-      // Also change render arguments to specify the framebuffer width and
-      // height, instead of relying on dimension queries in shader code.
       
       func optionalFunctionArguments() -> String {
         guard upscaleFactor > 1 else {
@@ -126,21 +123,6 @@ struct RenderShader {
       #endif
     }
     
-    func queryScreenDimensions() -> String {
-      #if os(macOS)
-      """
-      uint2 screenDimensions(colorTexture.get_width(),
-                             colorTexture.get_height());
-      """
-      #else
-      """
-      uint2 screenDimensions;
-      colorTexture.GetDimensions(screenDimensions.x,
-                                 screenDimensions.y);
-      """
-      #endif
-    }
-    
     func write(
       _ value: String,
       texture: String
@@ -230,9 +212,11 @@ struct RenderShader {
         float2 screenCoords = rayDirection.xy;
         screenCoords /= cameraArgs.data[1].tangentFactor;
         screenCoords.y = -screenCoords.y;
-        screenCoords.x *= float(screenDimensions.y) / float(screenDimensions.x);
+        screenCoords.x *= float(renderArgs.screenDimensions.y);
+        screenCoords.x /= float(renderArgs.screenDimensions.x);
         screenCoords = (screenCoords + 1) / 2;
-        float2 previousPixelCoords = screenCoords * float2(screenDimensions);
+        float2 previousPixelCoords = screenCoords;
+        previousPixelCoords *= float2(renderArgs.screenDimensions);
         
         // Compare against current coordinates.
         float2 currentPixelCoords = float2(pixelCoords) + 0.5;
@@ -277,10 +261,8 @@ struct RenderShader {
     {
       \(allocateTapeMac())
       
-      // Query the screen's dimensions.
-      \(queryScreenDimensions())
-      if ((pixelCoords.x >= screenDimensions.x) ||
-          (pixelCoords.y >= screenDimensions.y)) {
+      if ((pixelCoords.x >= renderArgs.screenDimensions.x) ||
+          (pixelCoords.y >= renderArgs.screenDimensions.y)) {
         return;
       }
       
@@ -306,7 +288,7 @@ struct RenderShader {
       float3 primaryRayDirection =
       RayGeneration::primaryRayDirection(dzdt,
                                          pixelCoords,
-                                         screenDimensions,
+                                         renderArgs.screenDimensions,
                                          renderArgs.jitterOffset,
                                          cameraArgs.data[0].tangentFactor,
                                          cameraArgs.data[0].basis);
@@ -365,7 +347,7 @@ struct RenderShader {
           if (renderArgs.criticalPixelCount > 0) {
             float pixelCount = 2 * sqrt(hitAtom[3]);
             pixelCount /= (-dzdt * intersect.distance);
-            pixelCount *= float(screenDimensions.y);
+            pixelCount *= float(renderArgs.screenDimensions.y);
             pixelCount /= 2 * cameraArgs.data[0].tangentFactor;
             pixelCount *= renderArgs.upscaleFactor;
             

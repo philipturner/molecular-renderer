@@ -144,6 +144,4 @@ The behavior of `frameID` also changes in the offline mode. It starts at 0, and 
 ---
 
 First steps:
-- Change how the shader queries color texture dimensions
-- Get a test working with these changes
 - Modify the render target API

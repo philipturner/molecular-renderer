@@ -86,6 +86,10 @@ extension Application {
   
   private func createRenderArgs() -> RenderArgs {
     var renderArgs = RenderArgs()
+    let screenDimensions = imageResources.renderTarget
+      .intermediateSize(display: display)
+    renderArgs.screenDimensions = SIMD2<UInt32>(
+      truncatingIfNeeded: screenDimensions)
     renderArgs.jitterOffset = createJitterOffset()
     renderArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
     renderArgs.upscaleFactor = imageResources.renderTarget.upscaleFactor
