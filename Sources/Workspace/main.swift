@@ -2,6 +2,8 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
+let renderingOffline: Bool = false
+
 @MainActor
 func createApplication() -> Application {
   // Set up the device.
@@ -13,14 +15,20 @@ func createApplication() -> Application {
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
   displayDesc.frameBufferSize = SIMD2<Int>(1440, 1080)
-  /// displayDesc.monitorID = device.fastestMonitorID
+  if !renderingOffline {
+    displayDesc.monitorID = device.fastestMonitorID
+  }
   let display = Display(descriptor: displayDesc)
   
   // Set up the application.
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 1
+  if !renderingOffline {
+    applicationDesc.upscaleFactor = 3
+  } else {
+    applicationDesc.upscaleFactor = 1
+  }
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
@@ -67,10 +75,17 @@ func createSilane() -> [SIMD4<Float>] {
 
 @MainActor
 func createTime() -> Float {
-  let elapsedFrames = application.frameID
-  let frameRate: Int = 60
-  let seconds = Float(elapsedFrames) / Float(frameRate)
-  return seconds
+  if !renderingOffline {
+    let elapsedFrames = application.clock.frames
+    let frameRate = application.display.frameRate
+    let seconds = Float(elapsedFrames) / Float(frameRate)
+    return seconds
+  } else {
+    let elapsedFrames = application.frameID
+    let frameRate: Int = 60
+    let seconds = Float(elapsedFrames) / Float(frameRate)
+    return seconds
+  }
 }
 
 @MainActor
@@ -135,13 +150,15 @@ func modifyCamera() {
 }
 
 // Enter the run loop.
-for _ in 0..<10 {
+application.run {
   modifyAtoms()
   modifyCamera()
   
   // TODO: Check that pixel count is zero when online.
   print(application.frameID, terminator: " ")
-  let image = application.render()
+  var image = application.render()
   print(application.frameID, terminator: " ")
   print(image.pixels.count)
+  image = application.upscale(image: image)
+  application.present(image: image)
 }
