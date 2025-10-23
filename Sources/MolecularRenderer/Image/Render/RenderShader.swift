@@ -160,7 +160,8 @@ struct RenderShader {
         }
         
         return """
-        uint pixelAddress = pixelCoords.y * screenDimensions.x + pixelCoords.x;
+        uint pixelAddress = pixelCoords.x;
+        pixelAddress += pixelCoords.y * renderArgs.screenDimensions.x;
         colorBuffer[pixelAddress] = \(castHalf4("float4(color, 0)"));
         """
       }
