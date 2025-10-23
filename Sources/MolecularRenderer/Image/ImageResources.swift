@@ -29,6 +29,7 @@ class ImageResources {
     #endif
     shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     shaderDesc.source = RenderShader.createSource(
+      isOffline: display.isOffline,
       upscaleFactor: upscaleFactor,
       worldDimension: worldDimension)
     self.renderShader = Shader(descriptor: shaderDesc)

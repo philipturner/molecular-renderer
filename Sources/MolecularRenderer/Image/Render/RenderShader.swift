@@ -3,6 +3,7 @@ struct RenderShader {
   // dispatch threads SIMD3(colorTexture.width, colorTexture.height, 1)
   // threadgroup memory 4096 B
   static func createSource(
+    isOffline: Bool,
     upscaleFactor: Float,
     worldDimension: Float
   ) -> String {
@@ -12,11 +13,23 @@ struct RenderShader {
     // voxels.dense.assignedSlotIDs
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
-      // TODO: Color texture argument, which depends on the rendering mode.
-      // - Online: color texture from render target
-      // - Offline: GPU-side buffer that will be copied back to CPU
+      func colorTextureArgument() -> String {
+        if !isOffline {
+          #if os(macOS)
+          return "texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]]"
+          #else
+          return "RWTexture2D<float4> colorTexture : register(u\(Self.colorTexture));"
+          #endif
+        } else {
+          #if os(macOS)
+          return "device half4 *colorBuffer [[buffer(\(Self.colorTexture))]]"
+          #else
+          return "RWBuffer<float4> colorBuffer : register(u\(Self.colorTexture));"
+          #endif
+        }
+      }
       
-      func optionalFunctionArguments() -> String {
+      func upscalingFunctionArguments() -> String {
         guard upscaleFactor > 1 else {
           return ""
         }
@@ -35,7 +48,7 @@ struct RenderShader {
       }
       
       #if os(Windows)
-      func optionalRootSignatureArguments() -> String {
+      func upscalingRootSignatureArguments() -> String {
         guard upscaleFactor > 1 else {
           return ""
         }
@@ -61,8 +74,8 @@ struct RenderShader {
         device uint *headers [[buffer(\(Self.headers))]],
         device uint *references32 [[buffer(\(Self.references32))]],
         device ushort *references16 [[buffer(\(Self.references16))]],
-        texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]],
-        \(optionalFunctionArguments())
+        \(colorTextureArgument()),
+        \(upscalingFunctionArguments())
         uint2 pixelCoords [[thread_position_in_grid]],
         uint2 localID [[thread_position_in_threadgroup]])
       """
@@ -81,8 +94,8 @@ struct RenderShader {
       RWStructuredBuffer<uint> headers : register(u\(Self.headers));
       RWStructuredBuffer<uint> references32 : register(u\(Self.references32));
       RWBuffer<uint> references16 : register(u\(Self.references16));
-      RWTexture2D<float4> colorTexture : register(u\(Self.colorTexture));
-      \(optionalFunctionArguments())
+      \(colorTextureArgument())
+      \(upscalingFunctionArguments())
       
       [numthreads(8, 8, 1)]
       [RootSignature(
@@ -98,7 +111,7 @@ struct RenderShader {
         "UAV(u\(Self.references32)),"
         "DescriptorTable(UAV(u\(Self.references16), numDescriptors = 1)),"
         "DescriptorTable(UAV(u\(Self.colorTexture), numDescriptors = 1)),"
-        \(optionalRootSignatureArguments())
+        \(upscalingRootSignatureArguments())
       )]
       void render(
         uint2 pixelCoords : SV_DispatchThreadID,
@@ -132,6 +145,25 @@ struct RenderShader {
       #else
       "\(texture)[pixelCoords] = \(value);"
       #endif
+    }
+    
+    func writeColor() -> String {
+      if !isOffline {
+        return write("float4(color, 0)", texture: "colorTexture")
+      } else {
+        func castHalf4(_ input: String) -> String {
+          #if os(macOS)
+          "half4(\(input))"
+          #else
+          input
+          #endif
+        }
+        
+        return """
+        uint pixelAddress = pixelCoords.y * screenDimensions.x + pixelCoords.x;
+        colorBuffer[pixelAddress] = \(castHalf4("float4(color, 0)"));
+        """
+      }
     }
     
     func bindMemoryTape() -> String {
@@ -267,7 +299,8 @@ struct RenderShader {
       }
       
       if (crashBuffer[0] != 1) {
-        \(write("float4(0, 0, 0, 0)", texture: "colorTexture"))
+        float3 color = 0;
+        \(writeColor())
         return;
       }
       
@@ -398,7 +431,7 @@ struct RenderShader {
       }
       
       // Write the pixel to the screen.
-      \(write("float4(color, 0)", texture: "colorTexture"))
+      \(writeColor())
     }
     """
   }
