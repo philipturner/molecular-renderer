@@ -185,9 +185,8 @@ public class Application {
   
   #if os(Windows)
   private func encodeDescriptorHeap() {
-    imageResources.renderTarget.encode(
-      descriptorHeap: descriptorHeap,
-      offset: 0)
+    imageResources.renderTarget.encodeResources(
+      descriptorHeap: descriptorHeap)
     
     bvhBuilder.atoms.encodeMotionVectors(
       descriptorHeap: descriptorHeap)

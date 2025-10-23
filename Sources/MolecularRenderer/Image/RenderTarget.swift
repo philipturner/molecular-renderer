@@ -29,6 +29,10 @@ class RenderTarget {
   // In offline mode, create a single native buffer and (on Windows) a single
   // output buffer. Every call to 'application.render()' spawns a new Swift
   // array containing a copy of the pixels as SIMD4<Float16>.
+  var nativeBuffer: Buffer?
+  #if os(Windows)
+  var outputBuffer: Buffer?
+  #endif
   
   init(descriptor: RenderTargetDescriptor) {
     guard let device = descriptor.device,
@@ -161,7 +165,19 @@ class RenderTarget {
       }
       #endif
     } else {
+      var bufferDesc = BufferDescriptor()
+      bufferDesc.device = device
       
+      let size = intermediateSize[0] * intermediateSize[1] * 8
+      bufferDesc.size = size
+      
+      bufferDesc.type = .native(.device)
+      self.nativeBuffer = Buffer(descriptor: bufferDesc)
+      
+      #if os(Windows)
+      bufferDesc.type = .output
+      self.outputBuffer = Buffer(descriptor: bufferDesc)
+      #endif
     }
   }
   
@@ -211,7 +227,20 @@ class RenderTarget {
         uavDesc: nil)
     }
     
-    
+    if let nativeBuffer {
+      var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
+      uavDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT
+      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
+      uavDesc.Buffer.FirstElement = 0
+      uavDesc.Buffer.NumElements = UInt32(nativeBuffer.size / 8)
+      uavDesc.Buffer.StructureByteStride = 0
+      uavDesc.Buffer.CounterOffsetInBytes = 0
+      uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
+      
+      descriptorHeap.createUAV(
+        resource: nativeBuffer.d3d12Resource,
+        uavDesc: uavDesc)
+    }
   }
   #endif
 }
