@@ -44,11 +44,13 @@ Reference video: [YouTube](https://youtube.com/shorts/rV1UGau20xQ)
 
 ## Stannatrane Tripod
 
+> Note: Work on this task first, before integrating the H.264 encoder binary. The first step toward progress is implementing the "asynchronous raw pixel buffer handler".
+
 Copy the TBD Swift files from this GitHub Gist (TODO) into "Sources/Workspace".
 
 Prepare energy-minimized structures of two variations of the Sn-H feedstock holder. Use SSD key-value caching to map compiled structure to minimized structure. Learn to use the `.build` folder as a reproducible location for writing files.
 
-Then, use offline rendering functionality to create a static image. Disable upscaling and set the secondary ray count to a higher value. Use TIFF, a simple serialization format with no library dependencies. Post-process the TIFF into a PNG with reasonable file size.
+Use offline rendering to create a high-quality static image. Disable upscaling and set the secondary ray count to 64. Use TIFF, a simple serialization format with no library dependencies. Post-process the TIFF into a PNG with reasonable file size.
 
 TODO: Explain the OS-specific apps for converting TIFF images to PNG.
 

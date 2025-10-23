@@ -61,6 +61,12 @@ _Whether self-shadowing appears grainy at 120 Hz, with the secondary ray count o
 
 ## MD Simulation Video
 
+> Note: The switch from GIF to H.264/MP4 will be tedious. However, once the work is done, this feature will save much time and improve professional rendering workflows. Less color distortion, no need to attempt to remap FPS from 50 Hz to 60 Hz in DaVinci Resolve. Also, `swift-gif` had its own set of strange binary dependencies.
+
 Copy the TBD Swift files from this GitHub Gist (TODO) into "Sources/Workspace".
 
-Reference image: TODO (upload to YouTube)
+Compile a beam structure out of diamond, with the `Hexagonal` basis for ease of setup. Run a simulation where two beams collide at an angle, causing them to spin. Analyze the angular momentum change with `MM4RigidBody`.
+
+Use a single-file Swift utility to convert rendered frames from RGB to YUV 4:2:0 (BT.709 variant). The utility then accesses the `libx264` binary, which is integrated into the Molecular Renderer application. Finally, it prepares the metadata for an MP4 file.
+
+Reference video: TODO (upload to YouTube)
