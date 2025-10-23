@@ -27,7 +27,7 @@ public class Application {
   public var camera: Camera
   public var clock: Clock
   var runLoop: RunLoop?
-  public internal(set) var frameID: Int = -1
+  public internal(set) var frameID: Int
   
   // Low-level display interfacing
   var window: Window?
@@ -72,6 +72,13 @@ public class Application {
     self.atoms = Atoms(addressSpaceSize: addressSpaceSize)
     self.camera = Camera()
     self.clock = Clock(display: display)
+    
+    // Initialize the frame ID.
+    if !display.isOffline {
+      self.frameID = -1
+    } else {
+      self.frameID = 0
+    }
     
     if !display.isOffline {
       // Set up the resources for low-level display interfacing.

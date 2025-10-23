@@ -300,6 +300,10 @@ extension Application {
     
     forgetIdleState(inFlightFrameID: frameID % 3)
     
+    if display.isOffline {
+      frameID += 1
+    }
+    
     var output = Image()
     output.scaleFactor = 1
     return output
