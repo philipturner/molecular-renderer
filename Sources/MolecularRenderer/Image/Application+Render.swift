@@ -116,6 +116,10 @@ extension Application {
   }
   
   public func render() -> Image {
+    guard frameID >= 0 else {
+      fatalError("Not allowed to call render here.")
+    }
+    
     checkCrashBuffer(frameID: frameID)
     checkExecutionTime(frameID: frameID)
     updateBVH(inFlightFrameID: frameID % 3)
