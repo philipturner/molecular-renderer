@@ -67,8 +67,8 @@ func createSilane() -> [SIMD4<Float>] {
 
 @MainActor
 func createTime() -> Float {
-  let elapsedFrames = application.clock.frames
-  let frameRate = application.display.frameRate
+  let elapsedFrames = application.frameID
+  let frameRate: Int = 60
   let seconds = Float(elapsedFrames) / Float(frameRate)
   return seconds
 }
@@ -135,7 +135,7 @@ func modifyCamera() {
 }
 
 // Enter the run loop.
-application.run {
+for _ in 0..<10 {
   modifyAtoms()
   modifyCamera()
   
