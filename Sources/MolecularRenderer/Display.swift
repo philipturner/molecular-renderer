@@ -181,7 +181,7 @@ extension Display {
   // system's scale factor.
   var contentSize: SIMD2<Double> {
     var output = SIMD2<Double>(frameBufferSize)
-    output /= nsScreen.backingScaleFactor
+    output /= nsScreen!.backingScaleFactor
     return output
   }
   #endif

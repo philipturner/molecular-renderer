@@ -85,7 +85,7 @@ public class Application {
       self.window = Window(display: display)
       #if os(macOS)
       self.view = View(display: display)
-      window.view = view
+      window!.view = view!
       #else
       var swapChainDesc = SwapChainDescriptor()
       swapChainDesc.device = device

@@ -209,7 +209,7 @@ extension Application {
         } else {
           #if os(macOS)
           let colorBuffer = imageResources.renderTarget.nativeBuffer!
-          commandList.mtlCommandEncoder.setBuffer(
+          commandList.setBuffer(
             colorBuffer, index: RenderShader.colorTexture)
           #else
           commandList.setDescriptor(

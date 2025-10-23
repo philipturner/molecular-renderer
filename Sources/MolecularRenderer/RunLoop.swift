@@ -33,7 +33,7 @@ class RunLoop: @unchecked Sendable {
     
     // Initialize the display link.
     let monitorID = Display.number(
-      screen: display.nsScreen)
+      screen: display.nsScreen!)
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkCreateWithCGDisplay(UInt32(monitorID), &displayLink)
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
