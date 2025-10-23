@@ -195,16 +195,28 @@ extension Application {
         #endif
         
         // Bind the color texture.
-        #if os(macOS)
-        let colorTexture = imageResources.renderTarget
-          .colorTextures[frameID % 2]
-        commandList.mtlCommandEncoder.setTexture(
-          colorTexture, index: RenderShader.colorTexture)
-        #else
-        commandList.setDescriptor(
-          handleID: frameID % 2,
-          index: RenderShader.colorTexture)
-        #endif
+        if !display.isOffline {
+          #if os(macOS)
+          let colorTexture = imageResources.renderTarget
+            .colorTextures[frameID % 2]
+          commandList.mtlCommandEncoder.setTexture(
+            colorTexture, index: RenderShader.colorTexture)
+          #else
+          commandList.setDescriptor(
+            handleID: frameID % 2,
+            index: RenderShader.colorTexture)
+          #endif
+        } else {
+          #if os(macOS)
+          let colorBuffer = imageResources.renderTarget.nativeBuffer!
+          commandList.mtlCommandEncoder.setBuffer(
+            colorBuffer, index: RenderShader.colorTexture)
+          #else
+          commandList.setDescriptor(
+            handleID: 0,
+            index: RenderShader.colorTexture)
+          #endif
+        }
         
         // Bind the depth and motion textures.
         if imageResources.renderTarget.upscaleFactor > 1 {
@@ -245,6 +257,14 @@ extension Application {
       
       #if os(Windows)
       bvhBuilder.computeUAVBarrier(commandList: commandList)
+      
+      if display.isOffline {
+        let nativeBuffer = imageResources.renderTarget.nativeBuffer!
+        let outputBuffer = imageResources.renderTarget.outputBuffer!
+        commandList.download(
+          nativeBuffer: nativeBuffer,
+          outputBuffer: outputBuffer)
+      }
       
       try! commandList.d3d12CommandList.EndQuery(
         bvhBuilder.counters.queryHeap,
