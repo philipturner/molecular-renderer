@@ -58,6 +58,14 @@ public class Application {
       fatalError("Descriptor was incomplete.")
     }
     
+    // Check this early to avoid propagation of undefined behavior into shader
+    // codegen and other parts that rely on the upscale factor.
+    if display.isOffline {
+      guard upscaleFactor == 1 else {
+        fatalError("Offline rendering cannot use upscaling.")
+      }
+    }
+    
     // Set up the public API.
     self.device = device
     self.display = display

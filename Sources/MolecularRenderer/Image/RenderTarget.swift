@@ -40,125 +40,129 @@ class RenderTarget {
     
     let intermediateSize = self.intermediateSize(display: display)
     
-    #if os(macOS)
-    // Ensure the textures use lossless compression.
-    device.commandQueue.withCommandList { commandList in
-      commandList.mtlCommandEncoder.endEncoding()
-      let commandEncoder: MTLBlitCommandEncoder =
-      commandList.mtlCommandBuffer.makeBlitCommandEncoder()!
-      
-      for _ in 0..<2 {
-        let textureDesc = MTLTextureDescriptor()
-        textureDesc.textureType = .type2D
-        textureDesc.width = intermediateSize[0]
-        textureDesc.height = intermediateSize[1]
-        textureDesc.depth = 1
-        textureDesc.mipmapLevelCount = 1
-        textureDesc.sampleCount = 1
-        textureDesc.arrayLength = 1
-        textureDesc.storageMode = .private
-        textureDesc.usage = [.shaderRead, .shaderWrite]
-        textureDesc.compressionType = .lossless
+    if !display.isOffline {
+      #if os(macOS)
+      // Ensure the textures use lossless compression.
+      device.commandQueue.withCommandList { commandList in
+        commandList.mtlCommandEncoder.endEncoding()
+        let commandEncoder: MTLBlitCommandEncoder =
+        commandList.mtlCommandBuffer.makeBlitCommandEncoder()!
         
-        textureDesc.pixelFormat = .rgb10a2Unorm
-        let colorTexture = device.mtlDevice.makeTexture(
-          descriptor: textureDesc)!
+        for _ in 0..<2 {
+          let textureDesc = MTLTextureDescriptor()
+          textureDesc.textureType = .type2D
+          textureDesc.width = intermediateSize[0]
+          textureDesc.height = intermediateSize[1]
+          textureDesc.depth = 1
+          textureDesc.mipmapLevelCount = 1
+          textureDesc.sampleCount = 1
+          textureDesc.arrayLength = 1
+          textureDesc.storageMode = .private
+          textureDesc.usage = [.shaderRead, .shaderWrite]
+          textureDesc.compressionType = .lossless
+          
+          textureDesc.pixelFormat = .rgb10a2Unorm
+          let colorTexture = device.mtlDevice.makeTexture(
+            descriptor: textureDesc)!
+          colorTextures.append(colorTexture)
+          commandEncoder.optimizeContentsForGPUAccess(texture: colorTexture)
+          
+          guard upscaleFactor > 1 else {
+            continue
+          }
+          
+          textureDesc.pixelFormat = .r32Float
+          let depthTexture = device.mtlDevice.makeTexture(
+            descriptor: textureDesc)!
+          depthTextures.append(depthTexture)
+          commandEncoder.optimizeContentsForGPUAccess(texture: depthTexture)
+          
+          textureDesc.pixelFormat = .rg16Float
+          let motionTexture = device.mtlDevice.makeTexture(
+            descriptor: textureDesc)!
+          motionTextures.append(motionTexture)
+          commandEncoder.optimizeContentsForGPUAccess(texture: motionTexture)
+          
+          textureDesc.pixelFormat = .rgb10a2Unorm
+          textureDesc.width = display.frameBufferSize[0]
+          textureDesc.height = display.frameBufferSize[1]
+          let upscaledTexture = device.mtlDevice.makeTexture(
+            descriptor: textureDesc)!
+          upscaledTextures.append(upscaledTexture)
+          commandEncoder.optimizeContentsForGPUAccess(texture: upscaledTexture)
+        }
+        
+        commandEncoder.endEncoding()
+        commandList.mtlCommandEncoder =
+        commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
+      }
+      #else
+      for _ in 0..<2 {
+        var heapProperties = D3D12_HEAP_PROPERTIES()
+        heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT
+        
+        var resourceDesc = D3D12_RESOURCE_DESC()
+        resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D
+        resourceDesc.Alignment = 64 * 1024
+        resourceDesc.Width = UInt64(intermediateSize[0])
+        resourceDesc.Height = UInt32(intermediateSize[1])
+        resourceDesc.DepthOrArraySize = UInt16(1)
+        resourceDesc.MipLevels = UInt16(1)
+        resourceDesc.SampleDesc.Count = 1
+        resourceDesc.SampleDesc.Quality = 0
+        resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN
+        resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
+        
+        resourceDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
+        let colorTexture: SwiftCOM.ID3D12Resource =
+        try! device.d3d12Device.CreateCommittedResource(
+          heapProperties, // pHeapProperties
+          D3D12_HEAP_FLAG_NONE, // HeapFlags
+          resourceDesc, // pDesc
+          D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
+          nil) // pOptimizedClearValue
         colorTextures.append(colorTexture)
-        commandEncoder.optimizeContentsForGPUAccess(texture: colorTexture)
         
         guard upscaleFactor > 1 else {
           continue
         }
         
-        textureDesc.pixelFormat = .r32Float
-        let depthTexture = device.mtlDevice.makeTexture(
-          descriptor: textureDesc)!
+        resourceDesc.Format = DXGI_FORMAT_R32_FLOAT
+        let depthTexture: SwiftCOM.ID3D12Resource =
+        try! device.d3d12Device.CreateCommittedResource(
+          heapProperties, // pHeapProperties
+          D3D12_HEAP_FLAG_NONE, // HeapFlags
+          resourceDesc, // pDesc
+          D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
+          nil) // pOptimizedClearValue
         depthTextures.append(depthTexture)
-        commandEncoder.optimizeContentsForGPUAccess(texture: depthTexture)
         
-        textureDesc.pixelFormat = .rg16Float
-        let motionTexture = device.mtlDevice.makeTexture(
-          descriptor: textureDesc)!
+        resourceDesc.Format = DXGI_FORMAT_R16G16_FLOAT
+        let motionTexture: SwiftCOM.ID3D12Resource =
+        try! device.d3d12Device.CreateCommittedResource(
+          heapProperties, // pHeapProperties
+          D3D12_HEAP_FLAG_NONE, // HeapFlags
+          resourceDesc, // pDesc
+          D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
+          nil) // pOptimizedClearValue
         motionTextures.append(motionTexture)
-        commandEncoder.optimizeContentsForGPUAccess(texture: motionTexture)
         
-        textureDesc.pixelFormat = .rgb10a2Unorm
-        textureDesc.width = display.frameBufferSize[0]
-        textureDesc.height = display.frameBufferSize[1]
-        let upscaledTexture = device.mtlDevice.makeTexture(
-          descriptor: textureDesc)!
+        resourceDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
+        resourceDesc.Width = UInt64(display.frameBufferSize[0])
+        resourceDesc.Height = UInt32(display.frameBufferSize[1])
+        let upscaledTexture: SwiftCOM.ID3D12Resource =
+        try! device.d3d12Device.CreateCommittedResource(
+          heapProperties, // pHeapProperties
+          D3D12_HEAP_FLAG_NONE, // HeapFlags
+          resourceDesc, // pDesc
+          D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
+          nil) // pOptimizedClearValue
         upscaledTextures.append(upscaledTexture)
-        commandEncoder.optimizeContentsForGPUAccess(texture: upscaledTexture)
       }
+      #endif
+    } else {
       
-      commandEncoder.endEncoding()
-      commandList.mtlCommandEncoder =
-      commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
     }
-    #else
-    for _ in 0..<2 {
-      var heapProperties = D3D12_HEAP_PROPERTIES()
-      heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT
-      
-      var resourceDesc = D3D12_RESOURCE_DESC()
-      resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D
-      resourceDesc.Alignment = 64 * 1024
-      resourceDesc.Width = UInt64(intermediateSize[0])
-      resourceDesc.Height = UInt32(intermediateSize[1])
-      resourceDesc.DepthOrArraySize = UInt16(1)
-      resourceDesc.MipLevels = UInt16(1)
-      resourceDesc.SampleDesc.Count = 1
-      resourceDesc.SampleDesc.Quality = 0
-      resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN
-      resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
-      
-      resourceDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
-      let colorTexture: SwiftCOM.ID3D12Resource =
-      try! device.d3d12Device.CreateCommittedResource(
-        heapProperties, // pHeapProperties
-        D3D12_HEAP_FLAG_NONE, // HeapFlags
-        resourceDesc, // pDesc
-        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
-        nil) // pOptimizedClearValue
-      colorTextures.append(colorTexture)
-      
-      guard upscaleFactor > 1 else {
-        continue
-      }
-      
-      resourceDesc.Format = DXGI_FORMAT_R32_FLOAT
-      let depthTexture: SwiftCOM.ID3D12Resource =
-      try! device.d3d12Device.CreateCommittedResource(
-        heapProperties, // pHeapProperties
-        D3D12_HEAP_FLAG_NONE, // HeapFlags
-        resourceDesc, // pDesc
-        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
-        nil) // pOptimizedClearValue
-      depthTextures.append(depthTexture)
-      
-      resourceDesc.Format = DXGI_FORMAT_R16G16_FLOAT
-      let motionTexture: SwiftCOM.ID3D12Resource =
-      try! device.d3d12Device.CreateCommittedResource(
-        heapProperties, // pHeapProperties
-        D3D12_HEAP_FLAG_NONE, // HeapFlags
-        resourceDesc, // pDesc
-        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
-        nil) // pOptimizedClearValue
-      motionTextures.append(motionTexture)
-      
-      resourceDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
-      resourceDesc.Width = UInt64(display.frameBufferSize[0])
-      resourceDesc.Height = UInt32(display.frameBufferSize[1])
-      let upscaledTexture: SwiftCOM.ID3D12Resource =
-      try! device.d3d12Device.CreateCommittedResource(
-        heapProperties, // pHeapProperties
-        D3D12_HEAP_FLAG_NONE, // HeapFlags
-        resourceDesc, // pDesc
-        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
-        nil) // pOptimizedClearValue
-      upscaledTextures.append(upscaledTexture)
-    }
-    #endif
   }
   
   func intermediateSize(display: Display) -> SIMD2<Int> {
@@ -182,46 +186,32 @@ class RenderTarget {
   }
   
   #if os(Windows)
-  func encode(descriptorHeap: DescriptorHeap, offset: Int) {
-    for i in 0..<2 {
-      let colorHandleID = descriptorHeap.createUAV(
-        resource: colorTextures[i],
+  func encodeResources(descriptorHeap: DescriptorHeap) {
+    for colorTexture in colorTextures {
+      descriptorHeap.createUAV(
+        resource: colorTexture,
         uavDesc: nil)
-      guard colorHandleID == offset + i else {
-        fatalError("This should never happen.")
-      }
     }
     
-    guard upscaleFactor > 1 else {
-      return
+    for depthTexture in depthTextures {
+      descriptorHeap.createUAV(
+        resource: depthTexture,
+        uavDesc: nil)
     }
     
-    for i in 0..<2 {
-      let depthHandleID = descriptorHeap.createUAV(
-        resource: depthTextures[i],
+    for motionTexture in motionTextures {
+      descriptorHeap.createUAV(
+        resource: motionTexture,
         uavDesc: nil)
-      guard depthHandleID == offset + 2 + i else {
-        fatalError("This should never happen.")
-      }
     }
     
-    for i in 0..<2 {
-      let motionHandleID = descriptorHeap.createUAV(
-        resource: motionTextures[i],
+    for upscaledTexture in upscaledTextures {
+      descriptorHeap.createUAV(
+        resource: upscaledTexture,
         uavDesc: nil)
-      guard motionHandleID == offset + 4 + i else {
-        fatalError("This should never happen.")
-      }
     }
     
-    for i in 0..<2 {
-      let upscaledHandleID = descriptorHeap.createUAV(
-        resource: upscaledTextures[i],
-        uavDesc: nil)
-      guard upscaledHandleID == offset + 6 + i else {
-        fatalError("This should never happen.")
-      }
-    }
+    
   }
   #endif
 }
