@@ -2,7 +2,7 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
-let renderingOffline: Bool = false
+let renderingOffline: Bool = true
 
 @MainActor
 func createApplication() -> Application {
@@ -150,15 +150,19 @@ func modifyCamera() {
 }
 
 // Enter the run loop.
-application.run {
+for _ in 0..<10 {
   modifyAtoms()
   modifyCamera()
   
-  // TODO: Check that pixel count is zero when online.
-  print(application.frameID, terminator: " ")
-  var image = application.render()
-  print(application.frameID, terminator: " ")
-  print(image.pixels.count)
-  image = application.upscale(image: image)
-  application.present(image: image)
+  let image = application.render()
+  guard image.pixels.count == 1440 * 1080 else {
+    fatalError("Invalid pixel buffer size.")
+  }
+  
+  print()
+  print(application.frameID - 1)
+  print(image.pixels[0 * 1440 + 0])
+  print(image.pixels[270 * 1440 + 720])
+  print(image.pixels[540 * 1440 + 720])
+  print(image.pixels[810 * 1440 + 720])
 }
