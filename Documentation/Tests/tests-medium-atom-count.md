@@ -58,3 +58,9 @@ _Whether self-shadowing appears grainy at 120 Hz._
 | Au(111)   | yes    | yes    | barely | no     | no     |
 
 _Whether self-shadowing appears grainy at 120 Hz, with the secondary ray count overridden to 7._
+
+## MD Simulation Video
+
+Copy the TBD Swift files from this GitHub Gist (TODO) into "Sources/Workspace".
+
+Reference image: TODO (upload to YouTube)

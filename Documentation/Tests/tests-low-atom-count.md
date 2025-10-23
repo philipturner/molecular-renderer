@@ -41,3 +41,13 @@ Compile a Ge-substituted adamantane cage, and use this base to procedurally grow
 At the time of writing, the Windows xTB executable is compiled with OpenBLAS to "work at all". The macOS executable uses Accelerate, which exploits Apple-specific AMX hardware to speed up operations on very small matrices. The region of ~70 atoms or ~200 orbitals (200x200 Hamiltonian matrix) is where the AMX shines the most. The minimization completed in 5.5 s on macOS and 29 s on Windows.
 
 Reference video: [YouTube](https://youtube.com/shorts/rV1UGau20xQ)
+
+## Stannatrane Tripod
+
+Copy the TBD Swift files from this GitHub Gist (TODO) into "Sources/Workspace".
+
+Prepare energy-minimized structures of two variations of the Sn-H feedstock holder. Use SSD key-value caching to map compiled structure to minimized structure. Learn to use the `.build` folder as a reproducible location for writing files.
+
+Then, use offline rendering functionality to create a static image. Disable upscaling and set the secondary ray count to a higher value. Use TIFF, a simple serialization format with no library dependencies. Post-process the TIFF into a PNG with reasonable file size.
+
+Reference image: TODO (place in documentation folder)
