@@ -20,10 +20,15 @@ class RenderTarget {
   typealias Texture = SwiftCOM.ID3D12Resource
   #endif
   
+  // In offline mode, these arrays should have length zero.
   var colorTextures: [Texture] = []
   var depthTextures: [Texture] = []
   var motionTextures: [Texture] = []
   var upscaledTextures: [Texture] = []
+  
+  // In offline mode, create a single native buffer and (on Windows) a single
+  // output buffer. Every call to 'application.render()' spawns a new Swift
+  // array containing a copy of the pixels as SIMD4<Float16>.
   
   init(descriptor: RenderTargetDescriptor) {
     guard let device = descriptor.device,
