@@ -139,9 +139,9 @@ for _ in 0..<10 {
   modifyAtoms()
   modifyCamera()
   
+  // TODO: Check that pixel count is zero when online.
   print(application.frameID, terminator: " ")
-  var image = application.render()
-  print(application.frameID)
-  image = application.upscale(image: image)
-  application.present(image: image)
+  let image = application.render()
+  print(application.frameID, terminator: " ")
+  print(image.pixels.count)
 }
