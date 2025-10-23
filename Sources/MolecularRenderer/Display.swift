@@ -85,6 +85,8 @@ public class Display {
   }
   
   /// The number of frames issued per second.
+  ///
+  /// Zero for offline rendering.
   public var frameRate: Int {
     if isOffline {
       return 0

@@ -30,11 +30,11 @@ public class Application {
   public internal(set) var frameID: Int = -1
   
   // Low-level display interfacing
-  let window: Window
+  var window: Window?
   #if os(macOS)
-  let view: View
+  var view: View?
   #else
-  let swapChain: SwapChain
+  var swapChain: SwapChain?
   #endif
   
   // Single descriptor heap that encapsulates all weirdly formatted resources.
@@ -65,18 +65,20 @@ public class Application {
     self.camera = Camera()
     self.clock = Clock(display: display)
     
-    // Set up the resources for low-level display interfacing.
-    self.window = Window(display: display)
-    #if os(macOS)
-    self.view = View(display: display)
-    window.view = view
-    #else
-    var swapChainDesc = SwapChainDescriptor()
-    swapChainDesc.device = device
-    swapChainDesc.display = display
-    swapChainDesc.window = window
-    self.swapChain = SwapChain(descriptor: swapChainDesc)
-    #endif
+    if !display.isOffline {
+      // Set up the resources for low-level display interfacing.
+      self.window = Window(display: display)
+      #if os(macOS)
+      self.view = View(display: display)
+      window.view = view
+      #else
+      var swapChainDesc = SwapChainDescriptor()
+      swapChainDesc.device = device
+      swapChainDesc.display = display
+      swapChainDesc.window = window
+      self.swapChain = SwapChain(descriptor: swapChainDesc)
+      #endif
+    }
     
     #if os(Windows)
     // Create the descriptor heap.
@@ -196,6 +198,10 @@ public class Application {
   public func run(
     _ closure: @escaping () -> Void
   ) {
+    guard let window else {
+      fatalError("Cannot invoke run loop for offline rendering.")
+    }
+    
     var runLoopDesc = RunLoopDescriptor()
     runLoopDesc.closure = closure
     #if os(macOS)
