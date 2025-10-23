@@ -147,7 +147,8 @@ The behavior of `frameID` also changes in the offline mode. It starts at 0, and 
 
 First steps:
 - Get the current code working and tested with these revisions
-  - Test that frameID increments after `render()`, exclusively in the offline mode.
-  - Test this on both platforms.
+  - Check the contents of the pixel buffer, confirm that critical locations
+    change color during the animation.
+- Debug TIFF generation, with the text above as reference to search for culprits for bugs
 - Delete the text above
 - Start working on the first test that uses this new functionality
