@@ -146,6 +146,6 @@ The behavior of `frameID` also changes in the offline mode. It starts at 0, and 
 ---
 
 First steps:
-- Debug TIFF generation, with the text above as reference to search for culprits for bugs
+- Debug PPM generation, with the text above as reference to search for culprits for bugs
 - Delete the text above
 - Start working on the first test that uses this new functionality

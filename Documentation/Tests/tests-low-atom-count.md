@@ -50,9 +50,9 @@ Copy the TBD Swift files from this GitHub Gist (TODO) into "Sources/Workspace".
 
 Prepare energy-minimized structures of two variations of the Sn-H feedstock holder. Use SSD key-value caching to map compiled structure to minimized structure. Learn to use the `.build` folder as a reproducible location for writing files.
 
-Use offline rendering to create a high-quality static image. Disable upscaling and set the secondary ray count to 64. Use TIFF, a simple serialization format with no library dependencies. Post-process the TIFF into a PNG with reasonable file size.
+Use offline rendering to create a high-quality static image. Disable upscaling and set the secondary ray count to 64. Use PPM, a simple serialization format with no library dependencies. Post-process the PPM into a PNG with reasonable file size.
 
-TODO: Explain the OS-specific apps for converting TIFF images to PNG.
+TODO: Explain the OS-specific apps for converting PPM images to PNG.
 
 TODO: Put reference image in documentation folder and link into Markdown document.
 
