@@ -65,7 +65,7 @@ _Whether self-shadowing appears grainy at 120 Hz, with the secondary ray count o
 
 Copy the TBD Swift files from this GitHub Gist (TODO) into "Sources/Workspace".
 
-Compile a beam structure out of diamond, with the `Hexagonal` basis for ease of setup. Run a simulation where two beams collide at an angle, causing them to spin. Analyze the angular momentum change with `MM4RigidBody`.
+Compile a beam structure out of diamond, with the `Hexagonal` basis for ease of setup. Run a simulation where two beams collide at an angle, causing them to spin. Analyze the angular momentum change with [`MM4RigidBody`](https://philipturner.github.io/MM4/documentation/mm4/mm4rigidbody).
 
 Use a single-file Swift utility to convert rendered frames from RGB to YUV 4:2:0 (BT.709 variant). The utility then accesses the `libx264` binary, which is integrated into the Molecular Renderer application. Finally, it prepares the metadata for an MP4 file.
 
