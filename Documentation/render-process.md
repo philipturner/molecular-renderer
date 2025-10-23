@@ -129,22 +129,14 @@ Despite its downsides, FSR 3 makes it possible to bring Molecular Renderer to th
 
 ## Asynchronous Raw Pixel Buffer Handler
 
-> This API is required before users can make professional YouTube videos out of animations. Until then, record your computer screen with a smartphone camera.
+Exit the `application.run()` paradigm entirely for offline rendering. `Display` and `Clock` are inappropriate because there is no interaction with DXGI/CVDisplayLink, notion of "frames per second", or need to accurately track wall time for real-time animations.
 
-API design requirements:
-- Handlers should be executed on a sequential dispatch queue. Although it's
-  not thread safe with the main or `@MainActor` thread, it's thread safe
-  between sequential calls to itself.
-- Implement an equivalent of 3 frames in flight `DispatchSemaphore` for the
-  asynchronous handlers, to avoid overflowing the dispatch queue for this.
-  - The user should be able to stall the render loop, for example to encode a large batch of GIF frames. They do this by making the handler take extra long, thus reaching the limit of the dispatch semaphore.
-- Guarantee that all asynchronous handlers have executed before
-  `application.run()` returns.
+Add a second mode for `Display`. In the descriptor, leave `monitorID` as `nil`. The application creates an artificial "display" with no actual link to DXGI. The frame rate is zero and the clock never increments.
 
-Perhaps it would be more appropriate to exit the `application.run()` paradigm entirely for offline rendering. `Display` and `Clock` are inappropriate because there is no interaction with DXGI/CVDisplayLink, notion of "frames per second", or need to accurately track wall time for real-time animations. However, the backend code can be applied to offline rendering with little effort. It is mostly a frontend (API) design problem.
+Offline rendering doesn't need to use a queue, triple-buffering, or asynchronous buffer handling. The point is to make offline rendering work at all, not to be fast. Performance will often be dominated by excessively expensive GPU-side settings. We need to minimize the design cost of this offline rendering feature.
 
-Solution: add a second mode for `Display`. In the descriptor, leave `monitorID` as `nil` and instead specify the pixel buffer handler in `handler`. The application now follows the same APIs as a real-time render loop. It creates an artificial "display" with triple buffering, but no actual link to DXGI. The frame rate is zero and the clock never increments. Every call to `application.present()` forwards an asynchronous handler to the dispatch queue mentioned above.
+We can enforce the absence of upscaling for offline renders. `application.render()` can instead be a synchronous function. The output `Image` data type now owns an array or pointer, which the user reads to get raw pixel data. We can recycle existing `Buffer` functionality for this, and simply make a shader that converts image RGB10A2 to buffer RGBA8.
 
-> In real-time renders, always use `clock.frames` to find the accurate time for coding animations. In offline renders, always use `frameID` for correct timing.
+We don't need 10 bits of pixel precision because we aren't rendering to 10-bit displays. In fact, we degrade the quality for YUV 4:2:0. And 8 bits in 3 channels is still much better than GIF. PNG does not officially support 10-bit mode. For video, 10-bit is often for HDR and H.265.
 
-A new API function, `application.stop()`, prevents the next run loop from happening. Functions called during the current loop iteration (before `stop()` is called) still work the same. `application.present()` forwards one final render command to the GPU, which will be handled in the `handler` before the backend fully shuts down. Finally, `application.run()` exits the scope of its closure and the calling program resumes. The user can perform custom cleanup processes without relying on intentional program crashes (`exit(0)` and `fatalError`).
+The behavior of `frameID` also changes in the offline mode. It starts at 0, and increases after every call to `render()`.

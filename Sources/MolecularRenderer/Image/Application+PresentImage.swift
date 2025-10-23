@@ -95,7 +95,7 @@ extension Application {
           resource: backBuffer,
           before: D3D12_RESOURCE_STATE_PRESENT,
           after: D3D12_RESOURCE_STATE_COPY_DEST)
-        let barriers = [barrier1, barrier2]
+        let barriers: [D3D12_RESOURCE_BARRIER] = [barrier1, barrier2]
         
         try! commandList.d3d12CommandList.ResourceBarrier(
           UInt32(barriers.count), barriers)
