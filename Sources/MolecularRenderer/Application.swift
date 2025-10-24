@@ -70,7 +70,7 @@ public class Application {
     self.device = device
     self.display = display
     self.atoms = Atoms(addressSpaceSize: addressSpaceSize)
-    self.camera = Camera()
+    self.camera = Camera(isOffline: display.isOffline)
     self.clock = Clock(display: display)
     
     // Initialize the frame ID.

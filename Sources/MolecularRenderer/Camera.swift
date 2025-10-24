@@ -14,7 +14,8 @@ public struct Camera {
   
   /// The number of AO rays for ambient occlusion. Must be at least 3.
   ///
-  /// Defaults to 15. Change to `nil` to disable ambient occlusion.
+  /// Defaults to 15 (real-time rendering), 64 (offline rendering). Change to
+  /// `nil` to disable ambient occlusion.
   public var secondaryRayCount: Int?
   
   /// The number of pixels an atom spans on-screen, before the secondary ray
@@ -24,14 +25,18 @@ public struct Camera {
   /// heuristic.
   public var criticalPixelCount: Float?
   
-  init() {
+  init(isOffline: Bool) {
     self.position = SIMD3(0, 0, 0)
     self.basis = (
       SIMD3(1, 0, 0),
       SIMD3(0, 1, 0),
       SIMD3(0, 0, 1))
     self.fovAngleVertical = Float.pi / 180 * 60
-    self.secondaryRayCount = 15
+    if isOffline {
+      self.secondaryRayCount = 64
+    } else {
+      self.secondaryRayCount = 15
+    }
     self.criticalPixelCount = 50
   }
 }

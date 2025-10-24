@@ -149,17 +149,6 @@ func modifyCamera() {
   application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
   application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
   application.camera.fovAngleVertical = Float.pi / 180 * 40
-  
-  if renderingOffline {
-    // GIF encoding will be the bottleneck anyway, so why not maximize AO
-    // quality? Only remaining quality problem is GIF restricting the color
-    // space to 256 possible values.
-    //
-    // In a test case with hydrogen, carbon, and oxygen, 15 AO rays caused
-    // severe graininess in the GIF, while 64 did not. Any quality issues from
-    // color banding pale in comparison.
-    application.camera.secondaryRayCount = 64
-  }
 }
 
 // Enter the run loop.
@@ -179,7 +168,8 @@ if !renderingOffline {
     width: frameBufferSize[0],
     height: frameBufferSize[1])
   
-  for frameID in 0..<60 {
+  print("rendering frames")
+  for frameID in 0..<10 {
     modifyAtoms()
     modifyCamera()
     
