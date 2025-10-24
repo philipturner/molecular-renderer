@@ -16,7 +16,11 @@ import xTB
 
 // MARK: - Compile Structure
 
-
+var topology = Topology()
+topology.atoms += [
+  Atom(position: SIMD3(0.00, 0.00, 0.00), element: .tin),
+  Atom(position: SIMD3(0.00, -0.26, -0.00), element: .nitrogen),
+]
 
 // MARK: - Launch Application
 
@@ -53,10 +57,20 @@ let application = createApplication()
 //
 // When debugging a trajectory, it will be easy to just set atoms during the
 // run loop and animate by clock.frames.
-
+for atomID in topology.atoms.indices {
+  let atom = topology.atoms[atomID]
+  application.atoms[atomID] = atom
+}
 
 // Set up the camera statically here.
+application.camera.position = SIMD3(0, 0, 2)
+application.camera.secondaryRayCount = 15 // eventually 64
 
+application.run {
+  var image = application.render()
+  image = application.upscale(image: image)
+  application.present(image: image)
+}
 
 // Reference code for saving a TIFF image.
 #if false
