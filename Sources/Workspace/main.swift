@@ -4,15 +4,10 @@ import MolecularRenderer
 import QuaternionModule
 import xTB
 
-// TODO: Debug the compilation process for setting up the structure. Use
-// rendering to analyze the atom positions during this process.
-
-// Take a look at the old code for working with DMS tooltips. Take a fresh
-// approach to the structure generation, but copy the FIRE, Minimization, and
-// serialization or disk-accessing utilities.
-
-// Check that Serialization is accurately replaying the entire minimization
+// TODO: Check that Serialization is accurately replaying the entire minimization
 // trajectory on both platforms.
+
+xTB_Environment.verbosity = .muted
 
 // MARK: - Compile Structure
 
@@ -153,9 +148,7 @@ func createTripod(
 }
 
 let topology = createTripod(isAzastannatrane: true)
-
-xTB_Environment.verbosity = .muted
-let trajectory = runMinimization(tripod: topology)
+let trajectory = loadCachedTrajectory(tripod: topology)
 guard trajectory.count > 0 else {
   fatalError("No starting structure to render.")
 }
