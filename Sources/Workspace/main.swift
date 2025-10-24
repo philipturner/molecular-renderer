@@ -77,10 +77,16 @@ for legID in 0..<1 {
     insertedAtoms.append(carbon6)
     insertedBonds.append(
       SIMD2(UInt32(baseAtomID + 2), UInt32(baseAtomID + 6)))
+    
+    let hydrogen7 = Atom(
+      position: SIMD3(0.32, 0.20, -0.05), element: .hydrogen)
+    insertedAtoms.append(hydrogen7)
+    insertedBonds.append(
+      SIMD2(UInt32(baseAtomID + 6), UInt32(baseAtomID + 7)))
   }
   
   // Apply the rotation transform to all atoms, just before inserting.
-  let angleDegrees = Float(legID) * 120 - 90
+  let angleDegrees = Float(legID) * 120 - 0
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * angleDegrees,
     axis: SIMD3(0, 1, 0))
