@@ -59,89 +59,110 @@ func passivate(topology: inout Topology) {
   topology.bonds += insertedBonds
 }
 
-let isAzastannatrane: Bool = false
-
-var topology = Topology()
-topology.atoms += [
-  Atom(position: SIMD3(0.00, 0.00, 0.00), element: .tin),
-  Atom(position: SIMD3(0.00, -0.26, -0.00), element: .nitrogen),
-]
-
-for legID in 0..<3 {
-  let baseAtomID = topology.atoms.count
-  var insertedAtoms: [Atom] = []
-  var insertedBonds: [SIMD2<UInt32>] = []
+func createTripod(
+  isAzastannatrane: Bool
+) -> Topology {
+  var topology = Topology()
+  topology.atoms += [
+    Atom(position: SIMD3(0.00, 0.00, 0.00), element: .tin),
+    Atom(position: SIMD3(0.00, -0.26, -0.00), element: .nitrogen),
+  ]
   
-  // Isolate the temporary variables for this part in a contained scope.
-  do {
-    let carbon0 = Atom(
-      position: SIMD3(0.15, -0.28, 0.00), element: .carbon)
-    insertedAtoms.append(carbon0)
-    insertedBonds.append(
-      SIMD2(UInt32(1), UInt32(baseAtomID + 0)))
+  for legID in 0..<3 {
+    let baseAtomID = topology.atoms.count
+    var insertedAtoms: [Atom] = []
+    var insertedBonds: [SIMD2<UInt32>] = []
     
-    let carbon1 = Atom(
-      position: SIMD3(0.23, -0.15, -0.05), element: .carbon)
-    insertedAtoms.append(carbon1)
-    insertedBonds.append(
-      SIMD2(UInt32(baseAtomID + 0), UInt32(baseAtomID + 1)))
+    // Isolate the temporary variables for this part in a contained scope.
+    do {
+      let carbon0 = Atom(
+        position: SIMD3(0.15, -0.28, 0.00), element: .carbon)
+      insertedAtoms.append(carbon0)
+      insertedBonds.append(
+        SIMD2(UInt32(1), UInt32(baseAtomID + 0)))
+      
+      let carbon1 = Atom(
+        position: SIMD3(0.23, -0.15, -0.05), element: .carbon)
+      insertedAtoms.append(carbon1)
+      insertedBonds.append(
+        SIMD2(UInt32(baseAtomID + 0), UInt32(baseAtomID + 1)))
+      
+      let nitrogen2 = Atom(
+        position: SIMD3(0.23, -0.00, 0.00),
+        element: isAzastannatrane ? .nitrogen : .carbon)
+      insertedAtoms.append(nitrogen2)
+      insertedBonds.append(
+        SIMD2(UInt32(baseAtomID + 1), UInt32(baseAtomID + 2)))
+      insertedBonds.append(
+        SIMD2(UInt32(baseAtomID + 2), UInt32(0)))
+      
+      let carbon3 = Atom(
+        position: SIMD3(0.38, -0.20, -0.05), element: .carbon)
+      insertedAtoms.append(carbon3)
+      insertedBonds.append(
+        SIMD2(UInt32(baseAtomID + 1), UInt32(baseAtomID + 3)))
+      
+      let sulfur4 = Atom(
+        position: SIMD3(0.45, -0.36, -0.05), element: .sulfur)
+      insertedAtoms.append(sulfur4)
+      insertedBonds.append(
+        SIMD2(UInt32(baseAtomID + 3), UInt32(baseAtomID + 4)))
+      
+      let hydrogen5 = Atom(
+        position: SIMD3(0.57, -0.36, -0.05), element: .hydrogen)
+      insertedAtoms.append(hydrogen5)
+      insertedBonds.append(
+        SIMD2(UInt32(baseAtomID + 4), UInt32(baseAtomID + 5)))
+    }
     
-    let nitrogen2 = Atom(
-      position: SIMD3(0.23, -0.00, 0.00),
-      element: isAzastannatrane ? .nitrogen : .carbon)
-    insertedAtoms.append(nitrogen2)
-    insertedBonds.append(
-      SIMD2(UInt32(baseAtomID + 1), UInt32(baseAtomID + 2)))
-    insertedBonds.append(
-      SIMD2(UInt32(baseAtomID + 2), UInt32(0)))
+    if isAzastannatrane {
+      let carbon6 = Atom(
+        position: SIMD3(0.32, 0.08, -0.05), element: .carbon)
+      insertedAtoms.append(carbon6)
+      insertedBonds.append(
+        SIMD2(UInt32(baseAtomID + 2), UInt32(baseAtomID + 6)))
+      
+      let hydrogen7 = Atom(
+        position: SIMD3(0.32, 0.20, -0.05), element: .hydrogen)
+      insertedAtoms.append(hydrogen7)
+      insertedBonds.append(
+        SIMD2(UInt32(baseAtomID + 6), UInt32(baseAtomID + 7)))
+    }
     
-    let carbon3 = Atom(
-      position: SIMD3(0.38, -0.20, -0.05), element: .carbon)
-    insertedAtoms.append(carbon3)
-    insertedBonds.append(
-      SIMD2(UInt32(baseAtomID + 1), UInt32(baseAtomID + 3)))
-    
-    let sulfur4 = Atom(
-      position: SIMD3(0.45, -0.36, -0.05), element: .sulfur)
-    insertedAtoms.append(sulfur4)
-    insertedBonds.append(
-      SIMD2(UInt32(baseAtomID + 3), UInt32(baseAtomID + 4)))
-    
-    let hydrogen5 = Atom(
-      position: SIMD3(0.57, -0.36, -0.05), element: .hydrogen)
-    insertedAtoms.append(hydrogen5)
-    insertedBonds.append(
-      SIMD2(UInt32(baseAtomID + 4), UInt32(baseAtomID + 5)))
+    // Apply the rotation transform to all atoms, just before inserting.
+    let angleDegrees = Float(legID) * 120 - 60
+    let rotation = Quaternion<Float>(
+      angle: Float.pi / 180 * angleDegrees,
+      axis: SIMD3(0, 1, 0))
+    for relativeAtomID in insertedAtoms.indices {
+      var atom = insertedAtoms[relativeAtomID]
+      atom.position = rotation.act(on: atom.position)
+      insertedAtoms[relativeAtomID] = atom
+    }
+    topology.atoms += insertedAtoms
+    topology.bonds += insertedBonds
   }
   
-  if isAzastannatrane {
-    let carbon6 = Atom(
-      position: SIMD3(0.32, 0.08, -0.05), element: .carbon)
-    insertedAtoms.append(carbon6)
-    insertedBonds.append(
-      SIMD2(UInt32(baseAtomID + 2), UInt32(baseAtomID + 6)))
-    
-    let hydrogen7 = Atom(
-      position: SIMD3(0.32, 0.20, -0.05), element: .hydrogen)
-    insertedAtoms.append(hydrogen7)
-    insertedBonds.append(
-      SIMD2(UInt32(baseAtomID + 6), UInt32(baseAtomID + 7)))
-  }
+  // Don't forget the feedstock.
+  topology.atoms += [
+    Atom(position: SIMD3(0.00, 0.19, 0.00), element: .hydrogen),
+  ]
   
-  // Apply the rotation transform to all atoms, just before inserting.
-  let angleDegrees = Float(legID) * 120 - 60
-  let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * angleDegrees,
-    axis: SIMD3(0, 1, 0))
-  for relativeAtomID in insertedAtoms.indices {
-    var atom = insertedAtoms[relativeAtomID]
-    atom.position = rotation.act(on: atom.position)
-    insertedAtoms[relativeAtomID] = atom
-  }
-  topology.atoms += insertedAtoms
-  topology.bonds += insertedBonds
+  passivate(topology: &topology)
+  return topology
 }
-passivate(topology: &topology)
+
+let topology = createTripod(isAzastannatrane: false)
+
+var calculatorDesc = xTB_CalculatorDescriptor()
+calculatorDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+let calculator = xTB_Calculator(descriptor: calculatorDesc)
+
+calculator.molecule.positions = topology.atoms.map(\.position)
+
+// Verbosity should not be at the muted level.
+// Check that azastannatrane can be evaluated on Windows.
+print(calculator.energy)
 
 // MARK: - Launch Application
 
