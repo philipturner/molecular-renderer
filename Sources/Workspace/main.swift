@@ -175,48 +175,47 @@ if !renderingOffline {
     let image = application.render()
     let checkpoint1 = Date()
     
-//    let cairoImage = CairoImage(
-//      width: frameBufferSize[0],
-//      height: frameBufferSize[1])
+    let cairoImage = CairoImage(
+      width: frameBufferSize[0],
+      height: frameBufferSize[1])
     let pixels = image.pixels
-    var scalars: [SIMD4<UInt8>] = []
     for y in 0..<frameBufferSize[1] {
       for x in 0..<frameBufferSize[0] {
         let address = y * frameBufferSize[0] + x
-        let pixel = pixels[address]
+        let pixel = SIMD4<Float>(image.pixels[address])
         
-        let r = UInt8(Float(pixel[0]))
-        let g = UInt8(Float(pixel[1]))
-        let b = UInt8(Float(pixel[2]))
-        let a = UInt8(Float(pixel[3]))
-        scalars.append(SIMD4<UInt8>(r, g, b, a))
+        let scaled = pixel * 255
+        var rounded = scaled.rounded(.toNearestOrEven)
+        rounded.replace(
+          with: SIMD4<Float>(repeating: 0),
+          where: rounded .< 0)
+        rounded.replace(
+          with: SIMD4<Float>(repeating: 255),
+          where: rounded .> 255)
         
-//        let scaled = pixel * 255
-//        var rounded = scaled.rounded(.toNearestOrEven)
-//        rounded.replace(
-//          with: SIMD4<Float16>(repeating: 0),
-//          where: rounded .< 0)
-//        rounded.replace(
-//          with: SIMD4<Float16>(repeating: 255),
-//          where: rounded .> 255)
-//        
-//        // rgba
-//        let rgbaVector = SIMD4<UInt8>(rounded)
+        // Avoid massive CPU-side bottleneck for unknown reason when casting
+        // floating point vector to integer vector.
+        let r = UInt8(pixel[0])
+        let g = UInt8(pixel[1])
+        let b = UInt8(pixel[2])
+        let a = UInt8(pixel[3])
         
-//        // bgra
-//        let bgraVector = SIMD4<UInt8>(
-//          rgbaVector[2],
-//          rgbaVector[1],
-//          rgbaVector[0],
-//          rgbaVector[3])
-//        
-//        // bgra big-endian
-//        // argb little-endian
-//        let bgraScalar = unsafeBitCast(bgraVector, to: UInt32.self)
-//        scalars.append(bgraScalar)
+        // rgba
+        let rgbaVector = SIMD4<UInt8>(r, g, b, a)
         
-//        let color = Color(argb: bgraScalar)
-//        cairoImage[y, x] = color
+        // bgra
+        let bgraVector = SIMD4<UInt8>(
+          rgbaVector[2],
+          rgbaVector[1],
+          rgbaVector[0],
+          rgbaVector[3])
+        
+        // bgra big-endian
+        // argb little-endian
+        let bgraScalar = unsafeBitCast(bgraVector, to: UInt32.self)
+        
+        let color = Color(argb: bgraScalar)
+        cairoImage[y, x] = color
       }
     }
     let checkpoint2 = Date()
