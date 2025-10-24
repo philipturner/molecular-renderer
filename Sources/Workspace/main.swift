@@ -144,11 +144,26 @@ func createTripod(
   return topology
 }
 
-let topology = createTripod(isAzastannatrane: true)
-let trajectory = loadCachedTrajectory(tripod: topology)
-guard trajectory.count > 0 else {
-  fatalError("No starting structure to render.")
+func createCarbatranePositions() -> [Atom] {
+  let topology = createTripod(isAzastannatrane: false)
+  let trajectory = loadCachedTrajectory(tripod: topology)
+  guard trajectory.count > 0 else {
+    fatalError("No starting structure to render.")
+  }
+  return trajectory.last!
 }
+
+func createAzatranePositions() -> [Atom] {
+  let topology = createTripod(isAzastannatrane: true)
+  let trajectory = loadCachedTrajectory(tripod: topology)
+  guard trajectory.count > 0 else {
+    fatalError("No starting structure to render.")
+  }
+  return trajectory.last!
+}
+
+let carbatranePositions = createCarbatranePositions()
+let azatranePositions = createAzatranePositions()
 
 // MARK: - Launch Application
 
@@ -184,24 +199,53 @@ let application = createApplication()
 // Set the atoms of the compiled structure(s) here.
 //
 // Render static image showing both side and top view.
-//
-// When debugging a trajectory, it will be easy to just set atoms during the
-// run loop and animate by clock.frames.
+var baseAtomID: Int = .zero
+for structureID in 0..<4 {
+  let angleDegrees = Float(90)
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * angleDegrees,
+    axis: SIMD3(1, 0, 0))
+  
+  var positions: [Atom]
+  if structureID < 2 {
+    positions = carbatranePositions
+  } else {
+    positions = azatranePositions
+  }
+  
+  for atomID in positions.indices {
+    var atom = positions[atomID]
+   
+    // Apply the rotation before messing with any translations.
+    if structureID % 2 == 1 {
+      atom.position = rotation.act(on: atom.position)
+    }
+    
+    let separationDistanceX: Float = 1.5
+    let separationDistanceY: Float = 1.5
+    if structureID < 2 {
+      atom.x -= separationDistanceX / 2
+    } else {
+      atom.x += separationDistanceX / 2
+    }
+    if structureID % 2 == 0 {
+      atom.y -= separationDistanceY / 2
+    } else {
+      atom.y += separationDistanceY / 2
+    }
+    
+    application.atoms[baseAtomID + atomID] = atom
+  }
+  
+  baseAtomID += positions.count
+}
 
 // Set up the camera statically here.
-application.camera.position = SIMD3(0, 0, 2)
+application.camera.position = SIMD3(0, 0, 9)
+application.camera.fovAngleVertical = Float.pi / 180 * 20
 application.camera.secondaryRayCount = 15 // eventually 64
 
 application.run {
-  var frameID = application.clock.frames
-  frameID = min(frameID, trajectory.count - 1)
-  let atoms = trajectory[frameID]
-  
-  for atomID in atoms.indices {
-    let atom = atoms[atomID]
-    application.atoms[atomID] = atom
-  }
-  
   var image = application.render()
   image = application.upscale(image: image)
   application.present(image: image)
