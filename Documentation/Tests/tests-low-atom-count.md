@@ -54,11 +54,13 @@ Use offline rendering to create a high-quality static image. Disable upscaling a
 
 ### macOS
 
-TODO
+Navigate to the `.build` folder of the repo directory. You may need to press `Cmd + Shift + .` to show hidden files in Finder. Double-click `image.ppm`. Preview will launch automatically.
+
+Go to <b>File</b> > <b>Export</b>. Keep the image name as "image", with no file extension. Change <b>Format</b> from "JPEG" to "PNG". Change the destination to your Desktop folder (or wherever is most convenient). Click <b>Save</b>. Double-click on the image and a new Preview window should appear.
 
 ### Windows
 
-Install "GIMP" from the Microsoft Store. Right-click `image.ppm` in the `.build` folder and open with "GIMP 3". Be careful to not accidentally use the paintbrush tool when clicking in the window.
+Download [GIMP](https://apps.microsoft.com/detail/9pnsjclxdz0v?hl=en-US&gl=US) from the Microsoft Store. Right-click `image.ppm` in the `.build` folder and open with "GIMP 3". Be careful to not accidentally use the paintbrush tool when clicking in the window.
 
 Go to <b>File</b> > <b>Export As</b>. Set the name to "image.png". The contents of the `.build` folder should appear in the file system preview. Click <b>Export</b>. Leave the default settings and click <b>Export</b> again. Right-click `image.png` in the `.build` folder and open with "Photos".
 
