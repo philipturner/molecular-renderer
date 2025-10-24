@@ -1,3 +1,4 @@
+import struct Foundation.Date
 import GIF
 import HDL
 import MolecularRenderer
@@ -170,42 +171,60 @@ if !renderingOffline {
   for frameID in 0..<60 {
     modifyAtoms()
     modifyCamera()
+    let checkpoint0 = Date()
     let image = application.render()
+    let checkpoint1 = Date()
     
-    let cairoImage = CairoImage(
-      width: frameBufferSize[0],
-      height: frameBufferSize[1])
+//    let cairoImage = CairoImage(
+//      width: frameBufferSize[0],
+//      height: frameBufferSize[1])
+    let pixels = image.pixels
+    var scalars: [SIMD4<UInt8>] = []
     for y in 0..<frameBufferSize[1] {
       for x in 0..<frameBufferSize[0] {
         let address = y * frameBufferSize[0] + x
-        let pixel = image.pixels[address]
+        let pixel = pixels[address]
         
-        let scaled = pixel * 255
-        var rounded = scaled.rounded(.toNearestOrEven)
-        rounded.replace(
-          with: SIMD4<Float16>(repeating: 0),
-          where: rounded .< 0)
-        rounded.replace(
-          with: SIMD4<Float16>(repeating: 255),
-          where: rounded .> 255)
+        let r = UInt8(Float(pixel[0]))
+        let g = UInt8(Float(pixel[1]))
+        let b = UInt8(Float(pixel[2]))
+        let a = UInt8(Float(pixel[3]))
+        scalars.append(SIMD4<UInt8>(r, g, b, a))
         
-        // rgba
-        let rgbaVector = SIMD4<UInt8>(rounded)
+//        let scaled = pixel * 255
+//        var rounded = scaled.rounded(.toNearestOrEven)
+//        rounded.replace(
+//          with: SIMD4<Float16>(repeating: 0),
+//          where: rounded .< 0)
+//        rounded.replace(
+//          with: SIMD4<Float16>(repeating: 255),
+//          where: rounded .> 255)
+//        
+//        // rgba
+//        let rgbaVector = SIMD4<UInt8>(rounded)
         
-        // bgra
-        let bgraVector = SIMD4<UInt8>(
-          rgbaVector[2],
-          rgbaVector[1],
-          rgbaVector[0],
-          rgbaVector[3])
+//        // bgra
+//        let bgraVector = SIMD4<UInt8>(
+//          rgbaVector[2],
+//          rgbaVector[1],
+//          rgbaVector[0],
+//          rgbaVector[3])
+//        
+//        // bgra big-endian
+//        // argb little-endian
+//        let bgraScalar = unsafeBitCast(bgraVector, to: UInt32.self)
+//        scalars.append(bgraScalar)
         
-        // bgra big-endian
-        // argb little-endian
-        let bgraScalar = unsafeBitCast(bgraVector, to: UInt32.self)
-        
-        let color = Color(argb: bgraScalar)
-        cairoImage[y, x] = color
+//        let color = Color(argb: bgraScalar)
+//        cairoImage[y, x] = color
       }
     }
+    let checkpoint2 = Date()
+    
+//    let quantization = OctreeQuantization(fromImage: cairoImage)
+    
+    print()
+    print(checkpoint1.timeIntervalSince(checkpoint0))
+    print(checkpoint2.timeIntervalSince(checkpoint1))
   }
 }
