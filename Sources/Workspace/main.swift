@@ -43,22 +43,24 @@ for legID in 0..<1 {
     insertedBonds.append(
       SIMD2(UInt32(baseAtomID + 0), UInt32(baseAtomID + 1)))
     
-    let carbon2 = Atom(
+    let nitrogen2 = Atom(
       position: SIMD3(0.23, -0.00, 0.00),
       element: isAzastannatrane ? .nitrogen : .carbon)
-    insertedAtoms.append(carbon2)
+    insertedAtoms.append(nitrogen2)
     insertedBonds.append(
       SIMD2(UInt32(baseAtomID + 1), UInt32(baseAtomID + 2)))
     insertedBonds.append(
       SIMD2(UInt32(baseAtomID + 2), UInt32(0)))
     
-    // Next: carbon for the leg
+    let carbon3 = Atom(
+      position: SIMD3(0.38, -0.20, -0.05), element: .carbon)
+    insertedAtoms.append(carbon3)
     
     // optional last carbon for azastannatrane
   }
   
   // Apply the rotation transform to all atoms, just before inserting.
-  let angleDegrees = Float(legID) * 120 - 90
+  let angleDegrees = Float(legID) * 120 - 180
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * angleDegrees,
     axis: SIMD3(0, 1, 0))
@@ -70,7 +72,6 @@ for legID in 0..<1 {
   topology.atoms += insertedAtoms
   topology.bonds += insertedBonds
 }
-print(topology.atoms)
 
 // MARK: - Launch Application
 
