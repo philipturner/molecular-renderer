@@ -15,6 +15,7 @@ var workspaceLinkerSettings: [LinkerSetting] = []
 // Common dependencies.
 workspaceDependencies += [
   .product(name: "Atomics", package: "swift-atomics"),
+  .product(name: "GIF", package: "swift-gif"),
   .product(name: "HDL", package: "HDL"),
   .product(name: "Numerics", package: "swift-numerics"),
   .product(name: "MM4", package: "MM4"),
@@ -68,6 +69,10 @@ packageDependencies.append(.package(
 packageDependencies.append(.package(
   url: "https://github.com/philipturner/swift-numerics",
   branch: "Quaternions"))
+
+packageDependencies.append(.package(
+  url: "https://github.com/philipturner/swift-gif",
+  branch: "remove-swift-graphics"))
 
 // Simulator dependencies
 
