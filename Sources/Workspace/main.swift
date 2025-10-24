@@ -154,7 +154,11 @@ func modifyCamera() {
     // GIF encoding will be the bottleneck anyway, so why not maximize AO
     // quality? Only remaining quality problem is GIF restricting the color
     // space to 256 possible values.
-    application.camera.secondaryRayCount = 15
+    //
+    // In a test case with hydrogen, carbon, and oxygen, 15 AO rays caused
+    // severe graininess in the GIF, while 64 did not. Any quality issues from
+    // color banding pale in comparison.
+    application.camera.secondaryRayCount = 64
   }
 }
 
@@ -180,11 +184,6 @@ if !renderingOffline {
     modifyCamera()
     
     // GPU-side bottleneck
-    //
-    // throughput @ 1440x1080, 15 AO samples
-    // macOS:
-    // Windows:
-    //
     // throughput @ 1440x1080, 64 AO samples
     // macOS:
     // Windows:
@@ -205,6 +204,8 @@ if !renderingOffline {
         let pixel = SIMD4<Float>(image.pixels[address])
         
         // Don't clamp to [0, 255] range to avoid a minor CPU-side bottleneck.
+        // It theoretically should never go outside this range; we just lose
+        // the ability to assert this.
         let scaled = pixel * 255
         let rounded = scaled.rounded(.toNearestOrEven)
         
