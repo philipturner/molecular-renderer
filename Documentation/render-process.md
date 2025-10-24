@@ -2,7 +2,7 @@
 
 ![Render Process Diagram](./RenderProcessDiagram.png)
 
-Revision: offline rendering uses synchronous code instead of asynchronous handlers. There is no triple-buffering in the backend, because speed is not the primary design goal for offline renders.
+Revision: offline rendering uses synchronous code instead of asynchronous handlers. There is no triple-buffering in the backend, because speed is not the primary design goal for offline renderers.
 
 ## Rendering Performance
 
