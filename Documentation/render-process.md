@@ -128,24 +128,3 @@ With upscaling turned on, FidelityFX struggled to accurately denoise the AO. It 
 There are a few other, minor artifacts. Along the border between a silicon and hydrogen atom, white pixels can appear sporadically on the silicon side. Also, when atoms move quickly (isopropanol rotating at 0.5 Hz), the border between atoms can be a bit jumpy. In the MM4 carbosilane test, FSR shows noticeable artifacts at the borders between slowly moving atoms, while MetalFX does not.
 
 Despite its downsides, FSR 3 makes it possible to bring Molecular Renderer to the Windows target audience. Older GPUs work precisely because FSR 3 does not rely on computationally intensive neural networks, and it does not require hardware FP16 arithmetic.
-
-## Asynchronous Raw Pixel Buffer Handler
-
-Exit the `application.run()` paradigm entirely for offline rendering. `Display` and `Clock` are inappropriate because there is no interaction with DXGI/CVDisplayLink, notion of "frames per second", or need to accurately track wall time for real-time animations.
-
-Add a second mode for `Display`. In the descriptor, leave `monitorID` as `nil`. The application creates an artificial "display" with no actual link to DXGI. The frame rate is zero and the clock never increments.
-
-Offline rendering doesn't need to use a queue, triple-buffering, or asynchronous buffer handling. The point is to make offline rendering work at all, not to be fast. Performance will often be dominated by excessively expensive GPU-side settings. We need to minimize the design cost of this offline rendering feature.
-
-We can enforce the absence of upscaling for offline renders. `application.render()` can instead be a synchronous function. The output `Image` data type now owns an array or pointer, which the user reads to get raw pixel data. Use FP16 to minimize the complexity of the conversion implementation.
-
-> Edit the shader code generation to write directly to a buffer. All of this can be very, very simple.
-
-The behavior of `frameID` also changes in the offline mode. It starts at 0, and increases after every call to `render()`.
-
----
-
-First steps:
-- Debug PPM generation, with the text above as reference to search for culprits for bugs
-- Delete the text above
-- Start working on the first test that uses this new functionality
