@@ -190,11 +190,7 @@ if !renderingOffline {
     // single-threaded bottleneck
     // throughput @ 1440x1080
     // macOS: 5 ms/frame
-    // Windows: 262 ms/frame (possibly from lack of native FP16 instructions)
-    //
-    // Could probably change the Molecular Renderer API to convert to 8-bit
-    // integers on the GPU side. But that adds complexity to the implementation
-    // and this is probably not an issue on newer CPUs with better ISAs.
+    // Windows: 47 ms/frame
     let loopStartCheckpoint = Date()
     let cairoImage = CairoImage(
       width: frameBufferSize[0],
@@ -205,8 +201,6 @@ if !renderingOffline {
         
         // Leaving this in the original SIMD4<Float16> causes a CPU-side
         // bottleneck on Windows.
-        //
-        // TODO: Check whether the bottleneck also exists on macOS.
         let pixel = SIMD4<Float>(image.pixels[address])
         
         // Don't clamp to [0, 255] range to avoid a minor CPU-side bottleneck.
