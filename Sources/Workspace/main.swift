@@ -22,14 +22,18 @@ topology.atoms += [
   Atom(position: SIMD3(0.00, -0.26, -0.00), element: .nitrogen),
 ]
 
-for legID in 0..<3 {
+for legID in 0..<1 {
   let baseAtomID = topology.atoms.count
   var insertedAtoms: [Atom] = []
   var insertedBonds: [SIMD2<UInt32>] = []
   
   // Isolate the temporary variables for this part in a contained scope.
   do {
-    
+    let carbon0 = Atom(
+      position: SIMD3(0.15, -0.28, 0.00), element: .carbon)
+    insertedAtoms.append(carbon0)
+    insertedBonds.append(
+      SIMD2(UInt32(1), UInt32(baseAtomID + 0)))
   }
   
   // Apply the rotation transform to all atoms, just before inserting.
@@ -45,6 +49,7 @@ for legID in 0..<3 {
   topology.atoms += insertedAtoms
   topology.bonds += insertedBonds
 }
+print(topology.atoms)
 
 // MARK: - Launch Application
 
