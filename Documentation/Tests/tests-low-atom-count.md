@@ -44,7 +44,7 @@ Reference video: [YouTube](https://youtube.com/shorts/rV1UGau20xQ)
 
 ## Stannatrane Tripod
 
-Copy the TBD Swift files from this GitHub Gist (TODO) into "Sources/Workspace". It may be easiest to use <b>Download ZIP</b> on the GitHub Gist website and drag the files into the source folder.
+Copy the six Swift files from this [GitHub Gist](https://gist.github.com/philipturner/6a6e04f3e8a7b2bda2b8c99c492d4e49) into "Sources/Workspace". It may be easiest to use <b>Download ZIP</b> on the GitHub Gist website and drag the files into the source folder.
 
 Prepare energy-minimized structures of two variations of the Sn-H feedstock holder. Use SSD key-value caching to map compiled structure to minimized structure. Learn to use the `.build` folder as a reproducible location for writing files.
 
@@ -64,6 +64,6 @@ Download [GIMP](https://apps.microsoft.com/detail/9pnsjclxdz0v?hl=en-US&gl=US) f
 
 Go to <b>File</b> > <b>Export As</b>. Set the name to "image.jpg". The contents of the `.build` folder should appear in the file system preview. Click <b>Export</b>. Leave the default settings and click <b>Export</b> again. Right-click `image.jpg` in the `.build` folder and open with "Photos".
 
-TODO: Put reference image in documentation folder and link into Markdown document.
+![Stannatrane Tripod](../StannatraneTripod.jpg)
 
-_Reference image for the expected output after PNG conversion._
+_Reference image for the expected output after JPEG conversion._
