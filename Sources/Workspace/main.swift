@@ -149,6 +149,13 @@ func modifyCamera() {
   application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
   application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
   application.camera.fovAngleVertical = Float.pi / 180 * 40
+  
+  if renderingOffline {
+    // GIF encoding will be the bottleneck anyway, so why not maximize AO
+    // quality? Only remaining quality problem is GIF restricting the color
+    // space to 256 possible values.
+    application.camera.secondaryRayCount = 15 // TODO: 64
+  }
 }
 
 // Enter the run loop.
@@ -171,14 +178,27 @@ if !renderingOffline {
   for frameID in 0..<60 {
     modifyAtoms()
     modifyCamera()
+    
+    // GPU-side bottleneck
+    //
+    // throughput @ 1440x1080, 15 AO samples
+    // macOS: 12 ms/frame
+    // Windows:
+    //
+    // throughput @ 1440x1080, 64 AO samples
+    // macOS:
+    // Windows:
     let checkpoint0 = Date()
     let image = application.render()
     let checkpoint1 = Date()
     
+    // single-threaded bottleneck
+    // throughput @ 1440x1080
+    // macOS: 5 ms/frame
+    // Windows:
     let cairoImage = CairoImage(
       width: frameBufferSize[0],
       height: frameBufferSize[1])
-    let pixels = image.pixels
     for y in 0..<frameBufferSize[1] {
       for x in 0..<frameBufferSize[0] {
         let address = y * frameBufferSize[0] + x
@@ -220,10 +240,43 @@ if !renderingOffline {
     }
     let checkpoint2 = Date()
     
-//    let quantization = OctreeQuantization(fromImage: cairoImage)
+    // single-threaded bottleneck
+    // throughput @ 1440x1080
+    // macOS: 74 ms/frame
+    // Windows:
+    let quantization = OctreeQuantization(fromImage: cairoImage)
+    
+    let checkpoint3 = Date()
+    let frame = Frame(
+      image: cairoImage,
+      delayTime: 5, // 20 FPS
+      localQuantization: quantization)
+    let checkpoint4 = Date()
+    gif.frames.append(frame)
+    let checkpoint5 = Date()
     
     print()
     print(checkpoint1.timeIntervalSince(checkpoint0))
     print(checkpoint2.timeIntervalSince(checkpoint1))
+    print(checkpoint3.timeIntervalSince(checkpoint2))
+    print(checkpoint4.timeIntervalSince(checkpoint3))
+    print(checkpoint5.timeIntervalSince(checkpoint4))
   }
+  
+  // multi-threaded bottleneck
+  // throughput @ 1440x1080
+  // macOS: 238 ms/frame
+  // Windows:
+  let checkpoint6 = Date()
+  print("encoding GIF")
+  let data = try! gif.encoded()
+  print("encoded size:", String(format: "%.1f", Float(data.count) / 1e6), "MB")
+  let checkpoint7 = Date()
+  print(checkpoint7.timeIntervalSince(checkpoint6))
+  
+  // SSD access bottleneck
+  //
+  // latency @ 1440x1080, 10 frames
+  //
+  // latency @ 1440x1080, 60 frames
 }
