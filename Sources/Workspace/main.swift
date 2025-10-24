@@ -16,7 +16,50 @@ import xTB
 
 // MARK: - Compile Structure
 
-let isAzastannatrane: Bool = true
+// Passivate only the carbons with 2 unpaired electrons (carbene state).
+func passivate(topology: inout Topology) {
+  func createHydrogen(
+    atomID: UInt32,
+    orbital: SIMD3<Float>
+  ) -> Atom {
+    let atom = topology.atoms[Int(atomID)]
+    
+    var bondLength = atom.element.covalentRadius
+    bondLength += Element.hydrogen.covalentRadius
+    
+    let position = atom.position + bondLength * orbital
+    return Atom(position: position, element: .hydrogen)
+  }
+  
+  let orbitalLists = topology.nonbondingOrbitals()
+  
+  var insertedAtoms: [Atom] = []
+  var insertedBonds: [SIMD2<UInt32>] = []
+  for atomID in topology.atoms.indices {
+    let atom = topology.atoms[atomID]
+    guard atom.atomicNumber == 6 else {
+      continue
+    }
+    
+    let orbitalList = orbitalLists[atomID]
+    for orbital in orbitalList {
+      let hydrogen = createHydrogen(
+        atomID: UInt32(atomID),
+        orbital: orbital)
+      let hydrogenID = topology.atoms.count + insertedAtoms.count
+      insertedAtoms.append(hydrogen)
+      
+      let bond = SIMD2(
+        UInt32(atomID),
+        UInt32(hydrogenID))
+      insertedBonds.append(bond)
+    }
+  }
+  topology.atoms += insertedAtoms
+  topology.bonds += insertedBonds
+}
+
+let isAzastannatrane: Bool = false
 
 var topology = Topology()
 topology.atoms += [
@@ -24,7 +67,7 @@ topology.atoms += [
   Atom(position: SIMD3(0.00, -0.26, -0.00), element: .nitrogen),
 ]
 
-for legID in 0..<1 {
+for legID in 0..<3 {
   let baseAtomID = topology.atoms.count
   var insertedAtoms: [Atom] = []
   var insertedBonds: [SIMD2<UInt32>] = []
@@ -86,7 +129,7 @@ for legID in 0..<1 {
   }
   
   // Apply the rotation transform to all atoms, just before inserting.
-  let angleDegrees = Float(legID) * 120 - 0
+  let angleDegrees = Float(legID) * 120 - 60
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * angleDegrees,
     axis: SIMD3(0, 1, 0))
@@ -98,6 +141,7 @@ for legID in 0..<1 {
   topology.atoms += insertedAtoms
   topology.bonds += insertedBonds
 }
+passivate(topology: &topology)
 
 // MARK: - Launch Application
 
