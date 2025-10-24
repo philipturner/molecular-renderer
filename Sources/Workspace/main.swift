@@ -22,6 +22,30 @@ topology.atoms += [
   Atom(position: SIMD3(0.00, -0.26, -0.00), element: .nitrogen),
 ]
 
+for legID in 0..<3 {
+  let baseAtomID = topology.atoms.count
+  var insertedAtoms: [Atom] = []
+  var insertedBonds: [SIMD2<UInt32>] = []
+  
+  // Isolate the temporary variables for this part in a contained scope.
+  do {
+    
+  }
+  
+  // Apply the rotation transform to all atoms, just before inserting.
+  let angleDegrees = Float(legID) * 120
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * angleDegrees,
+    axis: SIMD3(0, 1, 0))
+  for relativeAtomID in insertedAtoms.indices {
+    var atom = insertedAtoms[relativeAtomID]
+    atom.position = rotation.act(on: atom.position)
+    insertedAtoms[relativeAtomID] = atom
+  }
+  topology.atoms += insertedAtoms
+  topology.bonds += insertedBonds
+}
+
 // MARK: - Launch Application
 
 @MainActor
