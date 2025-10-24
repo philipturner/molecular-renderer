@@ -4,7 +4,7 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
-let renderingOffline: Bool = false
+let renderingOffline: Bool = true
 
 @MainActor
 func createApplication() -> Application {
@@ -168,7 +168,8 @@ if !renderingOffline {
     height: frameBufferSize[1])
   
   print("rendering frames")
-  for frameID in 0..<60 {
+  for _ in 0..<60 {
+    let loopStartCheckpoint = Date()
     modifyAtoms()
     modifyCamera()
     
@@ -176,9 +177,7 @@ if !renderingOffline {
     // throughput @ 1440x1080, 64 AO samples
     // macOS: 14-18 ms/frame
     // Windows: 50-70 ms/frame
-    let checkpoint0 = Date()
     let image = application.render()
-    let checkpoint1 = Date()
     
     // single-threaded bottleneck
     // throughput @ 1440x1080
@@ -225,7 +224,6 @@ if !renderingOffline {
         cairoImage[y, x] = color
       }
     }
-    let checkpoint2 = Date()
     
     // single-threaded bottleneck
     // throughput @ 1440x1080
@@ -233,21 +231,14 @@ if !renderingOffline {
     // Windows: 271 ms/frame
     let quantization = OctreeQuantization(fromImage: cairoImage)
     
-    let checkpoint3 = Date()
     let frame = Frame(
       image: cairoImage,
       delayTime: 5, // 20 FPS
       localQuantization: quantization)
-    let checkpoint4 = Date()
     gif.frames.append(frame)
-    let checkpoint5 = Date()
     
-    print()
-    print(checkpoint1.timeIntervalSince(checkpoint0))
-    print(checkpoint2.timeIntervalSince(checkpoint1))
-    print(checkpoint3.timeIntervalSince(checkpoint2))
-    print(checkpoint4.timeIntervalSince(checkpoint3))
-    print(checkpoint5.timeIntervalSince(checkpoint4))
+    let loopEndCheckpoint = Date()
+    print(loopEndCheckpoint.timeIntervalSince(loopStartCheckpoint))
   }
   
   // multi-threaded bottleneck
@@ -256,12 +247,14 @@ if !renderingOffline {
   // Windows: 174 ms/frame (???)
   //
   // This dwarfs all other bottlenecks for offline rendering.
-  let checkpoint6 = Date()
   print("encoding GIF")
+  let encodeStartCheckpoint = Date()
   let data = try! gif.encoded()
-  print("encoded size:", String(format: "%.1f", Float(data.count) / 1e6), "MB")
-  let checkpoint7 = Date()
-  print(checkpoint7.timeIntervalSince(checkpoint6))
+  let encodeEndCheckpoint = Date()
+  
+  let encodedSizeRepr = String(format: "%.1f", Float(data.count) / 1e6)
+  print("encoded size:", encodedSizeRepr, "MB")
+  print(encodeEndCheckpoint.timeIntervalSince(encodeStartCheckpoint))
   
   // SSD access bottleneck
   //
@@ -282,6 +275,4 @@ if !renderingOffline {
   guard succeeded else {
     fatalError("Could not write to file.")
   }
-  let checkpoint8 = Date()
-  print(checkpoint8.timeIntervalSince(checkpoint7))
 }
