@@ -182,15 +182,15 @@ if !renderingOffline {
     for y in 0..<frameBufferSize[1] {
       for x in 0..<frameBufferSize[0] {
         let address = y * frameBufferSize[0] + x
-        let pixel = SIMD4<Float>(image.pixels[address])
+        let pixel = image.pixels[address]
         
         let scaled = pixel * 255
         var rounded = scaled.rounded(.toNearestOrEven)
         rounded.replace(
-          with: SIMD4<Float>(repeating: 0),
+          with: SIMD4<Float16>(repeating: 0),
           where: rounded .< 0)
         rounded.replace(
-          with: SIMD4<Float>(repeating: 255),
+          with: SIMD4<Float16>(repeating: 255),
           where: rounded .> 255)
         
         // Avoid massive CPU-side bottleneck for unknown reason when casting
