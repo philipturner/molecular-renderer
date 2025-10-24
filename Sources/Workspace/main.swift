@@ -16,6 +16,8 @@ import xTB
 
 // MARK: - Compile Structure
 
+let isAzastannatrane: Bool = false
+
 var topology = Topology()
 topology.atoms += [
   Atom(position: SIMD3(0.00, 0.00, 0.00), element: .tin),
@@ -34,10 +36,29 @@ for legID in 0..<1 {
     insertedAtoms.append(carbon0)
     insertedBonds.append(
       SIMD2(UInt32(1), UInt32(baseAtomID + 0)))
+    
+    let carbon1 = Atom(
+      position: SIMD3(0.23, -0.15, -0.05), element: .carbon)
+    insertedAtoms.append(carbon1)
+    insertedBonds.append(
+      SIMD2(UInt32(baseAtomID + 0), UInt32(baseAtomID + 1)))
+    
+    let carbon2 = Atom(
+      position: SIMD3(0.23, -0.00, 0.00),
+      element: isAzastannatrane ? .nitrogen : .carbon)
+    insertedAtoms.append(carbon2)
+    insertedBonds.append(
+      SIMD2(UInt32(baseAtomID + 1), UInt32(baseAtomID + 2)))
+    insertedBonds.append(
+      SIMD2(UInt32(baseAtomID + 2), UInt32(0)))
+    
+    // Next: carbon for the leg
+    
+    // optional last carbon for azastannatrane
   }
   
   // Apply the rotation transform to all atoms, just before inserting.
-  let angleDegrees = Float(legID) * 120
+  let angleDegrees = Float(legID) * 120 - 90
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * angleDegrees,
     axis: SIMD3(0, 1, 0))
