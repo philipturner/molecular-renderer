@@ -178,14 +178,13 @@ func createApplication() -> Application {
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
   displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
-  displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
   // Set up the application.
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 3
+  applicationDesc.upscaleFactor = 1
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
@@ -243,16 +242,8 @@ for structureID in 0..<4 {
 // Set up the camera statically here.
 application.camera.position = SIMD3(0, 0, 9)
 application.camera.fovAngleVertical = Float.pi / 180 * 20
-application.camera.secondaryRayCount = 15 // eventually 64
+application.camera.secondaryRayCount = 64
 
-application.run {
-  var image = application.render()
-  image = application.upscale(image: image)
-  application.present(image: image)
-}
-
-// Reference code for saving a TIFF image.
-#if false
 do {
   let image = application.render()
   let frameBufferSize = application.display.frameBufferSize
@@ -302,4 +293,3 @@ do {
     fatalError("Could not write to file.")
   }
 }
-#endif
