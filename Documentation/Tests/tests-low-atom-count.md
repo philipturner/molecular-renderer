@@ -52,7 +52,15 @@ Prepare energy-minimized structures of two variations of the Sn-H feedstock hold
 
 Use offline rendering to create a high-quality static image. Disable upscaling and set the secondary ray count to 64. Use PPM, a simple serialization format with no library dependencies. Post-process the PPM into a PNG with reasonable file size.
 
-TODO: Explain the OS-specific apps for converting PPM images to PNG.
+### macOS
+
+TODO
+
+### Windows
+
+Install "GIMP" from the Microsoft Store. Right-click `image.ppm` in the `.build` folder and open with "GIMP 3". Be careful to not accidentally use the paintbrush tool when clicking in the window.
+
+Go to <b>File</b> > <b>Export As</b>. Set the name to "image.png". The contents of the `.build` folder should appear in the file system preview. Click <b>Export</b>. Leave the default settings and click <b>Export</b> again. Right-click `image.png` in the `.build` folder and open with "Photos".
 
 TODO: Put reference image in documentation folder and link into Markdown document.
 
