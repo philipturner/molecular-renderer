@@ -179,13 +179,13 @@ if !renderingOffline {
     width: frameBufferSize[0],
     height: frameBufferSize[1])
   
-  for frameID in 0..<10 {
+  for frameID in 0..<60 {
     modifyAtoms()
     modifyCamera()
     
     // GPU-side bottleneck
     // throughput @ 1440x1080, 64 AO samples
-    // macOS:
+    // macOS: 18 ms/frame
     // Windows:
     let checkpoint0 = Date()
     let image = application.render()
@@ -193,7 +193,7 @@ if !renderingOffline {
     
     // single-threaded bottleneck
     // throughput @ 1440x1080
-    // macOS:
+    // macOS: 5 ms/frame
     // Windows:
     let cairoImage = CairoImage(
       width: frameBufferSize[0],
@@ -237,7 +237,7 @@ if !renderingOffline {
     
     // single-threaded bottleneck
     // throughput @ 1440x1080
-    // macOS:
+    // macOS: 76 ms/frame
     // Windows:
     let quantization = OctreeQuantization(fromImage: cairoImage)
     
@@ -260,8 +260,10 @@ if !renderingOffline {
   
   // multi-threaded bottleneck
   // throughput @ 1440x1080
-  // macOS:
+  // macOS: 252 ms/frame
   // Windows:
+  //
+  // This dwarfs all other bottlenecks for offline rendering.
   let checkpoint6 = Date()
   print("encoding GIF")
   let data = try! gif.encoded()
@@ -271,13 +273,15 @@ if !renderingOffline {
   
   // SSD access bottleneck
   //
-  // latency @ 1440x1080, 10 frames, TBD MB
-  // macOS:
+  // latency @ 1440x1080, 10 frames, 2.1 MB
+  // macOS: 1.6 ms
   // Windows:
   //
-  // latency @ 1440x1080, 60 frames, TBD MB
-  // macOS:
+  // latency @ 1440x1080, 60 frames, 12.4 MB
+  // macOS: 4.1 ms
   // Windows:
+  //
+  // Order of magnitude, 1 minute of video is 1 GB of GIF.
   let packagePath = FileManager.default.currentDirectoryPath
   let filePath = "\(packagePath)/.build/video.gif"
   let succeeded = FileManager.default.createFile(
