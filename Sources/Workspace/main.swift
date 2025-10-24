@@ -176,8 +176,8 @@ if !renderingOffline {
   // Costs are probably agnostic to level of detail in the scene. On macOS, the
   // encoding latency was identical for an accidentally 100% black image.
   print("rendering frames")
-  for _ in 0..<60 {
-    let loopStartCheckpoint = Date()
+  for _ in 0..<10 {
+    
     modifyAtoms()
     modifyCamera()
     
@@ -195,6 +195,7 @@ if !renderingOffline {
     // Could probably change the Molecular Renderer API to convert to 8-bit
     // integers on the GPU side. But that adds complexity to the implementation
     // and this is probably not an issue on newer CPUs with better ISAs.
+    let loopStartCheckpoint = Date()
     let cairoImage = CairoImage(
       width: frameBufferSize[0],
       height: frameBufferSize[1])
@@ -204,7 +205,7 @@ if !renderingOffline {
         
         // Leaving this in the original SIMD4<Float16> makes the entire
         // loop 1.5x slower on Windows. Better to cast to SIMD4<Float>.
-        let pixel = SIMD4<Float>(image.pixels[address])
+        let pixel = SIMD4<Float16>(image.pixels[address])
         
         // Don't clamp to [0, 255] range to avoid a minor CPU-side bottleneck.
         // It theoretically should never go outside this range; we just lose
@@ -212,12 +213,18 @@ if !renderingOffline {
         let scaled = pixel * 255
         let rounded = scaled.rounded(.toNearestOrEven)
         
+        let rounded1 = scaled.rounded(.toNearestOrEven)
+        let rounded2 = (scaled + 0.5).rounded(.down)
+        if any(rounded1 .!= rounded2) {
+          fatalError("We have a problem: \(255 * SIMD4<Float>(image.pixels[address])) \(scaled) \(rounded1) \(rounded2).")
+        }
+        
         // Avoid massive CPU-side bottleneck for unknown reason when casting
         // floating point vector to integer vector.
-        let r = UInt8(rounded[0])
-        let g = UInt8(rounded[1])
-        let b = UInt8(rounded[2])
-        let a = UInt8(rounded[3])
+        let r = UInt8(rounded2[0])
+        let g = UInt8(rounded2[1])
+        let b = UInt8(rounded2[2])
+        let a = UInt8(rounded2[3])
         
         // rgba
         let rgbaVector = SIMD4<UInt8>(r, g, b, a)
@@ -236,6 +243,8 @@ if !renderingOffline {
         cairoImage[y, x] = color
       }
     }
+    let loopEndCheckpoint = Date()
+    print(loopEndCheckpoint.timeIntervalSince(loopStartCheckpoint))
     
     // single-threaded bottleneck
     // throughput @ 1440x1080
@@ -252,8 +261,7 @@ if !renderingOffline {
       localQuantization: quantization)
     gif.frames.append(frame)
     
-    let loopEndCheckpoint = Date()
-    print(loopEndCheckpoint.timeIntervalSince(loopStartCheckpoint))
+    
   }
   
   // multi-threaded bottleneck
