@@ -171,13 +171,17 @@ if !renderingOffline {
   //
   // throughput @ 1440x1080, 60 FPS
   // macOS: 22.8 minutes / minute of content
-  // Windows: 46.6 minutes / minute of content
+  // Windows: 31.3 minutes / minute of content
+  //
+  // throughput @ 1280x720, 60 FPS
+  // macOS: 13.5 minutes / minute of content
+  // Windows: 18.5 minutes / minute of content
   //
   // Costs are probably agnostic to level of detail in the scene. On macOS, the
   // encoding latency was identical for an accidentally 100% black image.
   print("rendering frames")
   for _ in 0..<10 {
-    
+    let loopStartCheckpoint = Date()
     modifyAtoms()
     modifyCamera()
     
@@ -191,7 +195,6 @@ if !renderingOffline {
     // throughput @ 1440x1080
     // macOS: 5 ms/frame
     // Windows: 47 ms/frame
-    let loopStartCheckpoint = Date()
     let cairoImage = CairoImage(
       width: frameBufferSize[0],
       height: frameBufferSize[1])
@@ -236,16 +239,11 @@ if !renderingOffline {
         cairoImage[y, x] = color
       }
     }
-    let loopEndCheckpoint = Date()
-    print(loopEndCheckpoint.timeIntervalSince(loopStartCheckpoint))
     
     // single-threaded bottleneck
     // throughput @ 1440x1080
     // macOS: 76 ms/frame
     // Windows: 271 ms/frame
-    //
-    // Could probably parallelize this part to improve performance on the
-    // Windows machine.
     let quantization = OctreeQuantization(fromImage: cairoImage)
     
     let frame = Frame(
@@ -254,7 +252,8 @@ if !renderingOffline {
       localQuantization: quantization)
     gif.frames.append(frame)
     
-    
+    let loopEndCheckpoint = Date()
+    print(loopEndCheckpoint.timeIntervalSince(loopStartCheckpoint))
   }
   
   // multi-threaded bottleneck
