@@ -46,7 +46,7 @@ Reference video: [YouTube](https://youtube.com/shorts/rV1UGau20xQ)
 
 > Note: Work on this task first, before integrating the H.264 encoder binary. The first step toward progress is implementing the "asynchronous raw pixel buffer handler".
 
-Copy the TBD Swift files from this GitHub Gist (TODO) into "Sources/Workspace".
+Copy the TBD Swift files from this GitHub Gist (TODO) into "Sources/Workspace". It may be easiest to use <b>Download ZIP</b> on the GitHub Gist website and drag the files into the source folder.
 
 Prepare energy-minimized structures of two variations of the Sn-H feedstock holder. Use SSD key-value caching to map compiled structure to minimized structure. Learn to use the `.build` folder as a reproducible location for writing files.
 

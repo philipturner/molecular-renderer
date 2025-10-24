@@ -11,6 +11,9 @@ import xTB
 // approach to the structure generation, but copy the FIRE, Minimization, and
 // serialization or disk-accessing utilities.
 
+// Check that Serialization is accurately replaying the entire minimization
+// trajectory on both platforms.
+
 // Reference code for saving a TIFF image.
 #if false
 do {
