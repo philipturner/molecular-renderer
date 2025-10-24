@@ -154,7 +154,7 @@ func modifyCamera() {
     // GIF encoding will be the bottleneck anyway, so why not maximize AO
     // quality? Only remaining quality problem is GIF restricting the color
     // space to 256 possible values.
-    application.camera.secondaryRayCount = 64
+    application.camera.secondaryRayCount = 15
   }
 }
 
@@ -175,7 +175,7 @@ if !renderingOffline {
     width: frameBufferSize[0],
     height: frameBufferSize[1])
   
-  for frameID in 0..<60 {
+  for frameID in 0..<10 {
     modifyAtoms()
     modifyCamera()
     
@@ -215,10 +215,10 @@ if !renderingOffline {
         
         // Avoid massive CPU-side bottleneck for unknown reason when casting
         // floating point vector to integer vector.
-        let r = UInt8(pixel[0])
-        let g = UInt8(pixel[1])
-        let b = UInt8(pixel[2])
-        let a = UInt8(pixel[3])
+        let r = UInt8(rounded[0])
+        let g = UInt8(rounded[1])
+        let b = UInt8(rounded[2])
+        let a = UInt8(rounded[3])
         
         // rgba
         let rgbaVector = SIMD4<UInt8>(r, g, b, a)
@@ -233,7 +233,6 @@ if !renderingOffline {
         // bgra big-endian
         // argb little-endian
         let bgraScalar = unsafeBitCast(bgraVector, to: UInt32.self)
-        
         let color = Color(argb: bgraScalar)
         cairoImage[y, x] = color
       }
