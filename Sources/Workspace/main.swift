@@ -4,7 +4,7 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
-let renderingOffline: Bool = true
+let renderingOffline: Bool = false
 
 @MainActor
 func createApplication() -> Application {
@@ -162,21 +162,20 @@ if !renderingOffline {
     application.present(image: image)
   }
 } else {
-  // TODO: Test this GIF example on Windows.
   let frameBufferSize = application.display.frameBufferSize
   var gif = GIF(
     width: frameBufferSize[0],
     height: frameBufferSize[1])
   
   print("rendering frames")
-  for frameID in 0..<10 {
+  for frameID in 0..<60 {
     modifyAtoms()
     modifyCamera()
     
     // GPU-side bottleneck
     // throughput @ 1440x1080, 64 AO samples
-    // macOS: 18 ms/frame
-    // Windows:
+    // macOS: 14-18 ms/frame
+    // Windows: 50-70 ms/frame
     let checkpoint0 = Date()
     let image = application.render()
     let checkpoint1 = Date()
@@ -184,13 +183,16 @@ if !renderingOffline {
     // single-threaded bottleneck
     // throughput @ 1440x1080
     // macOS: 5 ms/frame
-    // Windows:
+    // Windows: 262 ms/frame (possibly from lack of native FP16 instructions)
     let cairoImage = CairoImage(
       width: frameBufferSize[0],
       height: frameBufferSize[1])
     for y in 0..<frameBufferSize[1] {
       for x in 0..<frameBufferSize[0] {
         let address = y * frameBufferSize[0] + x
+        
+        // Leaving this in the original SIMD4<Float16> makes the entire
+        // loop 1.5x slower on Windows. Better to cast to SIMD4<Float>.
         let pixel = SIMD4<Float>(image.pixels[address])
         
         // Don't clamp to [0, 255] range to avoid a minor CPU-side bottleneck.
@@ -228,7 +230,7 @@ if !renderingOffline {
     // single-threaded bottleneck
     // throughput @ 1440x1080
     // macOS: 76 ms/frame
-    // Windows:
+    // Windows: 271 ms/frame
     let quantization = OctreeQuantization(fromImage: cairoImage)
     
     let checkpoint3 = Date()
@@ -251,7 +253,7 @@ if !renderingOffline {
   // multi-threaded bottleneck
   // throughput @ 1440x1080
   // macOS: 252 ms/frame
-  // Windows:
+  // Windows: 174 ms/frame (???)
   //
   // This dwarfs all other bottlenecks for offline rendering.
   let checkpoint6 = Date()
@@ -265,11 +267,11 @@ if !renderingOffline {
   //
   // latency @ 1440x1080, 10 frames, 2.1 MB
   // macOS: 1.6 ms
-  // Windows:
+  // Windows: 16.3 ms
   //
   // latency @ 1440x1080, 60 frames, 12.4 MB
   // macOS: 4.1 ms
-  // Windows:
+  // Windows: 57.7 ms
   //
   // Order of magnitude, 1 minute of video is 1 GB of GIF.
   let packagePath = FileManager.default.currentDirectoryPath
