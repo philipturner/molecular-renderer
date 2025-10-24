@@ -167,6 +167,14 @@ if !renderingOffline {
     width: frameBufferSize[0],
     height: frameBufferSize[1])
   
+  // Overall latency summary for offline mode:
+  //
+  // throughput @ 1440x1080, 60 FPS
+  // macOS: 22.8 minutes / minute of content
+  // Windows: 46.6 minutes / minute of content
+  //
+  // Costs are probably agnostic to level of detail in the scene. On macOS, the
+  // encoding latency was identical for an accidentally 100% black image.
   print("rendering frames")
   for _ in 0..<60 {
     let loopStartCheckpoint = Date()
@@ -183,6 +191,10 @@ if !renderingOffline {
     // throughput @ 1440x1080
     // macOS: 5 ms/frame
     // Windows: 262 ms/frame (possibly from lack of native FP16 instructions)
+    //
+    // Could probably change the Molecular Renderer API to convert to 8-bit
+    // integers on the GPU side. But that adds complexity to the implementation
+    // and this is probably not an issue on newer CPUs with better ISAs.
     let cairoImage = CairoImage(
       width: frameBufferSize[0],
       height: frameBufferSize[1])
@@ -229,6 +241,9 @@ if !renderingOffline {
     // throughput @ 1440x1080
     // macOS: 76 ms/frame
     // Windows: 271 ms/frame
+    //
+    // Could probably parallelize this part to improve performance on the
+    // Windows machine.
     let quantization = OctreeQuantization(fromImage: cairoImage)
     
     let frame = Frame(
@@ -244,9 +259,7 @@ if !renderingOffline {
   // multi-threaded bottleneck
   // throughput @ 1440x1080
   // macOS: 252 ms/frame
-  // Windows: 174 ms/frame (???)
-  //
-  // This dwarfs all other bottlenecks for offline rendering.
+  // Windows: 174 ms/frame (abnormally fast compared to macOS)
   print("encoding GIF")
   let encodeStartCheckpoint = Date()
   let data = try! gif.encoded()
