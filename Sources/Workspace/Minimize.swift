@@ -85,10 +85,6 @@ func runMinimization(tripod: Topology) -> [[SIMD4<Float>]] {
     }
     print()
     
-    if converged {
-      break
-    }
-    
     // Enforce the constraints on leg sulfurs.
     do {
       var positions = minimization.positions

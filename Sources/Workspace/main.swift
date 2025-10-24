@@ -130,7 +130,7 @@ func createTripod(
     }
     
     // Apply the rotation transform to all atoms, just before inserting.
-    let angleDegrees = Float(legID) * 120 - 60
+    let angleDegrees = Float(legID) * 120 - 30
     let rotation = Quaternion<Float>(
       angle: Float.pi / 180 * angleDegrees,
       axis: SIMD3(0, 1, 0))
@@ -152,13 +152,13 @@ func createTripod(
   return topology
 }
 
-let topology = createTripod(isAzastannatrane: false)
+let topology = createTripod(isAzastannatrane: true)
 
-var calculatorDesc = xTB_CalculatorDescriptor()
-calculatorDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
-let calculator = xTB_Calculator(descriptor: calculatorDesc)
-
-calculator.molecule.positions = topology.atoms.map(\.position)
+xTB_Environment.verbosity = .muted
+let trajectory = runMinimization(tripod: topology)
+guard trajectory.count > 0 else {
+  fatalError("No starting structure to render.")
+}
 
 // MARK: - Launch Application
 
@@ -172,7 +172,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1080)
+  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
@@ -193,18 +193,25 @@ let application = createApplication()
 
 // Set the atoms of the compiled structure(s) here.
 //
+// Render static image showing both side and top view.
+//
 // When debugging a trajectory, it will be easy to just set atoms during the
 // run loop and animate by clock.frames.
-for atomID in topology.atoms.indices {
-  let atom = topology.atoms[atomID]
-  application.atoms[atomID] = atom
-}
 
 // Set up the camera statically here.
 application.camera.position = SIMD3(0, 0, 2)
 application.camera.secondaryRayCount = 15 // eventually 64
 
 application.run {
+  var frameID = application.clock.frames
+  frameID = min(frameID, trajectory.count - 1)
+  let atoms = trajectory[frameID]
+  
+  for atomID in atoms.indices {
+    let atom = atoms[atomID]
+    application.atoms[atomID] = atom
+  }
+  
   var image = application.render()
   image = application.upscale(image: image)
   application.present(image: image)
