@@ -55,6 +55,20 @@ for legID in 0..<1 {
     let carbon3 = Atom(
       position: SIMD3(0.38, -0.20, -0.05), element: .carbon)
     insertedAtoms.append(carbon3)
+    insertedBonds.append(
+      SIMD2(UInt32(baseAtomID + 1), UInt32(baseAtomID + 3)))
+    
+    let sulfur4 = Atom(
+      position: SIMD3(0.45, -0.36, -0.05), element: .sulfur)
+    insertedAtoms.append(sulfur4)
+    insertedBonds.append(
+      SIMD2(UInt32(baseAtomID + 3), UInt32(baseAtomID + 4)))
+    
+    let hydrogen5 = Atom(
+      position: SIMD3(0.57, -0.36, -0.05), element: .hydrogen)
+    insertedAtoms.append(hydrogen5)
+    insertedBonds.append(
+      SIMD2(UInt32(baseAtomID + 4), UInt32(baseAtomID + 5)))
     
     // optional last carbon for azastannatrane
   }
