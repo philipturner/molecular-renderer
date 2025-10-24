@@ -182,11 +182,11 @@ if !renderingOffline {
     // GPU-side bottleneck
     //
     // throughput @ 1440x1080, 15 AO samples
-    // macOS: 12 ms/frame
+    // macOS:
     // Windows:
     //
     // throughput @ 1440x1080, 64 AO samples
-    // macOS: 21 ms/frame
+    // macOS:
     // Windows:
     let checkpoint0 = Date()
     let image = application.render()
@@ -194,7 +194,7 @@ if !renderingOffline {
     
     // single-threaded bottleneck
     // throughput @ 1440x1080
-    // macOS: 5 ms/frame
+    // macOS:
     // Windows:
     let cairoImage = CairoImage(
       width: frameBufferSize[0],
@@ -202,16 +202,11 @@ if !renderingOffline {
     for y in 0..<frameBufferSize[1] {
       for x in 0..<frameBufferSize[0] {
         let address = y * frameBufferSize[0] + x
-        let pixel = image.pixels[address]
+        let pixel = SIMD4<Float>(image.pixels[address])
         
+        // Don't clamp to [0, 255] range to avoid a minor CPU-side bottleneck.
         let scaled = pixel * 255
-        var rounded = scaled.rounded(.toNearestOrEven)
-        rounded.replace(
-          with: SIMD4<Float16>(repeating: 0),
-          where: rounded .< 0)
-        rounded.replace(
-          with: SIMD4<Float16>(repeating: 255),
-          where: rounded .> 255)
+        let rounded = scaled.rounded(.toNearestOrEven)
         
         // Avoid massive CPU-side bottleneck for unknown reason when casting
         // floating point vector to integer vector.
@@ -241,7 +236,7 @@ if !renderingOffline {
     
     // single-threaded bottleneck
     // throughput @ 1440x1080
-    // macOS: 74 ms/frame
+    // macOS:
     // Windows:
     let quantization = OctreeQuantization(fromImage: cairoImage)
     
@@ -264,7 +259,7 @@ if !renderingOffline {
   
   // multi-threaded bottleneck
   // throughput @ 1440x1080
-  // macOS: 238 ms/frame
+  // macOS:
   // Windows:
   let checkpoint6 = Date()
   print("encoding GIF")
@@ -275,12 +270,12 @@ if !renderingOffline {
   
   // SSD access bottleneck
   //
-  // latency @ 1440x1080, 10 frames, 0.0 MB
-  // macOS: 0.6 ms
+  // latency @ 1440x1080, 10 frames, TBD MB
+  // macOS:
   // Windows:
   //
-  // latency @ 1440x1080, 60 frames, 0.2 MB
-  // macOS: 1.2 ms
+  // latency @ 1440x1080, 60 frames, TBD MB
+  // macOS:
   // Windows:
   let packagePath = FileManager.default.currentDirectoryPath
   let filePath = "\(packagePath)/.build/video.gif"
