@@ -160,10 +160,6 @@ let calculator = xTB_Calculator(descriptor: calculatorDesc)
 
 calculator.molecule.positions = topology.atoms.map(\.position)
 
-// Verbosity should not be at the muted level.
-// Check that azastannatrane can be evaluated on Windows.
-print(calculator.energy)
-
 // MARK: - Launch Application
 
 @MainActor
