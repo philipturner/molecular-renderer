@@ -1,8 +1,9 @@
+import GIF
 import HDL
 import MolecularRenderer
 import QuaternionModule
 
-let renderingOffline: Bool = false
+let renderingOffline: Bool = true
 
 @MainActor
 func createApplication() -> Application {
@@ -160,11 +161,51 @@ if !renderingOffline {
     application.present(image: image)
   }
 } else {
+  // TODO: Test this GIF example on Windows.
+  let frameBufferSize = application.display.frameBufferSize
+  var gif = GIF(
+    width: frameBufferSize[0],
+    height: frameBufferSize[1])
+  
   for frameID in 0..<60 {
     modifyAtoms()
     modifyCamera()
-    
     let image = application.render()
-    print(frameID, image.pixels.count)
+    
+    let cairoImage = CairoImage(
+      width: frameBufferSize[0],
+      height: frameBufferSize[1])
+    for y in 0..<frameBufferSize[1] {
+      for x in 0..<frameBufferSize[0] {
+        let address = y * frameBufferSize[0] + x
+        let pixel = image.pixels[address]
+        
+        let scaled = pixel * 255
+        var rounded = scaled.rounded(.toNearestOrEven)
+        rounded.replace(
+          with: SIMD4<Float16>(repeating: 0),
+          where: rounded .< 0)
+        rounded.replace(
+          with: SIMD4<Float16>(repeating: 255),
+          where: rounded .> 255)
+        
+        // rgba
+        let rgbaVector = SIMD4<UInt8>(rounded)
+        
+        // bgra
+        let bgraVector = SIMD4<UInt8>(
+          rgbaVector[2],
+          rgbaVector[1],
+          rgbaVector[0],
+          rgbaVector[3])
+        
+        // bgra big-endian
+        // argb little-endian
+        let bgraScalar = unsafeBitCast(bgraVector, to: UInt32.self)
+        
+        let color = Color(argb: bgraScalar)
+        cairoImage[y, x] = color
+      }
+    }
   }
 }
