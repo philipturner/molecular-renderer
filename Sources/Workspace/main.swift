@@ -4,9 +4,6 @@ import MolecularRenderer
 import QuaternionModule
 import xTB
 
-// TODO: Check that Serialization is accurately replaying the entire minimization
-// trajectory on both platforms.
-
 xTB_Environment.verbosity = .muted
 
 // MARK: - Compile Structure
