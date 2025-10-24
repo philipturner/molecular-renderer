@@ -1,4 +1,4 @@
-import struct Foundation.Date
+import Foundation
 import GIF
 import HDL
 import MolecularRenderer
@@ -154,7 +154,7 @@ func modifyCamera() {
     // GIF encoding will be the bottleneck anyway, so why not maximize AO
     // quality? Only remaining quality problem is GIF restricting the color
     // space to 256 possible values.
-    application.camera.secondaryRayCount = 15 // TODO: 64
+    application.camera.secondaryRayCount = 64
   }
 }
 
@@ -186,7 +186,7 @@ if !renderingOffline {
     // Windows:
     //
     // throughput @ 1440x1080, 64 AO samples
-    // macOS:
+    // macOS: 21 ms/frame
     // Windows:
     let checkpoint0 = Date()
     let image = application.render()
@@ -276,7 +276,21 @@ if !renderingOffline {
   
   // SSD access bottleneck
   //
-  // latency @ 1440x1080, 10 frames
+  // latency @ 1440x1080, 10 frames, 0.0 MB
+  // macOS: 0.6 ms
+  // Windows:
   //
-  // latency @ 1440x1080, 60 frames
+  // latency @ 1440x1080, 60 frames, 0.2 MB
+  // macOS: 1.2 ms
+  // Windows:
+  let packagePath = FileManager.default.currentDirectoryPath
+  let filePath = "\(packagePath)/.build/video.gif"
+  let succeeded = FileManager.default.createFile(
+    atPath: filePath,
+    contents: data)
+  guard succeeded else {
+    fatalError("Could not write to file.")
+  }
+  let checkpoint8 = Date()
+  print(checkpoint8.timeIntervalSince(checkpoint7))
 }
