@@ -387,8 +387,7 @@ func createTime() -> Float {
 
 @MainActor
 func updateApplication() {
-  var time = createTime()
-  
+  let time = createTime()
   let atoms = interpolate(frames: frames, time: time)
   for atomID in atoms.indices {
     let atom = atoms[atomID]
