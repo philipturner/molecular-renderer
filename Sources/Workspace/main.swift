@@ -5,6 +5,8 @@ import MM4
 import MolecularRenderer
 import QuaternionModule
 
+let renderingOffline: Bool = false
+
 // MARK: - Compile Structure
 
 func passivate(topology: inout Topology) {
@@ -154,9 +156,69 @@ let (parameters, baseRigidBody) = createRigidBody(topology: topology)
 let rigidBody1 = placeBody1(base: baseRigidBody)
 let rigidBody2 = placeBody2(base: baseRigidBody)
 
+var frames: [[Atom]] = []
+@MainActor
+func createFrame(positions: [SIMD3<Float>]) -> [Atom] {
+  var output: [SIMD4<Float>] = []
+  for rigidBodyID in 0..<2 {
+    let baseAddress = rigidBodyID * topology.atoms.count
+    for atomID in topology.atoms.indices {
+      var atom = topology.atoms[atomID]
+      atom.position = positions[baseAddress + atomID]
+      output.append(atom)
+    }
+  }
+  return output
+}
+do {
+  let positions = rigidBody1.positions + rigidBody2.positions
+  let frame = createFrame(positions: positions)
+  frames.append(frame)
+}
+
 // MARK: - Launch Application
 
-let renderingOffline: Bool = false
+// Input: time in seconds
+// Output: atoms
+func interpolate(
+  frames: [[Atom]],
+  time: Float
+) -> [Atom] {
+  guard frames.count >= 1 else {
+    fatalError("Need at least one frame to know size of atom list.")
+  }
+  
+  let multiple60Hz = time * 60
+  var lowFrame = Int(multiple60Hz.rounded(.down))
+  var highFrame = lowFrame + 1
+  var lowInterpolationFactor = Float(highFrame) - multiple60Hz
+  var highInterpolationFactor = multiple60Hz - Float(lowFrame)
+  
+  if lowFrame < -1 {
+    fatalError("This should never happen.")
+  }
+  if lowFrame >= frames.count - 1 {
+    lowFrame = frames.count - 1
+    highFrame = frames.count - 1
+    lowInterpolationFactor = 1
+    highInterpolationFactor = 0
+  }
+  
+  var output: [Atom] = []
+  for atomID in frames[0].indices {
+    let lowAtom = frames[lowFrame][atomID]
+    let highAtom = frames[highFrame][atomID]
+    
+    var position: SIMD3<Float> = .zero
+    position += lowAtom.position * lowInterpolationFactor
+    position += highAtom.position * highInterpolationFactor
+    
+    var atom = lowAtom
+    atom.position = position
+    output.append(atom)
+  }
+  return output
+}
 
 @MainActor
 func createApplication() -> Application {
@@ -197,26 +259,6 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-// Write the first rigid body.
-do {
-  let baseAddress: Int = 0
-  for atomID in topology.atoms.indices {
-    var atom = topology.atoms[atomID]
-    atom.position = rigidBody1.positions[atomID]
-    application.atoms[baseAddress + atomID] = atom
-  }
-}
-
-// Write the second rigid body.
-do {
-  let baseAddress: Int = topology.atoms.count
-  for atomID in topology.atoms.indices {
-    var atom = topology.atoms[atomID]
-    atom.position = rigidBody2.positions[atomID]
-    application.atoms[baseAddress + atomID] = atom
-  }
-}
-
 // Set the camera's unchanging position.
 do {
   let rotation1 = Quaternion<Float>(
@@ -241,7 +283,29 @@ do {
   application.camera.fovAngleVertical = Float.pi / 180 * 30
 }
 
+@MainActor
+func createTime() -> Float {
+  if renderingOffline {
+    let elapsedFrames = application.frameID
+    let frameRate: Int = 60
+    let seconds = Float(elapsedFrames) / Float(frameRate)
+    return seconds
+  } else {
+    let elapsedFrames = application.clock.frames
+    let frameRate = application.display.frameRate
+    let seconds = Float(elapsedFrames) / Float(frameRate)
+    return seconds
+  }
+}
+
 application.run {
+  let time = createTime()
+  let atoms = interpolate(frames: frames, time: time)
+  for atomID in atoms.indices {
+    let atom = atoms[atomID]
+    application.atoms[atomID] = atom
+  }
+  
   var image = application.render()
   image = application.upscale(image: image)
   application.present(image: image)
