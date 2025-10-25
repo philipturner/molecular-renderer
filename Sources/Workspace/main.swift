@@ -5,12 +5,17 @@ import MM4
 import MolecularRenderer
 import QuaternionModule
 
-let renderingOffline: Bool = false
+let renderingOffline: Bool = true
 
 // The simulation time per frame, in picoseconds. Frames are recorded and
 // nominally played back at 60 FPS.
 let frameSimulationTime: Double = 30.0 / 60
 let frameCount: Int = 60 * 5
+
+// Users will see a 20 FPS version with the same pacing as the 60 FPS
+// version prepared for the YouTube video. The file is still encoded as
+// 0.05 s per frame, regardless of the skip rate.
+let gifFrameSkipRate: Int = 3
 
 // MARK: - Compile Structure
 
@@ -362,9 +367,7 @@ do {
 @MainActor
 func createTime() -> Float {
   if renderingOffline {
-    // Users will see a 20 FPS version with the same pacing as the 60 FPS
-    // version prepared for the YouTube video.
-    let elapsedFrames = 3 * application.frameID
+    let elapsedFrames = gifFrameSkipRate * application.frameID
     let frameRate: Int = 60
     let seconds = Float(elapsedFrames) / Float(frameRate)
     return seconds
@@ -376,7 +379,8 @@ func createTime() -> Float {
   }
 }
 
-application.run {
+@MainActor
+func updateApplication() {
   var time = createTime()
   
   // Give 0.5 seconds of delay before starting.
@@ -387,18 +391,12 @@ application.run {
     let atom = atoms[atomID]
     application.atoms[atomID] = atom
   }
-  
-  var image = application.render()
-  image = application.upscale(image: image)
-  application.present(image: image)
 }
 
-#if false
 // Enter the run loop.
 if !renderingOffline {
   application.run {
-    modifyAtoms()
-    modifyCamera()
+    updateApplication()
     
     var image = application.render()
     image = application.upscale(image: image)
@@ -423,10 +421,9 @@ if !renderingOffline {
   // Costs are probably agnostic to level of detail in the scene. On macOS, the
   // encoding latency was identical for an accidentally 100% black image.
   print("rendering frames")
-  for _ in 0..<10 {
+  for _ in 0..<(frameCount / gifFrameSkipRate) {
     let loopStartCheckpoint = Date()
-    modifyAtoms()
-    modifyCamera()
+    updateApplication()
     
     // GPU-side bottleneck
     // throughput @ 1440x1080, 64 AO samples
@@ -522,4 +519,3 @@ if !renderingOffline {
     fatalError("Could not write to file.")
   }
 }
-#endif
