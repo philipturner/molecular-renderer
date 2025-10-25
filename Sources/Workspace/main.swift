@@ -9,8 +9,8 @@ let renderingOffline: Bool = false
 
 // The simulation time per frame, in picoseconds. Frames are recorded and
 // nominally played back at 60 FPS.
-let frameSimulationTime: Double = 0.2
-let frameCount: Int = 100
+let frameSimulationTime: Double = 30.0 / 60
+let frameCount: Int = 60 * 5
 
 // MARK: - Compile Structure
 
@@ -137,7 +137,7 @@ func placeBody1(base: MM4RigidBody) -> MM4RigidBody {
   
   var output = base
   output.rotate(quaternion: rotation)
-  output.centerOfMass += SIMD3<Double>(-2, 1.8, 0)
+  output.centerOfMass += SIMD3<Double>(-3, 1.8, 0)
   
   // 100 m/s in +X direction
   output.linearMomentum = SIMD3<Double>(0.1, 0, 0) * output.mass
@@ -156,7 +156,7 @@ func placeBody2(base: MM4RigidBody) -> MM4RigidBody {
   var output = base
   output.rotate(quaternion: rotation1)
   output.rotate(quaternion: rotation2)
-  output.centerOfMass += SIMD3<Double>(2, 0, -1.8)
+  output.centerOfMass += SIMD3<Double>(3, 0, -1.8)
   
   // 100 ms in -X direction
   output.linearMomentum = SIMD3<Double>(-0.1, 0, 0) * output.mass
@@ -246,8 +246,11 @@ for frameID in 1...frameCount {
     let frequencyGHz = angularVelocityRadNs / (2 * Double.pi)
     print("- frequency:", SIMD3<Float>(frequencyGHz), "GHz")
   }
+  
+  let positions = forceField.positions
+  let frame = createFrame(positions: positions)
+  frames.append(frame)
 }
-exit(0)
 
 // MARK: - Launch Application
 
@@ -374,7 +377,11 @@ func createTime() -> Float {
 }
 
 application.run {
-  let time = createTime()
+  var time = createTime()
+  
+  // Give 0.5 seconds of delay before starting.
+  time = max(0, time - 0.5)
+  
   let atoms = interpolate(frames: frames, time: time)
   for atomID in atoms.indices {
     let atom = atoms[atomID]
