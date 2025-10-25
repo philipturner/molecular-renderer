@@ -6,7 +6,7 @@ Animation where both the molecule and camera are rotating. Alternates between is
 
 Reference video for users to compare their upscaling quality: [YouTube](https://youtube.com/shorts/4LudSkOQRgs)
 
-## OpenMM Plugin Test
+## OpenMM Plugin
 
 Import the OpenMM module and validate that the OpenCL plugin can be loaded.
 
