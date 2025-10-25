@@ -16,7 +16,7 @@ You open the renderer window through an API. You can also perform other operatio
 
 [Renderer Window](./Documentation/renderer-window.md)
 
-[Tests](./Documentation/Tests/README.md)
+[Tests](./Documentation/Tests)
 
 ## Documentation
 
