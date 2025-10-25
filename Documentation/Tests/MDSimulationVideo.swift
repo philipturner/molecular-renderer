@@ -206,7 +206,7 @@ func createFrame(positions: [SIMD3<Float>]) -> [Atom] {
   return output
 }
 
-// Run a single simulation frame and report rigid body statistics.
+// Run simulation frames and report rigid body statistics.
 //
 // atom count: 8080
 // macOS: 42.99 s for 150 ps, 301 ns/day
