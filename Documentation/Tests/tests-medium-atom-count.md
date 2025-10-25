@@ -65,6 +65,6 @@ Copy the TBD Swift files from this GitHub Gist (TODO) into "Sources/Workspace".
 
 Compile a beam structure out of diamond, with the `Hexagonal` basis for ease of setup. Run a simulation where two beams collide at an angle, causing them to spin. Analyze the angular momentum change with [`MM4RigidBody`](https://philipturner.github.io/MM4/documentation/mm4/mm4rigidbody).
 
-Do not walk through the post-processing part in DaVinci Resolve. Simply state that I used this application to time-remap the GIF from 20 FPS to 60 FPS and convert to MP4.
+Do not walk through the post-processing part in DaVinci Resolve. Simply state that I used this application to time-remap the GIF from 20 FPS to 60 FPS and convert to MP4. The tutorial GIF should skip every 3 frames to have the same pacing as the video. This will also reduce the time to encode.
 
 Reference video: TODO (upload to YouTube)
