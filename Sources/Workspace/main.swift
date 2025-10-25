@@ -1,10 +1,117 @@
 import Foundation
 import GIF
 import HDL
+import MM4
 import MolecularRenderer
 import QuaternionModule
 
-let renderingOffline: Bool = true
+// MARK: - Compile Structure
+
+func passivate(topology: inout Topology) {
+  func createHydrogen(
+    atomID: UInt32,
+    orbital: SIMD3<Float>
+  ) -> Atom {
+    let atom = topology.atoms[Int(atomID)]
+    
+    var bondLength = atom.element.covalentRadius
+    bondLength += Element.hydrogen.covalentRadius
+    
+    let position = atom.position + bondLength * orbital
+    return Atom(position: position, element: .hydrogen)
+  }
+  
+  let orbitalLists = topology.nonbondingOrbitals()
+  
+  var insertedAtoms: [Atom] = []
+  var insertedBonds: [SIMD2<UInt32>] = []
+  for atomID in topology.atoms.indices {
+    let orbitalList = orbitalLists[atomID]
+    for orbital in orbitalList {
+      let hydrogen = createHydrogen(
+        atomID: UInt32(atomID),
+        orbital: orbital)
+      let hydrogenID = topology.atoms.count + insertedAtoms.count
+      insertedAtoms.append(hydrogen)
+      
+      let bond = SIMD2(
+        UInt32(atomID),
+        UInt32(hydrogenID))
+      insertedBonds.append(bond)
+    }
+  }
+  topology.atoms += insertedAtoms
+  topology.bonds += insertedBonds
+}
+
+func analyze(topology: Topology) {
+  print()
+  print("atom count:", topology.atoms.count)
+  do {
+    var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
+    var maximum = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
+    for atom in topology.atoms {
+      let position = atom.position
+      minimum.replace(with: position, where: position .< minimum)
+      maximum.replace(with: position, where: position .> maximum)
+    }
+    print("minimum:", minimum)
+    print("maximum:", maximum)
+  }
+}
+
+func createTopology() -> Topology {
+  let latticeDimensions = SIMD3<Float>(20, 4, 4)
+  let lattice = Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds {
+      latticeDimensions[0] * h +
+      latticeDimensions[1] * h2k +
+      latticeDimensions[2] * l
+    }
+    Material { .elemental(.carbon) }
+  }
+  
+  var reconstruction = Reconstruction()
+  reconstruction.atoms = lattice.atoms
+  reconstruction.material = .elemental(.carbon)
+  var topology = reconstruction.compile()
+  passivate(topology: &topology)
+  
+  // Establish the three hexagonal lattice constants.
+  let latticeConstantH = Constant(.hexagon) { .elemental(.carbon) }
+  let latticeConstantL = Constant(.prism) { .elemental(.carbon) }
+  let latticeSpacings = SIMD3<Float>(
+    latticeConstantH,
+    latticeConstantH * Float(3).squareRoot(),
+    latticeConstantL)
+  
+  for atomID in topology.atoms.indices {
+    var atom = topology.atoms[atomID]
+    
+    // Shift the lattice so it's centered in XY.
+    atom.position.x -= latticeSpacings.x * latticeDimensions.x / 2
+    atom.position.y -= latticeSpacings.y * latticeDimensions.y / 2
+    
+    // Shift the lattice so it's flush with Z = 0.
+    atom.position.z -= latticeSpacings.z * latticeDimensions.z
+    
+    topology.atoms[atomID] = atom
+  }
+  
+  return topology
+}
+
+let topology = createTopology()
+analyze(topology: topology)
+
+// MARK: - Run Simulation
+
+
+
+// MARK: - Launch Application
+
+let renderingOffline: Bool = false
 
 @MainActor
 func createApplication() -> Application {
@@ -16,7 +123,11 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1080)
+  if renderingOffline {
+    displayDesc.frameBufferSize = SIMD2<Int>(1280, 720)
+  } else {
+    displayDesc.frameBufferSize = SIMD2<Int>(1440, 810)
+  }
   if !renderingOffline {
     displayDesc.monitorID = device.fastestMonitorID
   }
@@ -41,116 +152,20 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-// State variable to facilitate atom transactions for the animation.
-enum AnimationState {
-  case isopropanol
-  case silane
-}
-var animationState: AnimationState?
-
-func createIsopropanol() -> [SIMD4<Float>] {
-  return [
-    Atom(position: SIMD3( 2.0186, -0.2175,  0.7985) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3( 1.4201, -0.2502, -0.1210) * 0.1, element: .carbon),
-    Atom(position: SIMD3( 1.6783,  0.6389, -0.7114) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3( 1.7345, -1.1325, -0.6927) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.0726, -0.3145,  0.1833) * 0.1, element: .carbon),
-    Atom(position: SIMD3(-0.2926, -1.2317,  0.7838) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.3758,  0.8195,  0.9774) * 0.1, element: .oxygen),
-    Atom(position: SIMD3(-1.3159,  0.8236,  1.0972) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.8901, -0.3435, -1.1071) * 0.1, element: .carbon),
-    Atom(position: SIMD3(-0.7278,  0.5578, -1.7131) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.6126, -1.2088, -1.7220) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-1.9673, -0.4150, -0.9062) * 0.1, element: .hydrogen),
-  ]
+for atomID in topology.atoms.indices {
+  let atom = topology.atoms[atomID]
+  application.atoms[atomID] = atom
 }
 
-func createSilane() -> [SIMD4<Float>] {
-  return [
-    Atom(position: SIMD3( 0.0000,  0.0000,  0.0000) * 0.1, element: .silicon),
-    Atom(position: SIMD3( 0.8544,  0.8544,  0.8544) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.8544, -0.8544,  0.8544) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.8544,  0.8544, -0.8544) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3( 0.8544, -0.8544, -0.8544) * 0.1, element: .hydrogen),
-  ]
+application.camera.position = SIMD3(0, 0, 5)
+
+application.run {
+  var image = application.render()
+  image = application.upscale(image: image)
+  application.present(image: image)
 }
 
-@MainActor
-func createTime() -> Float {
-  if renderingOffline {
-    let elapsedFrames = application.frameID
-    let frameRate: Int = 60
-    let seconds = Float(elapsedFrames) / Float(frameRate)
-    return seconds
-  } else {
-    let elapsedFrames = application.clock.frames
-    let frameRate = application.display.frameRate
-    let seconds = Float(elapsedFrames) / Float(frameRate)
-    return seconds
-  }
-}
-
-@MainActor
-func modifyAtoms() {
-  // 0.5 Hz rotation rate
-  let time = createTime()
-  let angleDegrees = 0.5 * time * 360
-  let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * angleDegrees,
-    axis: SIMD3(0, 1, 0))
-  
-  let roundedDownTime = Int((time / 3).rounded(.down))
-  if roundedDownTime % 2 == 0 {
-    let isopropanol = createIsopropanol()
-    if animationState == .silane {
-      for atomID in 12..<17 {
-        application.atoms[atomID] = nil
-      }
-    }
-    
-    animationState = .isopropanol
-    for i in isopropanol.indices {
-      let atomID = 0 + i
-      var atom = isopropanol[i]
-      atom.position = rotation.act(on: atom.position)
-      application.atoms[atomID] = atom
-    }
-  } else {
-    let silane = createSilane()
-    if animationState == .isopropanol {
-      for atomID in 0..<12 {
-        application.atoms[atomID] = nil
-      }
-    }
-    
-    animationState = .silane
-    for i in silane.indices {
-      let atomID = 12 + i
-      var atom = silane[i]
-      atom.position = rotation.act(on: atom.position)
-      application.atoms[atomID] = atom
-    }
-  }
-}
-
-@MainActor
-func modifyCamera() {
-  // 0.1 Hz rotation rate
-  let time = createTime()
-  let angleDegrees = 0.1 * time * 360
-  let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * angleDegrees,
-    axis: SIMD3(-1, 0, 0))
-  
-  // Place the camera 1.0 nm away from the origin.
-  application.camera.position = rotation.act(on: SIMD3(0, 0, 1.00))
-  
-  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
-  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
-  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
-  application.camera.fovAngleVertical = Float.pi / 180 * 40
-}
-
+#if false
 // Enter the run loop.
 if !renderingOffline {
   application.run {
@@ -289,3 +304,4 @@ if !renderingOffline {
     fatalError("Could not write to file.")
   }
 }
+#endif
