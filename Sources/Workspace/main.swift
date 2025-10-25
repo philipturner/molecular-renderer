@@ -133,6 +133,9 @@ func placeBody1(base: MM4RigidBody) -> MM4RigidBody {
   var output = base
   output.rotate(quaternion: rotation)
   output.centerOfMass += SIMD3<Double>(-2, 1.8, 0)
+  
+  // 100 m/s in +X direction
+  output.linearMomentum = SIMD3<Double>(0.1, 0, 0) * output.mass
   return output
 }
 
@@ -149,12 +152,32 @@ func placeBody2(base: MM4RigidBody) -> MM4RigidBody {
   output.rotate(quaternion: rotation1)
   output.rotate(quaternion: rotation2)
   output.centerOfMass += SIMD3<Double>(2, 0, -1.8)
+  
+  // 100 ms in -X direction
+  output.linearMomentum = SIMD3<Double>(-0.1, 0, 0) * output.mass
   return output
 }
 
 let (parameters, baseRigidBody) = createRigidBody(topology: topology)
 let rigidBody1 = placeBody1(base: baseRigidBody)
 let rigidBody2 = placeBody2(base: baseRigidBody)
+
+@MainActor
+func createForceField() -> MM4ForceField {
+  var forceFieldParameters = MM4Parameters()
+  forceFieldParameters.append(contentsOf: parameters)
+  forceFieldParameters.append(contentsOf: parameters)
+  
+  var forceFieldDesc = MM4ForceFieldDescriptor()
+  forceFieldDesc.integrator = .multipleTimeStep
+  forceFieldDesc.parameters = forceFieldParameters
+  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+  
+  forceField.positions = rigidBody1.positions + rigidBody2.positions
+  forceField.velocities = rigidBody1.velocities + rigidBody2.velocities
+  return forceField
+}
+let forceField = createForceField()
 
 var frames: [[Atom]] = []
 @MainActor
@@ -170,11 +193,8 @@ func createFrame(positions: [SIMD3<Float>]) -> [Atom] {
   }
   return output
 }
-do {
-  let positions = rigidBody1.positions + rigidBody2.positions
-  let frame = createFrame(positions: positions)
-  frames.append(frame)
-}
+
+// Run a single simulation frame and report rigid body statistics.
 
 // MARK: - Launch Application
 
@@ -286,7 +306,9 @@ do {
 @MainActor
 func createTime() -> Float {
   if renderingOffline {
-    let elapsedFrames = application.frameID
+    // Users will see a 20 FPS version with the same pacing as the 60 FPS
+    // version prepared for the YouTube video.
+    let elapsedFrames = 3 * application.frameID
     let frameRate: Int = 60
     let seconds = Float(elapsedFrames) / Float(frameRate)
     return seconds
