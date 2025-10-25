@@ -61,7 +61,7 @@ _Whether self-shadowing appears grainy at 120 Hz, with the secondary ray count o
 
 ## MD Simulation Video
 
-Compile a beam structure out of diamond. Use the `Hexagonal` basis for ease of setup. Run a simulation where two beams collide off-center, causing them to rotate. Analyze the angular momentum change with [`MM4RigidBody`](https://philipturner.github.io/MM4/documentation/mm4/mm4rigidbody). Retrieve frames from [`MM4ForceField`](https://philipturner.github.io/MM4/documentation/mm4/mm4forcefield) with a timing that results in 30 ps/second @ 60 FPS.
+Compile a beam structure out of diamond. Use the [`Hexagonal`](https://github.com/philipturner/HDL/blob/main/Documentation/API/Lattice.md#lattice) basis for ease of setup. Run a simulation where two beams collide off-center, causing them to rotate. Analyze the angular momentum change with [`MM4RigidBody`](https://philipturner.github.io/MM4/documentation/mm4/mm4rigidbody). Retrieve frames from [`MM4ForceField`](https://philipturner.github.io/MM4/documentation/mm4/mm4forcefield) with a timing that results in 30 ps/second @ 60 FPS.
 
 Serialize the result to a GIF at 20 FPS. Since GIF only supports times with 0.01 second granularity, it cannot natively encode 60 FPS. Instead, we use 20 FPS, the highest possible frame rate that divides evenly into 60 FPS. DaVinci Resolve was used to alter the frame pacing and convert the video to MP4 for publication.
 
