@@ -389,9 +389,6 @@ func createTime() -> Float {
 func updateApplication() {
   var time = createTime()
   
-  // Give 0.5 seconds of delay before starting.
-  time = max(0, time - 0.5)
-  
   let atoms = interpolate(frames: frames, time: time)
   for atomID in atoms.indices {
     let atom = atoms[atomID]
