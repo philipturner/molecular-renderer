@@ -14,7 +14,7 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 | FPS target        | Lower refresh-rate displays permit more render time (in ms/frame) |
 | Window resolution | Less pixels means less compute cost |
 | Upscale factor    | Make this as high as possible without graphical quality issues |
-| AO sample count   | Number of rays/pixel = 1 + AO sample count. Primary ray is ~5 times more expensive than each AO ray. |
+| AO sample count   | Number of rays/pixel = 1 + AO sample count. Primary ray is ~4 times more expensive than each AO ray. |
 | Distance          | Cost of all rays scales linearly with distance up to ~75 nm away. Afterward, cost of AO rays skyrockets from worsening divergence. Theoretical limit is 32x worse than value at short distances. |
 | Coverage of FOV   | Images with mostly empty space will not incur the cost of AO rays. This makes it look like the renderer supports more expensive settings than it actually does, in general applications. |
 
