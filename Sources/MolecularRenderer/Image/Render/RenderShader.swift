@@ -3,6 +3,7 @@ struct RenderShader {
   // dispatch threads SIMD3(colorTexture.width, colorTexture.height, 1)
   // threadgroup memory 4096 B
   static func createSource(
+    isOffline: Bool,
     upscaleFactor: Float,
     worldDimension: Float
   ) -> String {
@@ -12,7 +13,23 @@ struct RenderShader {
     // voxels.dense.assignedSlotIDs
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
-      func optionalFunctionArguments() -> String {
+      func colorTextureArgument() -> String {
+        if !isOffline {
+          #if os(macOS)
+          return "texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]]"
+          #else
+          return "RWTexture2D<float4> colorTexture : register(u\(Self.colorTexture));"
+          #endif
+        } else {
+          #if os(macOS)
+          return "device half4 *colorBuffer [[buffer(\(Self.colorTexture))]]"
+          #else
+          return "RWBuffer<float4> colorBuffer : register(u\(Self.colorTexture));"
+          #endif
+        }
+      }
+      
+      func upscalingFunctionArguments() -> String {
         guard upscaleFactor > 1 else {
           return ""
         }
@@ -31,7 +48,7 @@ struct RenderShader {
       }
       
       #if os(Windows)
-      func optionalRootSignatureArguments() -> String {
+      func upscalingRootSignatureArguments() -> String {
         guard upscaleFactor > 1 else {
           return ""
         }
@@ -57,8 +74,8 @@ struct RenderShader {
         device uint *headers [[buffer(\(Self.headers))]],
         device uint *references32 [[buffer(\(Self.references32))]],
         device ushort *references16 [[buffer(\(Self.references16))]],
-        texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]],
-        \(optionalFunctionArguments())
+        \(colorTextureArgument()),
+        \(upscalingFunctionArguments())
         uint2 pixelCoords [[thread_position_in_grid]],
         uint2 localID [[thread_position_in_threadgroup]])
       """
@@ -77,8 +94,8 @@ struct RenderShader {
       RWStructuredBuffer<uint> headers : register(u\(Self.headers));
       RWStructuredBuffer<uint> references32 : register(u\(Self.references32));
       RWBuffer<uint> references16 : register(u\(Self.references16));
-      RWTexture2D<float4> colorTexture : register(u\(Self.colorTexture));
-      \(optionalFunctionArguments())
+      \(colorTextureArgument())
+      \(upscalingFunctionArguments())
       
       [numthreads(8, 8, 1)]
       [RootSignature(
@@ -94,7 +111,7 @@ struct RenderShader {
         "UAV(u\(Self.references32)),"
         "DescriptorTable(UAV(u\(Self.references16), numDescriptors = 1)),"
         "DescriptorTable(UAV(u\(Self.colorTexture), numDescriptors = 1)),"
-        \(optionalRootSignatureArguments())
+        \(upscalingRootSignatureArguments())
       )]
       void render(
         uint2 pixelCoords : SV_DispatchThreadID,
@@ -119,21 +136,6 @@ struct RenderShader {
       #endif
     }
     
-    func queryScreenDimensions() -> String {
-      #if os(macOS)
-      """
-      uint2 screenDimensions(colorTexture.get_width(),
-                             colorTexture.get_height());
-      """
-      #else
-      """
-      uint2 screenDimensions;
-      colorTexture.GetDimensions(screenDimensions.x,
-                                 screenDimensions.y);
-      """
-      #endif
-    }
-    
     func write(
       _ value: String,
       texture: String
@@ -143,6 +145,26 @@ struct RenderShader {
       #else
       "\(texture)[pixelCoords] = \(value);"
       #endif
+    }
+    
+    func writeColor() -> String {
+      if !isOffline {
+        return write("float4(color, 0)", texture: "colorTexture")
+      } else {
+        func castHalf4(_ input: String) -> String {
+          #if os(macOS)
+          "half4(\(input))"
+          #else
+          input
+          #endif
+        }
+        
+        return """
+        uint pixelAddress = pixelCoords.x;
+        pixelAddress += pixelCoords.y * renderArgs.screenDimensions.x;
+        colorBuffer[pixelAddress] = \(castHalf4("float4(color, 0)"));
+        """
+      }
     }
     
     func bindMemoryTape() -> String {
@@ -223,9 +245,11 @@ struct RenderShader {
         float2 screenCoords = rayDirection.xy;
         screenCoords /= cameraArgs.data[1].tangentFactor;
         screenCoords.y = -screenCoords.y;
-        screenCoords.x *= float(screenDimensions.y) / float(screenDimensions.x);
+        screenCoords.x *= float(renderArgs.screenDimensions.y);
+        screenCoords.x /= float(renderArgs.screenDimensions.x);
         screenCoords = (screenCoords + 1) / 2;
-        float2 previousPixelCoords = screenCoords * float2(screenDimensions);
+        float2 previousPixelCoords = screenCoords;
+        previousPixelCoords *= float2(renderArgs.screenDimensions);
         
         // Compare against current coordinates.
         float2 currentPixelCoords = float2(pixelCoords) + 0.5;
@@ -270,15 +294,14 @@ struct RenderShader {
     {
       \(allocateTapeMac())
       
-      // Query the screen's dimensions.
-      \(queryScreenDimensions())
-      if ((pixelCoords.x >= screenDimensions.x) ||
-          (pixelCoords.y >= screenDimensions.y)) {
+      if ((pixelCoords.x >= renderArgs.screenDimensions.x) ||
+          (pixelCoords.y >= renderArgs.screenDimensions.y)) {
         return;
       }
       
       if (crashBuffer[0] != 1) {
-        \(write("float4(0, 0, 0, 0)", texture: "colorTexture"))
+        float3 color = 0;
+        \(writeColor())
         return;
       }
       
@@ -299,7 +322,7 @@ struct RenderShader {
       float3 primaryRayDirection =
       RayGeneration::primaryRayDirection(dzdt,
                                          pixelCoords,
-                                         screenDimensions,
+                                         renderArgs.screenDimensions,
                                          renderArgs.jitterOffset,
                                          cameraArgs.data[0].tangentFactor,
                                          cameraArgs.data[0].basis);
@@ -309,25 +332,6 @@ struct RenderShader {
       query.rayOrigin = cameraArgs.data[0].position;
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersectPrimary(query);
-      
-      // Leave this code here to save effort if you stumble upon another bug.
-      /*
-      if (\(Reduction.waveIsFirstLane())) {
-        if (intersect.atomID != 0) {
-          bool acquiredLock = false;
-          \(CrashBuffer.acquireLock(errorCode: 3))
-          if (acquiredLock) {
-            crashBuffer[1] = 0;
-            crashBuffer[2] = 0;
-            crashBuffer[3] = 0;
-            crashBuffer[4] = intersect.atomID;
-            crashBuffer[5] = 0;
-            crashBuffer[6] = 0;
-          }
-          return;
-        }
-      }
-      */
       
       // Write the depth and motion vector ASAP, reducing register pressure.
       \(computeDepth())
@@ -358,7 +362,7 @@ struct RenderShader {
           if (renderArgs.criticalPixelCount > 0) {
             float pixelCount = 2 * sqrt(hitAtom[3]);
             pixelCount /= (-dzdt * intersect.distance);
-            pixelCount *= float(screenDimensions.y);
+            pixelCount *= float(renderArgs.screenDimensions.y);
             pixelCount /= 2 * cameraArgs.data[0].tangentFactor;
             pixelCount *= renderArgs.upscaleFactor;
             
@@ -428,7 +432,7 @@ struct RenderShader {
       }
       
       // Write the pixel to the screen.
-      \(write("float4(color, 0)", texture: "colorTexture"))
+      \(writeColor())
     }
     """
   }

@@ -2,6 +2,8 @@
 
 ![Render Process Diagram](./RenderProcessDiagram.png)
 
+Revision: offline rendering uses synchronous code instead of asynchronous handlers. There is no triple-buffering in the backend, because speed is not the primary design goal for offline renderers.
+
 ## Rendering Performance
 
 The time to render a frame is a multiplication of many variables. Like the Drake Equation, changing a few by 2x could change the end result by 10x. Users can tune these variables to render as many pixels as possible, while still producing one frame per display refresh period.
@@ -12,7 +14,7 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 | FPS target        | Lower refresh-rate displays permit more render time (in ms/frame) |
 | Window resolution | Less pixels means less compute cost |
 | Upscale factor    | Make this as high as possible without graphical quality issues |
-| AO sample count   | Number of rays/pixel = 1 + AO sample count. Primary ray is ~5 times more expensive than each AO ray. |
+| AO sample count   | Number of rays/pixel = 1 + AO sample count. Primary ray is ~4 times more expensive than each AO ray. |
 | Distance          | Cost of all rays scales linearly with distance up to ~75 nm away. Afterward, cost of AO rays skyrockets from worsening divergence. Theoretical limit is 32x worse than value at short distances. |
 | Coverage of FOV   | Images with mostly empty space will not incur the cost of AO rays. This makes it look like the renderer supports more expensive settings than it actually does, in general applications. |
 
@@ -121,30 +123,6 @@ The next major difference is the need for higher AO sample count. This may be co
 
 With upscaling turned on, FidelityFX struggled to accurately denoise the AO. It was very pixelated or grainy when atoms moved fast. Switching from 7 to 15 samples massively improved this graininess. While graininess is still present, the degree of severity is now tolerable. 15 samples are needed, regardless of whether the upscale factor is 2x or 3x.
 
-> The default AO sample count has risen to 15 on all platforms, for fairness/equality between platforms. For members of the macOS target audience (base M1 chip), you probably want to reduce this to 7. AO sample count is specified in `RenderShader.swift`.
-
 There are a few other, minor artifacts. Along the border between a silicon and hydrogen atom, white pixels can appear sporadically on the silicon side. Also, when atoms move quickly (isopropanol rotating at 0.5 Hz), the border between atoms can be a bit jumpy. In the MM4 carbosilane test, FSR shows noticeable artifacts at the borders between slowly moving atoms, while MetalFX does not.
 
 Despite its downsides, FSR 3 makes it possible to bring Molecular Renderer to the Windows target audience. Older GPUs work precisely because FSR 3 does not rely on computationally intensive neural networks, and it does not require hardware FP16 arithmetic.
-
-## Asynchronous Raw Pixel Buffer Handler
-
-> This API is required before users can make professional YouTube videos out of animations. Until then, record your computer screen with a smartphone camera.
-
-API design requirements:
-- Handlers should be executed on a sequential dispatch queue. Although it's
-  not thread safe with the main or `@MainActor` thread, it's thread safe
-  between sequential calls to itself.
-- Implement an equivalent of 3 frames in flight `DispatchSemaphore` for the
-  asynchronous handlers, to avoid overflowing the dispatch queue for this.
-  - The user should be able to stall the render loop, for example to encode a large batch of GIF frames. They do this by making the handler take extra long, thus reaching the limit of the dispatch semaphore.
-- Guarantee that all asynchronous handlers have executed before
-  `application.run()` returns.
-
-Perhaps it would be more appropriate to exit the `application.run()` paradigm entirely for offline rendering. `Display` and `Clock` are inappropriate because there is no interaction with DXGI/CVDisplayLink, notion of "frames per second", or need to accurately track wall time for real-time animations. However, the backend code can be applied to offline rendering with little effort. It is mostly a frontend (API) design problem.
-
-Solution: add a second mode for `Display`. In the descriptor, leave `monitorID` as `nil` and instead specify the pixel buffer handler in `handler`. The application now follows the same APIs as a real-time render loop. It creates an artificial "display" with triple buffering, but no actual link to DXGI. The frame rate is zero and the clock never increments. Every call to `application.present()` forwards an asynchronous handler to the dispatch queue mentioned above.
-
-> In real-time renders, always use `clock.frames` to find the accurate time for coding animations. In offline renders, always use `frameID` for correct timing.
-
-A new API function, `application.stop()`, prevents the next run loop from happening. Functions called during the current loop iteration (before `stop()` is called) still work the same. `application.present()` forwards one final render command to the GPU, which will be handled in the `handler` before the backend fully shuts down. Finally, `application.run()` exits the scope of its closure and the calling program resumes. The user can perform custom cleanup processes without relying on intentional program crashes (`exit(0)` and `fatalError`).

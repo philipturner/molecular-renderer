@@ -20,6 +20,6 @@ Follow the program startup instructions. Confirm that the template in `main.swif
 
 ## Program Startup
 
-Open the source code in Xcode by double-clicking `Package.swift`. Do not run the code from within the Xcode UI.
+Open the source code in Xcode by double-clicking `Package.swift`. Do not run the code from within the Xcode UI. If you do this, the code will fail to link to OpenMM and/or run very slowly.
 
 Instead, open a Terminal window at the package directory. Run `bash run.sh` on every program startup.

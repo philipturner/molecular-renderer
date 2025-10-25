@@ -24,10 +24,11 @@ public class Display {
   /// The resolution of the rendering region, in pixels.
   public let frameBufferSize: SIMD2<Int>
   
+  let isOffline: Bool
   #if os(macOS)
-  let nsScreen: NSScreen
+  var nsScreen: NSScreen?
   #else
-  let dxgiOutput: SwiftCOM.IDXGIOutput
+  var dxgiOutput: SwiftCOM.IDXGIOutput?
   #endif
   
   public init(descriptor: DisplayDescriptor) {
@@ -45,47 +46,58 @@ public class Display {
     #endif
     
     // Check the other properties.
-    guard let frameBufferSize = descriptor.frameBufferSize,
-          let monitorID = descriptor.monitorID else {
+    guard let frameBufferSize = descriptor.frameBufferSize else {
       fatalError("Descriptor was incomplete.")
     }
     self.frameBufferSize = frameBufferSize
     
-    // Materialize the NSScreen (macOS).
-    #if os(macOS)
-    var matchedScreen: NSScreen?
-    for screen in NSScreen.screens {
-      let candidateMonitorID = Display.number(screen: screen)
-      if monitorID == candidateMonitorID {
-        matchedScreen = screen
-        break
+    if let monitorID = descriptor.monitorID {
+      self.isOffline = false
+      
+      // Materialize the NSScreen (macOS).
+      #if os(macOS)
+      var matchedScreen: NSScreen?
+      for screen in NSScreen.screens {
+        let candidateMonitorID = Display.number(screen: screen)
+        if monitorID == candidateMonitorID {
+          matchedScreen = screen
+          break
+        }
       }
+      guard let matchedScreen else {
+        fatalError("Could not find the screen.")
+      }
+      self.nsScreen = matchedScreen
+      #endif
+      
+      // Materialize the IDXGIOutput (Windows).
+      #if os(Windows)
+      let outputs = device.outputs
+      guard monitorID >= 0,
+            monitorID < outputs.count else {
+        fatalError("Monitor ID was out of range.")
+      }
+      self.dxgiOutput = outputs[monitorID]
+      #endif
+    } else {
+      self.isOffline = true
     }
-    guard let matchedScreen else {
-      fatalError("Could not find the screen.")
-    }
-    self.nsScreen = matchedScreen
-    #endif
-    
-    // Materialize the IDXGIOutput (Windows).
-    #if os(Windows)
-    let outputs = device.outputs
-    guard monitorID >= 0,
-          monitorID < outputs.count else {
-      fatalError("Monitor ID was out of range.")
-    }
-    self.dxgiOutput = outputs[monitorID]
-    #endif
   }
   
   /// The number of frames issued per second.
+  ///
+  /// Zero for offline rendering.
   public var frameRate: Int {
-    #if os(macOS)
-    return nsScreen.maximumFramesPerSecond
-    #else
-    let deviceName = Display.deviceName(output: dxgiOutput)
-    return Display.frameRate(deviceName: deviceName)
-    #endif
+    if isOffline {
+      return 0
+    } else {
+      #if os(macOS)
+      return nsScreen!.maximumFramesPerSecond
+      #else
+      let deviceName = Display.deviceName(output: dxgiOutput!)
+      return Display.frameRate(deviceName: deviceName)
+      #endif
+    }
   }
 }
 
@@ -169,7 +181,7 @@ extension Display {
   // system's scale factor.
   var contentSize: SIMD2<Double> {
     var output = SIMD2<Double>(frameBufferSize)
-    output /= nsScreen.backingScaleFactor
+    output /= nsScreen!.backingScaleFactor
     return output
   }
   #endif

@@ -6,7 +6,7 @@ Animation where both the molecule and camera are rotating. Alternates between is
 
 Reference video for users to compare their upscaling quality: [YouTube](https://youtube.com/shorts/4LudSkOQRgs)
 
-## OpenMM Plugin Test
+## OpenMM Plugin
 
 Import the OpenMM module and validate that the OpenCL plugin can be loaded.
 
@@ -34,10 +34,36 @@ At ~0.145 nm, the magnitude of the attractive force reaches its highest point. A
 
 ## Propargyl Alcohol Tripod
 
-Copy the four Swift files from this [GitHub Gist](https://gist.github.com/philipturner/5bd74838b1018ae68d23110622407a42) into "Sources/Workspace". It may be easiest to use <b>Download ZIP</b> on the GitHub Gist website and drag the files into the source folder.
+Delete `main.swift`. Copy the four Swift files from this [GitHub Gist](https://gist.github.com/philipturner/5bd74838b1018ae68d23110622407a42) into "Sources/Workspace". Click <b>Download ZIP</b> on the GitHub Gist website, extract the files, and drag them into the source folder.
 
 Compile a Ge-substituted adamantane cage, and use this base to procedurally grow the legs. The orientations of the linkers have been modified, with feedback from earlier minimization attempts, to accelerate convergence of the minimization. The tripod's Ge apex connects to a carbon dimer feedstock, capped with a free radical. The entire molecule has an odd number of electrons.
 
 At the time of writing, the Windows xTB executable is compiled with OpenBLAS to "work at all". The macOS executable uses Accelerate, which exploits Apple-specific AMX hardware to speed up operations on very small matrices. The region of ~70 atoms or ~200 orbitals (200x200 Hamiltonian matrix) is where the AMX shines the most. The minimization completed in 5.5 s on macOS and 29 s on Windows.
 
 Reference video: [YouTube](https://youtube.com/shorts/rV1UGau20xQ)
+
+## Stannatrane Tripod
+
+Delete the files from the previous test. Copy the six Swift files from this [GitHub Gist](https://gist.github.com/philipturner/6a6e04f3e8a7b2bda2b8c99c492d4e49) into "Sources/Workspace". Click <b>Download ZIP</b> on the GitHub Gist website, extract the files, and drag them into the source folder.
+
+Prepare energy-minimized structures of two variations of the Sn-H feedstock holder. Use SSD key-value caching to map compiled structure to minimized structure. Learn to use the `.build` folder as a reproducible location for writing files.
+
+Reference video: [YouTube](https://youtube.com/shorts/-Zs6WQQ1dHk)
+
+Use offline rendering to create a high-quality static image. Disable upscaling and set the secondary ray count to 64. Use PPM, a simple serialization format with no library dependencies. Post-process the PPM into a PNG with reasonable file size.
+
+### macOS
+
+Navigate to the `.build` folder of the repo directory. You may need to press `Cmd + Shift + .` to show hidden files in Finder. Double-click `image.ppm`. Preview will launch automatically.
+
+Go to <b>File</b> > <b>Export</b>. Keep the image name as "image", with no file extension. Ensure <b>Format</b> is set to "JPEG". Change the destination to your Desktop folder (or wherever is most convenient). Click <b>Save</b>. Double-click on the image and a new Preview window should appear.
+
+### Windows
+
+Download [GIMP](https://apps.microsoft.com/detail/9pnsjclxdz0v?hl=en-US&gl=US) from the Microsoft Store. Right-click `image.ppm` in the `.build` folder and open with "GIMP 3". Be careful to not accidentally use the paintbrush tool when clicking in the window.
+
+Go to <b>File</b> > <b>Export As</b>. Set the name to "image.jpg". The contents of the `.build` folder should appear in the file system preview. Click <b>Export</b>. Leave the default settings and click <b>Export</b> again. Right-click `image.jpg` in the `.build` folder and open with "Photos".
+
+![Stannatrane Tripod](../StannatraneTripod.jpg)
+
+_Reference image for the expected output after JPEG conversion._

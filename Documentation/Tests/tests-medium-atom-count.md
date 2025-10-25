@@ -58,3 +58,21 @@ _Whether self-shadowing appears grainy at 120 Hz._
 | Au(111)   | yes    | yes    | barely | no     | no     |
 
 _Whether self-shadowing appears grainy at 120 Hz, with the secondary ray count overridden to 7._
+
+## MD Simulation Video
+
+Compile a beam structure out of diamond. Use the [`Hexagonal`](https://github.com/philipturner/HDL/blob/main/Documentation/API/Lattice.md#lattice) basis for ease of setup. Run a simulation where two beams collide off-center, causing them to rotate. Analyze the angular momentum change with [`MM4RigidBody`](https://philipturner.github.io/MM4/documentation/mm4/mm4rigidbody). Retrieve frames from [`MM4ForceField`](https://philipturner.github.io/MM4/documentation/mm4/mm4forcefield) with a timing that results in 30 ps/second @ 60 FPS.
+
+Reference video: [YouTube](https://www.youtube.com/watch?v=6CL16UFudkQ)
+
+Serialize the result to a GIF at 20 FPS. Since GIF only supports times with 0.01 second granularity, it cannot natively encode 60 FPS. Instead, we use 20 FPS, the highest possible frame rate that divides evenly into 60 FPS. DaVinci Resolve was used to alter the frame pacing and convert the video to MP4 for publication.
+
+### macOS
+
+Navigate to the `.build` folder of the repo directory. You may need to press `Cmd + Shift + .` to show hidden files in Finder. Single-click `video.gif`, then press the space bar. This will launch an animated preview of the GIF animation.
+
+Do not double-click the file. If you do this, a Preview window opens with 100 pages. This window does not display an animation.
+
+### Windows
+
+Double-click `video.gif` in the `.build` folder. Photos automatically launches and displays the animation.

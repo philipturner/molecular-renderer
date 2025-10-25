@@ -33,7 +33,7 @@ class RunLoop: @unchecked Sendable {
     
     // Initialize the display link.
     let monitorID = Display.number(
-      screen: display.nsScreen)
+      screen: display.nsScreen!)
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkCreateWithCGDisplay(UInt32(monitorID), &displayLink)
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
@@ -146,7 +146,7 @@ extension RunLoop {
     // entire session, whose framerate is known a priori. Apparently Vsync
     // is much better on Windows, so I will not/should not apply the
     // heuristic there.
-    let originalScreen = application.display.nsScreen
+    let originalScreen = application.display.nsScreen!
     let originalID = Display.number(screen: originalScreen)
     let registeredID = (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkGetCurrentCGDisplay(displayLink)
@@ -155,7 +155,7 @@ extension RunLoop {
     }
     
     // Access the NSWindow on the main queue to prevent a crash.
-    let window = application.window.nsWindow
+    let window = application.window!.nsWindow
     DispatchQueue.main.async {
       guard let screen = window.screen else {
         fatalError("Failed to retrieve the window's screen.")
@@ -184,7 +184,7 @@ extension RunLoop {
     // during this blocking operation.
     func waitOnObject() {
       let result = WaitForSingleObjectEx(
-        application.swapChain.waitableObject, // hHandle
+        application.swapChain!.waitableObject, // hHandle
         1000, // dwMilliseconds
         true) // bAlertable
       guard result == 0 else {
@@ -194,7 +194,7 @@ extension RunLoop {
     
     func updateClock() {
       let frameStatistics =
-      try? application.swapChain.d3d12SwapChain
+      try? application.swapChain!.d3d12SwapChain
         .GetFrameStatistics()
       application.clock.increment(frameStatistics: frameStatistics)
     }

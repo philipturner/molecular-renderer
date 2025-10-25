@@ -86,6 +86,10 @@ extension Application {
   
   private func createRenderArgs() -> RenderArgs {
     var renderArgs = RenderArgs()
+    let screenDimensions = imageResources.renderTarget
+      .intermediateSize(display: display)
+    renderArgs.screenDimensions = SIMD2<UInt32>(
+      truncatingIfNeeded: screenDimensions)
     renderArgs.jitterOffset = createJitterOffset()
     renderArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
     renderArgs.upscaleFactor = imageResources.renderTarget.upscaleFactor
@@ -112,6 +116,10 @@ extension Application {
   }
   
   public func render() -> Image {
+    guard frameID >= 0 else {
+      fatalError("Not allowed to call render here.")
+    }
+    
     checkCrashBuffer(frameID: frameID)
     checkExecutionTime(frameID: frameID)
     updateBVH(inFlightFrameID: frameID % 3)
@@ -187,16 +195,28 @@ extension Application {
         #endif
         
         // Bind the color texture.
-        #if os(macOS)
-        let colorTexture = imageResources.renderTarget
-          .colorTextures[frameID % 2]
-        commandList.mtlCommandEncoder.setTexture(
-          colorTexture, index: RenderShader.colorTexture)
-        #else
-        commandList.setDescriptor(
-          handleID: frameID % 2,
-          index: RenderShader.colorTexture)
-        #endif
+        if !display.isOffline {
+          #if os(macOS)
+          let colorTexture = imageResources.renderTarget
+            .colorTextures[frameID % 2]
+          commandList.mtlCommandEncoder.setTexture(
+            colorTexture, index: RenderShader.colorTexture)
+          #else
+          commandList.setDescriptor(
+            handleID: frameID % 2,
+            index: RenderShader.colorTexture)
+          #endif
+        } else {
+          #if os(macOS)
+          let colorBuffer = imageResources.renderTarget.nativeBuffer!
+          commandList.setBuffer(
+            colorBuffer, index: RenderShader.colorTexture)
+          #else
+          commandList.setDescriptor(
+            handleID: 0,
+            index: RenderShader.colorTexture)
+          #endif
+        }
         
         // Bind the depth and motion textures.
         if imageResources.renderTarget.upscaleFactor > 1 {
@@ -238,6 +258,14 @@ extension Application {
       #if os(Windows)
       bvhBuilder.computeUAVBarrier(commandList: commandList)
       
+      if display.isOffline {
+        let nativeBuffer = imageResources.renderTarget.nativeBuffer!
+        let outputBuffer = imageResources.renderTarget.outputBuffer!
+        commandList.download(
+          nativeBuffer: nativeBuffer,
+          outputBuffer: outputBuffer)
+      }
+      
       try! commandList.d3d12CommandList.EndQuery(
         bvhBuilder.counters.queryHeap,
         D3D12_QUERY_TYPE_TIMESTAMP,
@@ -272,7 +300,29 @@ extension Application {
     
     forgetIdleState(inFlightFrameID: frameID % 3)
     
+    if display.isOffline {
+      frameID += 1
+    }
+    
     var output = Image()
+    if display.isOffline {
+      device.commandQueue.flush()
+      
+      #if os(macOS)
+      let buffer = imageResources.renderTarget.nativeBuffer!
+      #else
+      let buffer = imageResources.renderTarget.outputBuffer!
+      #endif
+      
+      let frameBufferSize = display.frameBufferSize
+      let pixelCount = frameBufferSize[0] * frameBufferSize[1]
+      var data = [SIMD4<Float16>](repeating: .zero, count: pixelCount)
+      data.withUnsafeMutableBytes { bufferPointer in
+        buffer.read(output: bufferPointer)
+      }
+      
+      output.pixels = data
+    }
     output.scaleFactor = 1
     return output
   }

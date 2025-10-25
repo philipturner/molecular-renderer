@@ -39,6 +39,7 @@ class DescriptorHeap {
   }
   
   // Encode a CPU descriptor and return its index in the heap.
+  @discardableResult
   func createUAV(
     resource: SwiftCOM.ID3D12Resource,
     uavDesc: D3D12_UNORDERED_ACCESS_VIEW_DESC?

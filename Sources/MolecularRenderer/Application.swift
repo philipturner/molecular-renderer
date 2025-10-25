@@ -27,14 +27,14 @@ public class Application {
   public var camera: Camera
   public var clock: Clock
   var runLoop: RunLoop?
-  public internal(set) var frameID: Int = -1
+  public internal(set) var frameID: Int
   
   // Low-level display interfacing
-  let window: Window
+  var window: Window?
   #if os(macOS)
-  let view: View
+  var view: View?
   #else
-  let swapChain: SwapChain
+  var swapChain: SwapChain?
   #endif
   
   // Single descriptor heap that encapsulates all weirdly formatted resources.
@@ -58,25 +58,42 @@ public class Application {
       fatalError("Descriptor was incomplete.")
     }
     
+    // Check this early to avoid propagation of undefined behavior into shader
+    // codegen and other parts that rely on the upscale factor.
+    if display.isOffline {
+      guard upscaleFactor == 1 else {
+        fatalError("Offline rendering cannot use upscaling.")
+      }
+    }
+    
     // Set up the public API.
     self.device = device
     self.display = display
     self.atoms = Atoms(addressSpaceSize: addressSpaceSize)
-    self.camera = Camera()
+    self.camera = Camera(isOffline: display.isOffline)
     self.clock = Clock(display: display)
     
-    // Set up the resources for low-level display interfacing.
-    self.window = Window(display: display)
-    #if os(macOS)
-    self.view = View(display: display)
-    window.view = view
-    #else
-    var swapChainDesc = SwapChainDescriptor()
-    swapChainDesc.device = device
-    swapChainDesc.display = display
-    swapChainDesc.window = window
-    self.swapChain = SwapChain(descriptor: swapChainDesc)
-    #endif
+    // Initialize the frame ID.
+    if !display.isOffline {
+      self.frameID = -1
+    } else {
+      self.frameID = 0
+    }
+    
+    if !display.isOffline {
+      // Set up the resources for low-level display interfacing.
+      self.window = Window(display: display)
+      #if os(macOS)
+      self.view = View(display: display)
+      window!.view = view!
+      #else
+      var swapChainDesc = SwapChainDescriptor()
+      swapChainDesc.device = device
+      swapChainDesc.display = display
+      swapChainDesc.window = window
+      self.swapChain = SwapChain(descriptor: swapChainDesc)
+      #endif
+    }
     
     #if os(Windows)
     // Create the descriptor heap.
@@ -175,9 +192,8 @@ public class Application {
   
   #if os(Windows)
   private func encodeDescriptorHeap() {
-    imageResources.renderTarget.encode(
-      descriptorHeap: descriptorHeap,
-      offset: 0)
+    imageResources.renderTarget.encodeResources(
+      descriptorHeap: descriptorHeap)
     
     bvhBuilder.atoms.encodeMotionVectors(
       descriptorHeap: descriptorHeap)
@@ -196,6 +212,10 @@ public class Application {
   public func run(
     _ closure: @escaping () -> Void
   ) {
+    guard let window else {
+      fatalError("Cannot invoke run loop for offline rendering.")
+    }
+    
     var runLoopDesc = RunLoopDescriptor()
     runLoopDesc.closure = closure
     #if os(macOS)
