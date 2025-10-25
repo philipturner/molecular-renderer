@@ -7,6 +7,11 @@ import QuaternionModule
 
 let renderingOffline: Bool = false
 
+// The simulation time per frame, in picoseconds. Frames are recorded and
+// nominally played back at 60 FPS.
+let frameSimulationTime: Double = 0.2
+let frameCount: Int = 100
+
 // MARK: - Compile Structure
 
 func passivate(topology: inout Topology) {
@@ -195,10 +200,8 @@ func createFrame(positions: [SIMD3<Float>]) -> [Atom] {
 }
 
 // Run a single simulation frame and report rigid body statistics.
-print(rigidBody1.centerOfMass)
-print(rigidBody2.centerOfMass)
-do {
-  forceField.simulate(time: 1)
+for frameID in 1...frameCount {
+  forceField.simulate(time: frameSimulationTime)
   
   var rigidBodies: [MM4RigidBody] = []
   for rigidBodyID in 0..<2 {
@@ -220,8 +223,29 @@ do {
     let rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
     rigidBodies.append(rigidBody)
   }
-  print(rigidBodies[0].centerOfMass)
-  print(rigidBodies[1].centerOfMass)
+  
+  let time = Double(frameID) * frameSimulationTime
+  print()
+  print("t = \(String(format: "%.3f", time)) ps")
+  
+  for rigidBodyID in 0..<2 {
+    let rigidBody = rigidBodies[rigidBodyID]
+    print("rigid body \(rigidBodyID):")
+    
+    let centerOfMass = rigidBody.centerOfMass
+    print("- center of mass:", SIMD3<Float>(centerOfMass), "nm")
+    
+    // nm/ps (km/s) -> m/s
+    let linearVelocity = rigidBody.linearMomentum / rigidBody.mass
+    let linearVelocityMS = linearVelocity * 1000
+    print("- linear velocity:", SIMD3<Float>(linearVelocityMS), "m/s")
+    
+    // rad/ps -> rad/ns -> GHz
+    let angularVelocity = rigidBody.angularMomentum / rigidBody.momentOfInertia
+    let angularVelocityRadNs = angularVelocity * 1000
+    let frequencyGHz = angularVelocityRadNs / (2 * Double.pi)
+    print("- frequency:", SIMD3<Float>(frequencyGHz), "GHz")
+  }
 }
 exit(0)
 
