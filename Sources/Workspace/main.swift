@@ -124,14 +124,13 @@ func createRigidBody(
 
 // Assign the starting position and momentum of rigid body 1.
 func placeBody1(base: MM4RigidBody) -> MM4RigidBody {
-  let angleDegrees: Double = 90
   let rotation = Quaternion<Double>(
     angle: Double.pi / 180 * 90,
     axis: SIMD3(0, 1, 0))
   
   var output = base
   output.rotate(quaternion: rotation)
-  output.centerOfMass += SIMD3<Double>(-1, 0, 0)
+  output.centerOfMass += SIMD3<Double>(-2, 1.8, 0)
   return output
 }
 
@@ -140,7 +139,6 @@ func placeBody2(base: MM4RigidBody) -> MM4RigidBody {
   let rotation1 = Quaternion<Double>(
     angle: Double.pi / 180 * 90,
     axis: SIMD3(0, 1, 0))
-  
   let rotation2 = Quaternion<Double>(
     angle: Double.pi / 180 * 90,
     axis: SIMD3(1, 0, 0))
@@ -148,7 +146,7 @@ func placeBody2(base: MM4RigidBody) -> MM4RigidBody {
   var output = base
   output.rotate(quaternion: rotation1)
   output.rotate(quaternion: rotation2)
-  output.centerOfMass += SIMD3<Double>(1, 0, 0)
+  output.centerOfMass += SIMD3<Double>(2, 0, -1.8)
   return output
 }
 
@@ -221,14 +219,26 @@ do {
 
 // Set the camera's unchanging position.
 do {
-  let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * 0,
+  let rotation1 = Quaternion<Float>(
+    angle: Float.pi / 180 * 45,
     axis: SIMD3(0, 1, 0))
-  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
-  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
-  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
+  let rotation2 = Quaternion<Float>(
+    angle: Float.pi / 180 * 20,
+    axis: SIMD3(-1, 0, 1) / Float(2).squareRoot())
   
-  application.camera.position = rotation.act(on: SIMD3(0, 0, 10))
+  func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
+    var output = input
+    output = rotation1.act(on: output)
+    output = rotation2.act(on: output)
+    return output
+  }
+  
+  application.camera.basis.0 = transform(SIMD3(1, 0, 0))
+  application.camera.basis.1 = transform(SIMD3(0, 1, 0))
+  application.camera.basis.2 = transform(SIMD3(0, 0, 1))
+  
+  application.camera.position = transform(SIMD3(0, 0, 15))
+  application.camera.fovAngleVertical = Float.pi / 180 * 30
 }
 
 application.run {
