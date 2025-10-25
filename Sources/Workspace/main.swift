@@ -5,6 +5,8 @@ import MM4
 import MolecularRenderer
 import QuaternionModule
 
+// MARK: - User-Facing Options
+
 let renderingOffline: Bool = true
 
 // The simulation time per frame, in picoseconds. Frames are recorded and
