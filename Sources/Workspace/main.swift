@@ -478,6 +478,9 @@ if !renderingOffline {
     // Windows: 271 ms/frame
     let quantization = OctreeQuantization(fromImage: bufferedImage)
     
+    // For some reason, DaVinci Resolve imports 20 FPS clips as 25 FPS. So I
+    // change delayTime to 4 when exporting to DaVinci Resolve. In theory, it
+    // should be okay to upscale 60 / 25 = 2.4 without rounding problems.
     let frame = Frame(
       image: bufferedImage,
       delayTime: 5, // 20 FPS
