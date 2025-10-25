@@ -61,7 +61,7 @@ func analyze(topology: Topology) {
 }
 
 func createTopology() -> Topology {
-  let latticeDimensions = SIMD3<Float>(20, 4, 4)
+  let latticeDimensions = SIMD3<Float>(24, 4, 4)
   let lattice = Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
     Bounds {
@@ -89,12 +89,10 @@ func createTopology() -> Topology {
   for atomID in topology.atoms.indices {
     var atom = topology.atoms[atomID]
     
-    // Shift the lattice so it's centered in XY.
+    // Shift the lattice so it's centered in all axes.
     atom.position.x -= latticeSpacings.x * latticeDimensions.x / 2
     atom.position.y -= latticeSpacings.y * latticeDimensions.y / 2
-    
-    // Shift the lattice so it's flush with Z = 0.
-    atom.position.z -= latticeSpacings.z * latticeDimensions.z
+    atom.position.z -= latticeSpacings.z * latticeDimensions.z / 2
     
     topology.atoms[atomID] = atom
   }
@@ -124,7 +122,39 @@ func createRigidBody(
   return (parameters, rigidBody)
 }
 
+// Assign the starting position and momentum of rigid body 1.
+func placeBody1(base: MM4RigidBody) -> MM4RigidBody {
+  let angleDegrees: Double = 90
+  let rotation = Quaternion<Double>(
+    angle: Double.pi / 180 * 90,
+    axis: SIMD3(0, 1, 0))
+  
+  var output = base
+  output.rotate(quaternion: rotation)
+  output.centerOfMass += SIMD3<Double>(-1, 0, 0)
+  return output
+}
+
+// Assign the starting position and momentum of rigid body 2.
+func placeBody2(base: MM4RigidBody) -> MM4RigidBody {
+  let rotation1 = Quaternion<Double>(
+    angle: Double.pi / 180 * 90,
+    axis: SIMD3(0, 1, 0))
+  
+  let rotation2 = Quaternion<Double>(
+    angle: Double.pi / 180 * 90,
+    axis: SIMD3(1, 0, 0))
+  
+  var output = base
+  output.rotate(quaternion: rotation1)
+  output.rotate(quaternion: rotation2)
+  output.centerOfMass += SIMD3<Double>(1, 0, 0)
+  return output
+}
+
 let (parameters, baseRigidBody) = createRigidBody(topology: topology)
+let rigidBody1 = placeBody1(base: baseRigidBody)
+let rigidBody2 = placeBody2(base: baseRigidBody)
 
 // MARK: - Launch Application
 
@@ -169,12 +199,37 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-for atomID in topology.atoms.indices {
-  let atom = topology.atoms[atomID]
-  application.atoms[atomID] = atom
+// Write the first rigid body.
+do {
+  let baseAddress: Int = 0
+  for atomID in topology.atoms.indices {
+    var atom = topology.atoms[atomID]
+    atom.position = rigidBody1.positions[atomID]
+    application.atoms[baseAddress + atomID] = atom
+  }
 }
 
-application.camera.position = SIMD3(0, 0, 5)
+// Write the second rigid body.
+do {
+  let baseAddress: Int = topology.atoms.count
+  for atomID in topology.atoms.indices {
+    var atom = topology.atoms[atomID]
+    atom.position = rigidBody2.positions[atomID]
+    application.atoms[baseAddress + atomID] = atom
+  }
+}
+
+// Set the camera's unchanging position.
+do {
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * 0,
+    axis: SIMD3(0, 1, 0))
+  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
+  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
+  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
+  
+  application.camera.position = rotation.act(on: SIMD3(0, 0, 10))
+}
 
 application.run {
   var image = application.render()
