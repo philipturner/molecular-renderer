@@ -61,6 +61,8 @@ _Whether self-shadowing appears grainy at 120 Hz, with the secondary ray count o
 
 ## MD Simulation Video
 
+> Order of goals: ship the YouTube video tonight, clean up the test documentation & Windows validation run tomorrow.
+
 Copy the TBD Swift files from this GitHub Gist (TODO) into "Sources/Workspace".
 
 Compile a beam structure out of diamond, with the `Hexagonal` basis for ease of setup. Run a simulation where two beams collide at an angle, causing them to spin. Analyze the angular momentum change with [`MM4RigidBody`](https://philipturner.github.io/MM4/documentation/mm4/mm4rigidbody).
