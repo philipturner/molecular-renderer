@@ -26,6 +26,6 @@ Go to <b>Terminal</b> > <b>New Terminal</b> in the top menu bar, then <b>TERMINA
 
 ## Issues
 
-On the first ever program startup, compilation may take over a minute on older CPUs. `-Xswiftc -Ounchecked` allows these build products to be reused on subsequent program runs.
+On the first ever program startup, compilation may take over a minute on older CPUs. To be precise, one compilation instance measured 180.44 seconds on the Intel Core i5-4460, compared to 11.63 seconds on the M1 Max CPU. `-Xswiftc -Ounchecked` allows these build products to be reused on subsequent program runs.
 
 During some program startups, the renderer window is hidden behind the VS Code window. Check for something new appearing in the task bar at the bottom of your screen. Click that icon to bring the renderer into focus.
