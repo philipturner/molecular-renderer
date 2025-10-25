@@ -34,7 +34,7 @@ At ~0.145 nm, the magnitude of the attractive force reaches its highest point. A
 
 ## Propargyl Alcohol Tripod
 
-Copy the four Swift files from this [GitHub Gist](https://gist.github.com/philipturner/5bd74838b1018ae68d23110622407a42) into "Sources/Workspace". Click <b>Download ZIP</b> on the GitHub Gist website, extract the files, and drag them into the source folder.
+Delete `main.swift`. Copy the four Swift files from this [GitHub Gist](https://gist.github.com/philipturner/5bd74838b1018ae68d23110622407a42) into "Sources/Workspace". Click <b>Download ZIP</b> on the GitHub Gist website, extract the files, and drag them into the source folder.
 
 Compile a Ge-substituted adamantane cage, and use this base to procedurally grow the legs. The orientations of the linkers have been modified, with feedback from earlier minimization attempts, to accelerate convergence of the minimization. The tripod's Ge apex connects to a carbon dimer feedstock, capped with a free radical. The entire molecule has an odd number of electrons.
 
@@ -44,7 +44,7 @@ Reference video: [YouTube](https://youtube.com/shorts/rV1UGau20xQ)
 
 ## Stannatrane Tripod
 
-Copy the six Swift files from this [GitHub Gist](https://gist.github.com/philipturner/6a6e04f3e8a7b2bda2b8c99c492d4e49) into "Sources/Workspace". Click <b>Download ZIP</b> on the GitHub Gist website, extract the files, and drag them into the source folder.
+Delete the files from the previous test. Copy the six Swift files from this [GitHub Gist](https://gist.github.com/philipturner/6a6e04f3e8a7b2bda2b8c99c492d4e49) into "Sources/Workspace". Click <b>Download ZIP</b> on the GitHub Gist website, extract the files, and drag them into the source folder.
 
 Prepare energy-minimized structures of two variations of the Sn-H feedstock holder. Use SSD key-value caching to map compiled structure to minimized structure. Learn to use the `.build` folder as a reproducible location for writing files.
 
