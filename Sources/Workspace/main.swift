@@ -207,6 +207,10 @@ func createFrame(positions: [SIMD3<Float>]) -> [Atom] {
 }
 
 // Run a single simulation frame and report rigid body statistics.
+//
+// atom count: 8080
+// macOS: 42.99 s for 150 ps, 301 ns/day
+// Windows: 101.06 s for 150 ps, 128 ns/day
 for frameID in 1...frameCount {
   forceField.simulate(time: frameSimulationTime)
   
