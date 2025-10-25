@@ -107,7 +107,24 @@ analyze(topology: topology)
 
 // MARK: - Run Simulation
 
+// Create a rigid body to assist in simulation setup.
+func createRigidBody(
+  topology: Topology
+) -> (MM4Parameters, MM4RigidBody) {
+  var paramsDesc = MM4ParametersDescriptor()
+  paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+  paramsDesc.bonds = topology.bonds
+  let parameters = try! MM4Parameters(descriptor: paramsDesc)
+  
+  var rigidBodyDesc = MM4RigidBodyDescriptor()
+  rigidBodyDesc.masses = parameters.atoms.masses
+  rigidBodyDesc.positions = topology.atoms.map(\.position)
+  let rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+  
+  return (parameters, rigidBody)
+}
 
+let (parameters, baseRigidBody) = createRigidBody(topology: topology)
 
 // MARK: - Launch Application
 
