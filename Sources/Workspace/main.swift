@@ -227,7 +227,7 @@ if !renderingOffline {
     // throughput @ 1440x1080
     // macOS: 5 ms/frame
     // Windows: 47 ms/frame
-    let cairoImage = CairoImage(
+    var bufferedImage = BufferedImage(
       width: frameBufferSize[0],
       height: frameBufferSize[1])
     for y in 0..<frameBufferSize[1] {
@@ -252,23 +252,13 @@ if !renderingOffline {
         let r = UInt8(rounded[0])
         let g = UInt8(rounded[1])
         let b = UInt8(rounded[2])
-        let a = UInt8(rounded[3])
         
-        // rgba
-        let rgbaVector = SIMD4<UInt8>(r, g, b, a)
+        let color = Color(
+          red: r,
+          green: g,
+          blue: b)
         
-        // bgra
-        let bgraVector = SIMD4<UInt8>(
-          rgbaVector[2],
-          rgbaVector[1],
-          rgbaVector[0],
-          rgbaVector[3])
-        
-        // bgra big-endian
-        // argb little-endian
-        let bgraScalar = unsafeBitCast(bgraVector, to: UInt32.self)
-        let color = Color(argb: bgraScalar)
-        cairoImage[y, x] = color
+        bufferedImage[y, x] = color
       }
     }
     
@@ -276,10 +266,10 @@ if !renderingOffline {
     // throughput @ 1440x1080
     // macOS: 76 ms/frame
     // Windows: 271 ms/frame
-    let quantization = OctreeQuantization(fromImage: cairoImage)
+    let quantization = OctreeQuantization(fromImage: bufferedImage)
     
     let frame = Frame(
-      image: cairoImage,
+      image: bufferedImage,
       delayTime: 5, // 20 FPS
       localQuantization: quantization)
     gif.frames.append(frame)
