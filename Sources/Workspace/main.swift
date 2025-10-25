@@ -195,6 +195,35 @@ func createFrame(positions: [SIMD3<Float>]) -> [Atom] {
 }
 
 // Run a single simulation frame and report rigid body statistics.
+print(rigidBody1.centerOfMass)
+print(rigidBody2.centerOfMass)
+do {
+  forceField.simulate(time: 1)
+  
+  var rigidBodies: [MM4RigidBody] = []
+  for rigidBodyID in 0..<2 {
+    var positions: [SIMD3<Float>] = []
+    var velocities: [SIMD3<Float>] = []
+    
+    let baseAddress = rigidBodyID * topology.atoms.count
+    for atomID in topology.atoms.indices {
+      let position = forceField.positions[baseAddress + atomID]
+      let velocity = forceField.velocities[baseAddress + atomID]
+      positions.append(position)
+      velocities.append(velocity)
+    }
+    
+    var rigidBodyDesc = MM4RigidBodyDescriptor()
+    rigidBodyDesc.masses = parameters.atoms.masses
+    rigidBodyDesc.positions = positions
+    rigidBodyDesc.velocities = velocities
+    let rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+    rigidBodies.append(rigidBody)
+  }
+  print(rigidBodies[0].centerOfMass)
+  print(rigidBodies[1].centerOfMass)
+}
+exit(0)
 
 // MARK: - Launch Application
 
