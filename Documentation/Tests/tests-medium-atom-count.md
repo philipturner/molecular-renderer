@@ -65,4 +65,4 @@ Compile a beam structure out of diamond. Use the `Hexagonal` basis for ease of s
 
 Serialize the result to a GIF at 20 FPS. Since GIF only supports times with 0.01 second granularity, it cannot natively encode 60 FPS. Instead, we use 20 FPS, the highest possible frame rate that divides evenly into 60 FPS. DaVinci Resolve was used to alter the frame pacing and convert the video to MP4 for publication.
 
-Reference video: TODO (upload to YouTube)
+Reference video: [YouTube](https://www.youtube.com/watch?v=6CL16UFudkQ)
