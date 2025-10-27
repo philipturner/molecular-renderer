@@ -15,7 +15,7 @@ var workspaceLinkerSettings: [LinkerSetting] = []
 // Common dependencies.
 workspaceDependencies += [
   .product(name: "Atomics", package: "swift-atomics"),
-  .product(name: "GIF", package: "swift-gif"),
+  .product(name: "GIFModule", package: "swift-gif"),
   .product(name: "HDL", package: "HDL"),
   .product(name: "Numerics", package: "swift-numerics"),
   .product(name: "MM4", package: "MM4"),

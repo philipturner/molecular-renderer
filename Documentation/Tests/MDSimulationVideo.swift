@@ -1,5 +1,5 @@
 import Foundation
-import GIF
+import GIFModule
 import HDL
 import MM4
 import MolecularRenderer
@@ -437,7 +437,7 @@ if !renderingOffline {
     // throughput @ 1440x1080
     // macOS: 5 ms/frame
     // Windows: 47 ms/frame
-    var bufferedImage = BufferedImage(
+    var gifImage = GIFModule.Image(
       width: frameBufferSize[0],
       height: frameBufferSize[1])
     for y in 0..<frameBufferSize[1] {
@@ -468,7 +468,7 @@ if !renderingOffline {
           green: g,
           blue: b)
         
-        bufferedImage[y, x] = color
+        gifImage[y, x] = color
       }
     }
     
@@ -476,12 +476,12 @@ if !renderingOffline {
     // throughput @ 1440x1080
     // macOS: 76 ms/frame
     // Windows: 271 ms/frame
-    let quantization = OctreeQuantization(fromImage: bufferedImage)
+    let quantization = OctreeQuantization(fromImage: gifImage)
     
     // For some reason, DaVinci Resolve imports 20 FPS clips as 25 FPS. So I
     // change delayTime to 4 when exporting to DaVinci Resolve.
     let frame = Frame(
-      image: bufferedImage,
+      image: gifImage,
       delayTime: 5, // 20 FPS
       localQuantization: quantization)
     gif.frames.append(frame)
