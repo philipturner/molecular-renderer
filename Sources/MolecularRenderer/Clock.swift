@@ -65,8 +65,11 @@ public struct Clock {
     frameRate = display.frameRate
   }
   
-  func frames(ticks: Int) -> Int {
+  private func frames(ticks: Int) -> Int {
     #if os(macOS)
+    // On some macOS devices (M1 MacBook Air display), this number should be
+    // 23_999_040. The algorithm can get away with 24_000_000 because its goal
+    // is to avoid frame drops 99.99% of the time.
     let ticksPerSecond: Int = 24_000_000
     #else
     let ticksPerSecond: Int = 10_000_000
@@ -77,6 +80,21 @@ public struct Clock {
     frames = frames.rounded(.toNearestOrEven)
     return Int(frames)
   }
+  
+  #if os(macOS)
+  private func isDivisible(ticks: Int) -> Bool {
+    // Edge case for a subset of macOS devices.
+    if frameRate == 60 {
+      if ticks % 399_984 == 0 {
+        return true
+      }
+    }
+    
+    // All other cases should follow this rule.
+    let refreshPeriod = 24_000_000 / frameRate
+    return ticks % refreshPeriod == 0
+  }
+  #endif
   
   mutating func increment(frameStatistics: FrameStatistics) {
     guard let timeStamps else {
@@ -113,7 +131,7 @@ public struct Clock {
     self.timeStamps!.previous = current
   }
   
-  mutating func incrementFrameCounter(
+  private mutating func incrementFrameCounter(
     start: TimeStamp,
     previous: TimeStamp,
     current: TimeStamp
@@ -129,12 +147,9 @@ public struct Clock {
     
     #if os(macOS)
     // Validate that the vsync timestamp is divisible by the refresh period.
-    do {
-      let currentVideoTicks = current.video - start.video
-      let refreshPeriod = 24_000_000 / frameRate
-      guard currentVideoTicks % refreshPeriod == 0 else {
-        fatalError("Vsync timestamp is not divisible by refresh period.")
-      }
+    let currentVideoTicks = current.video - start.video
+    guard isDivisible(ticks: currentVideoTicks) else {
+      fatalError("Vsync timestamp is not divisible by refresh period.")
     }
     
     // Validate that the vsync timestamp is monotonically increasing.
