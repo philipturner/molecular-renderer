@@ -1,5 +1,6 @@
 #if os(macOS)
 import QuartzCore
+import CoreVideo
 #else
 import SwiftCOM
 import WinSDK
@@ -17,6 +18,10 @@ struct TimeStamp {
   var presentCount: Int
   #endif
   
+  #if os(macOS)
+  var refreshPeriod: Int
+  #endif
+  
   init(frameStatistics: Clock.FrameStatistics) {
     #if os(macOS)
     self.host = Int(mach_continuous_time())
@@ -28,6 +33,7 @@ struct TimeStamp {
     
     #if os(macOS)
     self.video = Int(frameStatistics.videoTime)
+    self.refreshPeriod = Int(frameStatistics.videoRefreshPeriod)
     #else
     if let frameStatistics {
       self.presentCount = Int(frameStatistics.PresentCount)
@@ -53,6 +59,9 @@ public struct Clock {
   var frameCounter: Int
   var frameRate: Int
   private var timeStamps: ClockTimeStamps?
+  #if os(macOS)
+  private var refreshPeriod: Int?
+  #endif
   
   #if os(Windows)
   var isInitializing: Bool = true
@@ -67,10 +76,18 @@ public struct Clock {
   
   private func frames(ticks: Int) -> Int {
     #if os(macOS)
-    // On some macOS devices (M1 MacBook Air display), this number should be
-    // 23_999_040. The algorithm can get away with 24_000_000 because its goal
-    // is to avoid frame drops 99.99% of the time.
-    let ticksPerSecond: Int = 24_000_000
+    guard let refreshPeriod else {
+      fatalError("Refresh period was not initialized.")
+    }
+    
+    // This should be exactly 24 MHz on most macOS devices. The M1 MacBook Air
+    // is 399984 * 60 = 23999040.
+    let ticksPerSecond = refreshPeriod * frameRate
+    guard ticksPerSecond > 23_000_000,
+          ticksPerSecond < 25_000_000 else {
+      fatalError("Unexpected ticks per second.")
+    }
+    
     #else
     let ticksPerSecond: Int = 10_000_000
     #endif
@@ -83,15 +100,9 @@ public struct Clock {
   
   #if os(macOS)
   private func isDivisible(ticks: Int) -> Bool {
-    // Edge case for a subset of macOS devices.
-    if frameRate == 60 {
-      if ticks % 399_984 == 0 {
-        return true
-      }
+    guard let refreshPeriod else {
+      fatalError("Refresh period was not initialized.")
     }
-    
-    // All other cases should follow this rule.
-    let refreshPeriod = 24_000_000 / frameRate
     return ticks % refreshPeriod == 0
   }
   #endif
@@ -102,6 +113,7 @@ public struct Clock {
       self.timeStamps = ClockTimeStamps(
         start: start,
         previous: start)
+      self.refreshPeriod = start.refreshPeriod
       return
     }
     
@@ -146,6 +158,12 @@ public struct Clock {
     #endif
     
     #if os(macOS)
+    // Validate that all time stamps use the same refresh period.
+    guard start.refreshPeriod == previous.refreshPeriod,
+          start.refreshPeriod == current.refreshPeriod else {
+      fatalError("Vsync timestamps had different refresh periods.")
+    }
+    
     // Validate that the vsync timestamp is divisible by the refresh period.
     let currentVideoTicks = current.video - start.video
     guard isDivisible(ticks: currentVideoTicks) else {
