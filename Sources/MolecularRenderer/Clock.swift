@@ -113,7 +113,9 @@ public struct Clock {
       self.timeStamps = ClockTimeStamps(
         start: start,
         previous: start)
+      #if os(macOS)
       self.refreshPeriod = start.refreshPeriod
+      #endif
       return
     }
     
