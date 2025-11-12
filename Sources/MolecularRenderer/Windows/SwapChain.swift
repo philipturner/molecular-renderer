@@ -21,8 +21,16 @@ class SwapChain {
     }
     
     // Create the factory.
+    func factoryFlags() -> UInt32 {
+      if Device.enableDebug {
+        return UInt32(DXGI_CREATE_FACTORY_DEBUG)
+      } else {
+        return UInt32(0)
+      }
+    }
     let factory: SwiftCOM.IDXGIFactory4 =
-    try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
+    try! CreateDXGIFactory2(factoryFlags())
+    
     
     // Create the swap chain descriptor.
     let swapChainDesc = Self.createSwapChainDescriptor(

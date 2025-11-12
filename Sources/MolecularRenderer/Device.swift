@@ -23,7 +23,7 @@ public class Device {
   let d3d12Device: SwiftCOM.ID3D12Device
   
   // This option can double the CPU-side command encoding latency.
-  private static var enableDebug: Bool { false }
+  static var enableDebug: Bool { false }
   
   // Stored properties for the debug layer.
   var d3d12Debug: SwiftCOM.ID3D12Debug?
