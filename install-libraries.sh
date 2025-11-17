@@ -4,15 +4,11 @@ mkdir .build
 
 cd .build
 
-# curl -L -o "openmm-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.0/openmm-macos.zip"
-# unzip -o openmm-macos.zip
-rm -rf "openmm-macos"
-cp -r "/Users/philipturner/Desktop/openmm-macos" "openmm-macos"
+curl -L -o "openmm-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.1/openmm-macos.zip"
+unzip -o openmm-macos.zip
 
-# curl -L -o "xtb-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.0/xtb-macos.zip"
-# unzip -o xtb-macos.zip
-rm -rf "xtb-macos"
-cp -r "/Users/philipturner/Desktop/xtb-macos" "xtb-macos"
+curl -L -o "xtb-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.1/xtb-macos.zip"
+unzip -o xtb-macos.zip
 
 cd ../ # balance 'cd .build'
 
@@ -33,6 +29,9 @@ cp ".build/xtb-macos/libxtb.dylib" libxtb.dylib
 cp ".build/xtb-macos/libgfortran.5.dylib" libgfortran.5.dylib
 cp ".build/xtb-macos/libgomp.1.dylib" libgomp.1.dylib
 cp ".build/xtb-macos/libquadmath.0.dylib" libquadmath.0.dylib
+
+# Sanitize the folder from this unused library.
+rm -rf ".build/xtb-macos/libgcc_s.1.1.dylib"
 
 ## Fix the self-link of each library.
 
