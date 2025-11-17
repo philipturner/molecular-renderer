@@ -62,6 +62,8 @@ export GCC="/opt/homebrew/opt/gcc/lib/gcc/current"
 install_name_tool -change "$GCC/libgfortran.5.dylib" "$(pwd)/libgfortran.5.dylib" libxtb.dylib
 install_name_tool -change "$GCC/libgomp.1.dylib" "$(pwd)/libgomp.1.dylib" libxtb.dylib
 install_name_tool -change "$GCC/libquadmath.0.dylib" "$(pwd)/libquadmath.0.dylib" libxtb.dylib
+install_name_tool -change "@rpath/libquadmath.0.dylib" "$(pwd)/libquadmath.0.dylib" libgfortran.5.dylib
+install_name_tool -change "@rpath/libgcc_s.1.1.dylib" "$(pwd)/libgcc_s.1.1.dylib" libgfortran.5.dylib
 
 ## Repair the code signature.
 
