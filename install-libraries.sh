@@ -30,21 +30,26 @@ cp ".build/xtb-macos/libxtb.dylib" libxtb.dylib
 
 ## Fix the symbolic links.
 
+# Technically, "-id" command is not needed for "libxtb.dylib". However, it
+# prevents an issue where macOS flags libxtb as a virus, when copying the binary
+# from an external folder instead of generating the folder's contents via unzip.
+
 install_name_tool -id "libc++.1.dylib" libc++.1.dylib
 install_name_tool -id "libOpenCL.1.dylib" libOpenCL.1.dylib
 install_name_tool -id "libOpenMM.dylib" libOpenMM.dylib
 install_name_tool -id "libOpenMMOpenCL.dylib" libOpenMMOpenCL.dylib
 install_name_tool -id "libocl_icd_wrapper_apple.dylib" libocl_icd_wrapper_apple.dylib
-
-# Technically not needed, but prevents an issue where macOS flags libxtb as a
-# virus when copying the binary from an external folder without unzipping the
-# source during the script's execution.
 install_name_tool -id "libxtb.dylib" libxtb.dylib
 
 install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMM.dylib
 install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMMOpenCL.dylib
 install_name_tool -change "@rpath/libOpenCL.1.dylib" "$(pwd)/libOpenCL.1.dylib" libOpenMMOpenCL.dylib
 install_name_tool -change "@rpath/libOpenMM.dylib" "$(pwd)/libOpenMM.dylib" libOpenMMOpenCL.dylib
+
+  /opt/homebrew/opt/gcc/lib/gcc/current/libgomp.1.dylib (compatibility version 2.0.0, current version 2.0.0)
+  /opt/homebrew/opt/gcc/lib/gcc/current/libgfortran.5.dylib (compatibility version 6.0.0, current version 6.0.0)
+  /System/Library/Frameworks/Accelerate.framework/Versions/A/Accelerate (compatibility version 1.0.0, current version 4.0.0)
+  /opt/homebrew/opt/gcc/lib/gcc/current/libquadmath.0.dylib (compatibility version 1.0.0, current version 1.0.0)
 
 ## Repair the code signature.
 
