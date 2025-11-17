@@ -44,6 +44,7 @@ cd .build
 # unzip -o xtb-macos.zip
 # cp -r "/Users/philipturner/Desktop/xtb-macos" "xtb-macos"
 
+# Bypass error where macOS detects this as a virus.
 cp "/Users/philipturner/Desktop/xtb-macos.zip" "xtb-macos.zip"
 unzip -o xtb-macos.zip
 

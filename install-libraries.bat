@@ -12,6 +12,8 @@ cd .build
 powershell -c "Invoke-WebRequest -Uri 'https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2505.1/dxc_2025_07_14.zip' -OutFile 'dxc_2025_07_14.zip'"
 powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/raw/main/Kits/FidelityFX/signedbin/amd_fidelityfx_upscaler_dx12.dll' -OutFile 'amd_fidelityfx_upscaler_dx12.dll'"
 powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/raw/main/Kits/FidelityFX/signedbin/amd_fidelityfx_upscaler_dx12.lib' -OutFile 'amd_fidelityfx_upscaler_dx12.lib'"
+
+:: TODO: Update this to v1.0.1 after fixing macOS.
 powershell -c "Invoke-WebRequest -Uri 'https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.0/openmm-windows.zip' -OutFile 'openmm-windows.zip'"
 powershell -c "Invoke-WebRequest -Uri 'https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.0/xtb-windows.zip' -OutFile 'xtb-windows.zip'"
 
