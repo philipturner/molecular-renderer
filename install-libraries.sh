@@ -42,7 +42,10 @@ cd .build
 
 # curl -L -o "xtb-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.0/xtb-macos.zip"
 # unzip -o xtb-macos.zip
-cp -r "/Users/philipturner/Desktop/xtb-macos" "xtb-macos"
+# cp -r "/Users/philipturner/Desktop/xtb-macos" "xtb-macos"
+
+cp "/Users/philipturner/Desktop/xtb-macos.zip" "xtb-macos.zip"
+unzip -o xtb-macos.zip
 
 cd ../ # balance 'cd .build'
 
