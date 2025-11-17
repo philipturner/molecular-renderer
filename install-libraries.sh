@@ -46,10 +46,10 @@ install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpe
 install_name_tool -change "@rpath/libOpenCL.1.dylib" "$(pwd)/libOpenCL.1.dylib" libOpenMMOpenCL.dylib
 install_name_tool -change "@rpath/libOpenMM.dylib" "$(pwd)/libOpenMM.dylib" libOpenMMOpenCL.dylib
 
-  /opt/homebrew/opt/gcc/lib/gcc/current/libgomp.1.dylib (compatibility version 2.0.0, current version 2.0.0)
-  /opt/homebrew/opt/gcc/lib/gcc/current/libgfortran.5.dylib (compatibility version 6.0.0, current version 6.0.0)
-  /System/Library/Frameworks/Accelerate.framework/Versions/A/Accelerate (compatibility version 1.0.0, current version 4.0.0)
-  /opt/homebrew/opt/gcc/lib/gcc/current/libquadmath.0.dylib (compatibility version 1.0.0, current version 1.0.0)
+export GCC="/opt/homebrew/opt/gcc/lib/gcc/current"
+install_name_tool -change "$GCC/libgomp.1.dylib" "$(pwd)/libgomp.1.dylib" libxtb.dylib
+install_name_tool -change "$GCC/libgfortran.5.dylib" "$(pwd)/libgfortran.5.dylib" libxtb.dylib
+install_name_tool -change "$GCC/libquadmath.0.dylib" "$(pwd)/libquadmath.0.dylib" libxtb.dylib
 
 ## Repair the code signature.
 
