@@ -6,10 +6,12 @@ cd .build
 
 # curl -L -o "openmm-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.0/openmm-macos.zip"
 # unzip -o openmm-macos.zip
+rm -rf "openmm-macos"
 cp -r "/Users/philipturner/Desktop/openmm-macos" "openmm-macos"
 
 # curl -L -o "xtb-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.0/xtb-macos.zip"
 # unzip -o xtb-macos.zip
+rm -rf "xtb-macos"
 cp -r "/Users/philipturner/Desktop/xtb-macos" "xtb-macos"
 
 cd ../ # balance 'cd .build'
@@ -27,6 +29,9 @@ cp ".build/openmm-macos/libOpenCL.1.dylib" libOpenCL.1.dylib
 cp ".build/openmm-macos/libOpenMM.dylib" libOpenMM.dylib
 cp ".build/openmm-macos/libOpenMMOpenCL.dylib" libOpenMMOpenCL.dylib
 cp ".build/xtb-macos/libxtb.dylib" libxtb.dylib
+cp ".build/xtb-macos/libgfortran.5.dylib" libgfortran.5.dylib
+cp ".build/xtb-macos/libgomp.1.dylib" libgomp.1.dylib
+cp ".build/xtb-macos/libquadmath.0.dylib" libquadmath.0.dylib
 
 ## Fix the self-link of each library.
 
@@ -40,6 +45,9 @@ install_name_tool -id "libOpenCL.1.dylib" libOpenCL.1.dylib
 install_name_tool -id "libOpenMM.dylib" libOpenMM.dylib
 install_name_tool -id "libOpenMMOpenCL.dylib" libOpenMMOpenCL.dylib
 install_name_tool -id "libxtb.dylib" libxtb.dylib
+install_name_tool -id "libgfortran.5.dylib" libgfortran.5.dylib
+install_name_tool -id "libgomp.1.dylib" libgomp.1.dylib
+install_name_tool -id "libquadmath.0.dylib" libquadmath.0.dylib
 
 ## Fix the symbolic links between libraries.
 
@@ -49,8 +57,8 @@ install_name_tool -change "@rpath/libOpenCL.1.dylib" "$(pwd)/libOpenCL.1.dylib" 
 install_name_tool -change "@rpath/libOpenMM.dylib" "$(pwd)/libOpenMM.dylib" libOpenMMOpenCL.dylib
 
 export GCC="/opt/homebrew/opt/gcc/lib/gcc/current"
-install_name_tool -change "$GCC/libgomp.1.dylib" "$(pwd)/libgomp.1.dylib" libxtb.dylib
 install_name_tool -change "$GCC/libgfortran.5.dylib" "$(pwd)/libgfortran.5.dylib" libxtb.dylib
+install_name_tool -change "$GCC/libgomp.1.dylib" "$(pwd)/libgomp.1.dylib" libxtb.dylib
 install_name_tool -change "$GCC/libquadmath.0.dylib" "$(pwd)/libquadmath.0.dylib" libxtb.dylib
 
 ## Repair the code signature.
@@ -61,6 +69,9 @@ codesign -fs - libOpenCL.1.dylib
 codesign -fs - libOpenMM.dylib
 codesign -fs - libOpenMMOpenCL.dylib
 codesign -fs - libxtb.dylib
+codesign -fs - libgfortran.5.dylib
+codesign -fs - libgomp.1.dylib
+codesign -fs - libquadmath.0.dylib
 
 echo "These code-signs should report success:"
 codesign --verify --verbose libc++.1.dylib
@@ -69,3 +80,6 @@ codesign --verify --verbose libOpenCL.1.dylib
 codesign --verify --verbose libOpenMM.dylib
 codesign --verify --verbose libOpenMMOpenCL.dylib
 codesign --verify --verbose libxtb.dylib
+codesign --verify --verbose libgfortran.5.dylib
+codesign --verify --verbose libgomp.1.dylib
+codesign --verify --verbose libquadmath.0.dylib
