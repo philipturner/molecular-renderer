@@ -45,27 +45,25 @@ install_name_tool -id "libOpenCL.1.dylib" libOpenCL.1.dylib
 install_name_tool -id "libOpenMM.dylib" libOpenMM.dylib
 install_name_tool -id "libOpenMMOpenCL.dylib" libOpenMMOpenCL.dylib
 install_name_tool -id "libxtb.dylib" libxtb.dylib
-install_name_tool -id "libgcc_s.1.1.dylib" libgcc_s.1.1.dylib
-install_name_tool -id "libgfortran.5.dylib" libgfortran.5.dylib
-install_name_tool -id "libgomp.1.dylib" libgomp.1.dylib
-install_name_tool -id "libquadmath.0.dylib" libquadmath.0.dylib
+#install_name_tool -id "libgcc_s.1.1.dylib" libgcc_s.1.1.dylib
+#install_name_tool -id "libgfortran.5.dylib" libgfortran.5.dylib
+#install_name_tool -id "libgomp.1.dylib" libgomp.1.dylib
+#install_name_tool -id "libquadmath.0.dylib" libquadmath.0.dylib
 
 ## Fix the symbolic links between libraries.
 
-install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMM.dylib
-install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMMOpenCL.dylib
-install_name_tool -change "@rpath/libOpenCL.1.dylib" "$(pwd)/libOpenCL.1.dylib" libOpenMMOpenCL.dylib
-install_name_tool -change "@rpath/libOpenMM.dylib" "$(pwd)/libOpenMM.dylib" libOpenMMOpenCL.dylib
+#install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMM.dylib
+#install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMMOpenCL.dylib
+#install_name_tool -change "@rpath/libOpenCL.1.dylib" "$(pwd)/libOpenCL.1.dylib" libOpenMMOpenCL.dylib
+#install_name_tool -change "@rpath/libOpenMM.dylib" "$(pwd)/libOpenMM.dylib" libOpenMMOpenCL.dylib
 
 export GCC="/opt/homebrew/opt/gcc/lib/gcc/current"
 install_name_tool -change "$GCC/libgfortran.5.dylib" "$(pwd)/libgfortran.5.dylib" libxtb.dylib
 install_name_tool -change "$GCC/libgomp.1.dylib" "$(pwd)/libgomp.1.dylib" libxtb.dylib
 install_name_tool -change "$GCC/libquadmath.0.dylib" "$(pwd)/libquadmath.0.dylib" libxtb.dylib
 
-# I can fix one of the faulty rpaths, but not both. I'll check whether all
-# tests of Molecular Renderer still work, including some GFN-FF tests, on a
-# weirdly configured M4 Pro Mac Mini.
-#
+# I can fix one of the faulty rpaths, but not both. As long as libgcc_s.1.1 is
+
 # error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: changing install names or rpaths can't be redone for: libgfortran.5.dylib (for architecture arm64) because larger updated load commands do not fit (the program must be relinked, and you may need to use -headerpad or -headerpad_max_install_names)
 #
 # install_name_tool -change "@rpath/libgcc_s.1.1.dylib" "$(pwd)/libgcc_s.1.1.dylib" libgfortran.5.dylib
