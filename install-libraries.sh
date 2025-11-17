@@ -30,9 +30,6 @@ cp ".build/xtb-macos/libgfortran.5.dylib" libgfortran.5.dylib
 cp ".build/xtb-macos/libgomp.1.dylib" libgomp.1.dylib
 cp ".build/xtb-macos/libquadmath.0.dylib" libquadmath.0.dylib
 
-# Sanitize the folder from this unused library.
-# rm -rf ".build/xtb-macos/libgcc_s.1.1.dylib"
-
 ## Fix the self-link of each library.
 
 # Technically, "-id" command is not needed for "libxtb.dylib". However, it
@@ -45,24 +42,26 @@ install_name_tool -id "libOpenCL.1.dylib" libOpenCL.1.dylib
 install_name_tool -id "libOpenMM.dylib" libOpenMM.dylib
 install_name_tool -id "libOpenMMOpenCL.dylib" libOpenMMOpenCL.dylib
 install_name_tool -id "libxtb.dylib" libxtb.dylib
-#install_name_tool -id "libgcc_s.1.1.dylib" libgcc_s.1.1.dylib
-#install_name_tool -id "libgfortran.5.dylib" libgfortran.5.dylib
-#install_name_tool -id "libgomp.1.dylib" libgomp.1.dylib
-#install_name_tool -id "libquadmath.0.dylib" libquadmath.0.dylib
+install_name_tool -id "libgcc_s.1.1.dylib" libgcc_s.1.1.dylib
+install_name_tool -id "libgfortran.5.dylib" libgfortran.5.dylib
+install_name_tool -id "libgomp.1.dylib" libgomp.1.dylib
+install_name_tool -id "libquadmath.0.dylib" libquadmath.0.dylib
 
 ## Fix the symbolic links between libraries.
 
-#install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMM.dylib
-#install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMMOpenCL.dylib
-#install_name_tool -change "@rpath/libOpenCL.1.dylib" "$(pwd)/libOpenCL.1.dylib" libOpenMMOpenCL.dylib
-#install_name_tool -change "@rpath/libOpenMM.dylib" "$(pwd)/libOpenMM.dylib" libOpenMMOpenCL.dylib
+install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMM.dylib
+install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMMOpenCL.dylib
+install_name_tool -change "@rpath/libOpenCL.1.dylib" "$(pwd)/libOpenCL.1.dylib" libOpenMMOpenCL.dylib
+install_name_tool -change "@rpath/libOpenMM.dylib" "$(pwd)/libOpenMM.dylib" libOpenMMOpenCL.dylib
 
 export GCC="/opt/homebrew/opt/gcc/lib/gcc/current"
 install_name_tool -change "$GCC/libgfortran.5.dylib" "$(pwd)/libgfortran.5.dylib" libxtb.dylib
 install_name_tool -change "$GCC/libgomp.1.dylib" "$(pwd)/libgomp.1.dylib" libxtb.dylib
 install_name_tool -change "$GCC/libquadmath.0.dylib" "$(pwd)/libquadmath.0.dylib" libxtb.dylib
 
-# I can fix one of the faulty rpaths, but not both. As long as libgcc_s.1.1 is
+# I can fix one of the faulty rpaths, but not both. Apparently, this is not
+# needed anyway. I also tried skipping the re-linking of @rpaths for the OpenMM
+# libraries. I cannot evaluate whether OpenCL backend detection was flaky.
 
 # error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: changing install names or rpaths can't be redone for: libgfortran.5.dylib (for architecture arm64) because larger updated load commands do not fit (the program must be relinked, and you may need to use -headerpad or -headerpad_max_install_names)
 #
