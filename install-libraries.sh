@@ -25,13 +25,13 @@ cp ".build/openmm-macos/libOpenCL.1.dylib" libOpenCL.1.dylib
 cp ".build/openmm-macos/libOpenMM.dylib" libOpenMM.dylib
 cp ".build/openmm-macos/libOpenMMOpenCL.dylib" libOpenMMOpenCL.dylib
 cp ".build/xtb-macos/libxtb.dylib" libxtb.dylib
-# cp ".build/xtb-macos/libgcc_s.1.1.dylib" libgcc_s.1.1.dylib
+cp ".build/xtb-macos/libgcc_s.1.1.dylib" libgcc_s.1.1.dylib
 cp ".build/xtb-macos/libgfortran.5.dylib" libgfortran.5.dylib
 cp ".build/xtb-macos/libgomp.1.dylib" libgomp.1.dylib
 cp ".build/xtb-macos/libquadmath.0.dylib" libquadmath.0.dylib
 
 # Sanitize the folder from this unused library.
-rm -rf ".build/xtb-macos/libgcc_s.1.1.dylib"
+# rm -rf ".build/xtb-macos/libgcc_s.1.1.dylib"
 
 ## Fix the self-link of each library.
 
@@ -45,7 +45,7 @@ install_name_tool -id "libOpenCL.1.dylib" libOpenCL.1.dylib
 install_name_tool -id "libOpenMM.dylib" libOpenMM.dylib
 install_name_tool -id "libOpenMMOpenCL.dylib" libOpenMMOpenCL.dylib
 install_name_tool -id "libxtb.dylib" libxtb.dylib
-# install_name_tool -id "libgcc_s.1.1.dylib" libgcc_s.1.1.dylib
+install_name_tool -id "libgcc_s.1.1.dylib" libgcc_s.1.1.dylib
 install_name_tool -id "libgfortran.5.dylib" libgfortran.5.dylib
 install_name_tool -id "libgomp.1.dylib" libgomp.1.dylib
 install_name_tool -id "libquadmath.0.dylib" libquadmath.0.dylib
@@ -79,7 +79,7 @@ codesign -fs - libOpenCL.1.dylib
 codesign -fs - libOpenMM.dylib
 codesign -fs - libOpenMMOpenCL.dylib
 codesign -fs - libxtb.dylib
-# codesign -fs - libgcc_s.1.1.dylib
+codesign -fs - libgcc_s.1.1.dylib
 codesign -fs - libgfortran.5.dylib
 codesign -fs - libgomp.1.dylib
 codesign -fs - libquadmath.0.dylib
@@ -91,7 +91,7 @@ codesign --verify --verbose libOpenCL.1.dylib
 codesign --verify --verbose libOpenMM.dylib
 codesign --verify --verbose libOpenMMOpenCL.dylib
 codesign --verify --verbose libxtb.dylib
-# codesign --verify --verbose libgcc_s.1.1.dylib
+codesign --verify --verbose libgcc_s.1.1.dylib
 codesign --verify --verbose libgfortran.5.dylib
 codesign --verify --verbose libgomp.1.dylib
 codesign --verify --verbose libquadmath.0.dylib
