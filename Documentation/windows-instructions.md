@@ -1,5 +1,7 @@
 # Windows Instructions
 
+> This document does not accurately explain all of the prerequisites. Please view the tutorial video (TODO: link).
+
 Prerequisites: [Swift (Manual Installation)](https://www.swift.org/install/windows/#alternative-install-options), [VS Code](https://code.visualstudio.com/download), [Swift Extension](https://www.swift.org/documentation/articles/getting-started-with-vscode-swift.html), [Git Bash](https://gitforwindows.org)
 
 Minimum OS version: Windows 10
