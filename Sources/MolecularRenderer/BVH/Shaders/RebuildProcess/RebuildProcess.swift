@@ -18,7 +18,8 @@ class RebuildProcess {
     shaderDesc.name = "rebuildProcess2"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = Self.createSource2(
-      worldDimension: worldDimension)
+      worldDimension: worldDimension,
+      vendor: device.vendor)
     self.process2 = Shader(descriptor: shaderDesc)
 
     print("Hello, world 4.")

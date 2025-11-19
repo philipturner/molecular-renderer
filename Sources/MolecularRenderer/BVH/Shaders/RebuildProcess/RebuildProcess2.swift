@@ -31,7 +31,10 @@ extension RebuildProcess {
   // otherwise
   //   store two offsets relative to the slot's region for 16-bit references
   //   compress these two 16-bit offsets into a 32-bit word
-  static func createSource2(worldDimension: Float) -> String {
+  static func createSource2(
+    worldDimension: Float,
+    vendor: Vendor
+    ) -> String {
     // atoms.atoms
     // voxels.dense.assignedSlotIDs
     // voxels.sparse.rebuiltVoxelCoords
@@ -90,6 +93,19 @@ extension RebuildProcess {
     func threadgroupAddress(_ i: String) -> String {
       "256 * (localID / 64) + (\(i) * 64) + (localID % 64)"
     }
+
+    func generateSmallAddress() -> String {
+      if vendor == .amd {
+        return """
+        uint3 xyz_AMD = uint3(xyz);
+        uint address = \(VoxelResources.generate("xyz_AMD", 8));
+        """
+      } else {
+        return """
+        float address = \(VoxelResources.generate("xyz", 8));
+        """
+      }
+    }
     
     func atomicFetchAdd() -> String {
       #if os(macOS)
@@ -116,7 +132,7 @@ extension RebuildProcess {
     func waveID() -> String {
       "localID / \(Reduction.waveGetLaneCount())"
     }
-    
+
     return """
     \(Shader.importStandardLibrary)
     
@@ -163,8 +179,7 @@ extension RebuildProcess {
           for (float y = boxMin[1]; y < boxMax[1]; ++y) {
             for (float x = boxMin[0]; x < boxMax[0]; ++x) {
               float3 xyz = float3(x, y, z);
-              uint3 xyz_AMD = uint3(xyz);
-              uint address = \(VoxelResources.generate("xyz_AMD", 8));
+              \(generateSmallAddress())
               
               uint offset;
               \(atomicFetchAdd())
@@ -249,8 +264,7 @@ extension RebuildProcess {
               // Narrow down the cells with a cube-sphere intersection test.
               bool intersected = cubeSphereTest(xyz, atom);
               if (intersected && all(xyz < boxMax)) {
-                uint3 xyz_AMD = uint3(xyz);
-                uint address = \(VoxelResources.generate("xyz_AMD", 8));
+                \(generateSmallAddress())
                 
                 uint offset;
                 \(atomicFetchAdd())
