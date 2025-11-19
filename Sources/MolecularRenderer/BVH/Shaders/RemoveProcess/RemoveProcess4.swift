@@ -98,7 +98,11 @@ extension RemoveProcess {
         uint input = threadgroupMemory[4];
         uint output;
         \(atomicFetchAdd())
-        threadgroupMemory[5] = (output > 8900) ? 8900 : output;
+        if (WaveGetLaneCount() == 32) {
+          threadgroupMemory[5] = (output > 8900) ? 8900 : output;
+        } else {
+          threadgroupMemory[5] = output;
+        }
       }
       \(Reduction.groupLocalBarrier())
       
