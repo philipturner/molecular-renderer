@@ -50,6 +50,9 @@ int32_t dxcompiler_compile(
   arguments.push_back(L"-E");
   arguments.push_back(name);
   arguments.push_back(L"-T");
+  // Shader Model 6.6 breaks the code, even on RX 7900 XTX
+  // which should support it. The crash happens in
+  // 'dxcompiler.dll', not the AMD driver.
   arguments.push_back(L"cs_6_5");
   // disabled 16-bit types because of GTX 970 driver crash
   arguments.push_back(L"-Qstrip_debug");

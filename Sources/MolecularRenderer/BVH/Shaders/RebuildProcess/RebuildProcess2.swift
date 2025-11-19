@@ -144,7 +144,7 @@ extension RebuildProcess {
         threadgroupMemory[address] = 0;
       }
       \(Reduction.groupLocalBarrier())
-      
+
       // =======================================================================
       // ===                            Phase I                              ===
       // =======================================================================
@@ -159,7 +159,8 @@ extension RebuildProcess {
           for (float y = boxMin[1]; y < boxMax[1]; ++y) {
             for (float x = boxMin[0]; x < boxMax[0]; ++x) {
               float3 xyz = float3(x, y, z);
-              float address = \(VoxelResources.generate("xyz", 8));
+              uint3 xyz_AMD = uint3(xyz);
+              uint address = \(VoxelResources.generate("xyz_AMD", 8));
               
               uint offset;
               \(atomicFetchAdd())
@@ -244,7 +245,8 @@ extension RebuildProcess {
               // Narrow down the cells with a cube-sphere intersection test.
               bool intersected = cubeSphereTest(xyz, atom);
               if (intersected && all(xyz < boxMax)) {
-                float address = \(VoxelResources.generate("xyz", 8));
+                uint3 xyz_AMD = uint3(xyz);
+                uint address = \(VoxelResources.generate("xyz_AMD", 8));
                 
                 uint offset;
                 \(atomicFetchAdd())
