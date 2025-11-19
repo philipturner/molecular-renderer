@@ -126,6 +126,7 @@ extension Application {
     validateCameraArgs()
     writeCameraArgs()
     
+    /*
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
       try! commandList.d3d12CommandList.EndQuery(
@@ -297,6 +298,7 @@ extension Application {
       }
       #endif
     }
+    */
     
     forgetIdleState(inFlightFrameID: frameID % 3)
     
