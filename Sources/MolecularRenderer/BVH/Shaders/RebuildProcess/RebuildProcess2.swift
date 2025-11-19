@@ -206,8 +206,15 @@ extension RebuildProcess {
       
       uint wavePrefixSum = \(Reduction.wavePrefixSum("countersSum"));
       uint waveInclusiveSum = wavePrefixSum + countersSum;
-      uint waveTotalSum =
-      \(Reduction.waveReadLaneAt("waveInclusiveSum", laneID: 31));
+      uint waveTotalSum;
+      if (\(Reduction.waveGetLaneCount()) == 32) {
+        waveTotalSum =
+        \(Reduction.waveReadLaneAt("waveInclusiveSum", laneID: 31));
+      } else {
+        // Branch for 64-wide wavefronts.
+        waveTotalSum =
+        \(Reduction.waveReadLaneAt("waveInclusiveSum", laneID: 63));
+      }
       
       threadgroupMemory[512 + \(waveID())] = waveTotalSum;
       \(Reduction.groupLocalBarrier())
