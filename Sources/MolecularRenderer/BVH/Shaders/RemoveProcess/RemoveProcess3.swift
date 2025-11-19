@@ -72,6 +72,10 @@ extension RemoveProcess {
       ""
       #endif
     }
+
+    func waveID() -> String {
+      "localID / \(Reduction.waveGetLaneCount())"
+    }
     
     return """
     \(Shader.importStandardLibrary)
@@ -115,13 +119,13 @@ extension RemoveProcess {
         
         // WARNING: Sanitize local memory reads prior to this write.
         uint countBitsResult = \(Reduction.waveActiveCountBits("shouldKeep"));
-        threadgroupMemory[localID / 32] = countBitsResult;
+        threadgroupMemory[\(waveID())] = countBitsResult;
         \(Reduction.groupLocalBarrier())
         
         \(Reduction.threadgroupSumPrimitive(offset: 0))
         
         uint localOffset = \(Reduction.wavePrefixSum("uint(shouldKeep)"));
-        localOffset += threadgroupMemory[localID / 32];
+        localOffset += threadgroupMemory[\(waveID())];
         localOffset += afterAtomCount;
         afterAtomCount += threadgroupMemory[4];
         \(Reduction.groupLocalBarrier())

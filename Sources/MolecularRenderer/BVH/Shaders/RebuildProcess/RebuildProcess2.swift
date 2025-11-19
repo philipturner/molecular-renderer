@@ -112,6 +112,10 @@ extension RebuildProcess {
       input
       #endif
     }
+
+    func waveID() -> String {
+      "localID / \(Reduction.waveGetLaneCount())"
+    }
     
     return """
     \(Shader.importStandardLibrary)
@@ -190,13 +194,13 @@ extension RebuildProcess {
       uint waveTotalSum =
       \(Reduction.waveReadLaneAt("waveInclusiveSum", laneID: 31));
       
-      threadgroupMemory[512 + (localID / 32)] = waveTotalSum;
+      threadgroupMemory[512 + \(waveID())] = waveTotalSum;
       \(Reduction.groupLocalBarrier())
       \(Reduction.threadgroupSumPrimitive(offset: 512))
       
       // Incorporate all contributions to the prefix sum.
       counters += wavePrefixSum;
-      counters += threadgroupMemory[512 + (localID / 32)];
+      counters += threadgroupMemory[512 + \(waveID())];
       \(Shader.unroll)
       for (uint i = 0; i < 4; ++i) {
         uint address = \(threadgroupAddress("i"));
