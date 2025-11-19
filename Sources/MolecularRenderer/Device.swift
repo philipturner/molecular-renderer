@@ -16,6 +16,7 @@ public struct DeviceDescriptor {
 
 public class Device {
   // Stored properties for the device.
+  let vendor: Vendor
   #if os(macOS)
   let mtlDevice: MTLDevice
   #else
@@ -59,6 +60,7 @@ public class Device {
       fatalError("Apple silicon should have only one GPU.")
     }
     self.mtlDevice = devices[deviceID]
+    self.vendor = .apple
     #endif
     
     // Create the device (Windows).
@@ -71,8 +73,9 @@ public class Device {
     self.dxgiAdapter = adapters[deviceID]
     self.d3d12Device = try! D3D12CreateDevice(
       dxgiAdapter, D3D_FEATURE_LEVEL_12_1)
+    self.vendor = Self.createVendor(
+      adapter: dxgiAdapter)
     #endif
-    
     
     #if os(Windows)
     if Self.enableDebug {
@@ -152,6 +155,26 @@ extension Device {
     }
     
     return adapters
+  }
+
+  static func createVendor(
+    adapter: SwiftCOM.IDXGIAdapter4
+  ) -> Vendor {
+    let description = try! adapter.GetDesc()
+    let vendorID = description.VendorId
+
+    switch vendorID {
+    case 0x10DE:
+      return .nvidia
+    case 0x1002, 0x1022:
+      return .amd
+    case 0x163C, 0x8086, 0x8087:
+      return .intel
+    case 0x1414:
+      fatalError("Microsoft WARP device.")
+    default:
+      fatalError("Unrecognized vendor ID: \(vendorID)")
+    }
   }
   
   // Create an info queue from the 'ID3D12Device'.
