@@ -32,9 +32,17 @@ struct Reduction {
     #endif
   }
   
+  static func waveGetLaneCount() -> String {
+    #if os(macOS)
+    "32"
+    #else
+    "WaveGetLaneCount()"
+    #endif
+  }
+
   static func threadgroupSumPrimitive(offset: Int) -> String {
     """
-    {
+    if (\(Reduction.waveGetLaneCount()) == 32) {
       uint input = 0;
       if (localID < 4) {
         input = threadgroupMemory[\(offset) + localID];
@@ -48,6 +56,26 @@ struct Reduction {
         \(Reduction.waveReadLaneAt("inclusiveSum", laneID: 3));
         
         if (localID < 4) {
+          threadgroupMemory[\(offset) + localID] = prefixSum;
+        }
+        threadgroupMemory[\(offset) + 4] = totalSum;
+      }
+      \(Reduction.groupLocalBarrier())
+    } else {
+      // Branch for 64-wide wavefronts.
+      uint input = 0;
+      if (localID < 2) {
+        input = threadgroupMemory[\(offset) + localID];
+      }
+      \(Reduction.groupLocalBarrier())
+      
+      if (localID < 64) {
+        uint prefixSum = \(Reduction.wavePrefixSum("input"));
+        uint inclusiveSum = prefixSum + input;
+        uint totalSum =
+        \(Reduction.waveReadLaneAt("inclusiveSum", laneID: 1));
+        
+        if (localID < 2) {
           threadgroupMemory[\(offset) + localID] = prefixSum;
         }
         threadgroupMemory[\(offset) + 4] = totalSum;
