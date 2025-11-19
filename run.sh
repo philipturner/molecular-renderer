@@ -17,10 +17,5 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   export OMP_NUM_THREADS=$(sysctl -n hw.perflevel0.physicalcpu)
 fi
 
-# Doesn't fix any bugs, and cannot test whether it has
-# any effect. But hopefully is at least good practice
-# on RDNA.
-export GPU_ENABLE_WAVE32_MODE=1
-
 # Run in release mode with incremental compilation.
 swift run -Xswiftc -Ounchecked
