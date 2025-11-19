@@ -42,6 +42,7 @@ class VoxelResources {
       fatalError("Memory slot count was zero.")
     }
     self.memorySlotCount = memorySlotCount
+    print("memory slot count:", memorySlotCount)
     
     // Initialize the resources.
     let voxelGroupCount = Self.voxelGroupCount(worldDimension: worldDimension)
