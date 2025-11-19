@@ -144,11 +144,9 @@ extension Application {
         commandList: commandList)
       bvhBuilder.removeProcess3(
         commandList: commandList)
-      
-      // This shader is the culprit of a problem.
       bvhBuilder.removeProcess4(
         commandList: commandList)
-      /*
+      
       // Encode the add process.
       bvhBuilder.addProcess1(
         commandList: commandList,
@@ -170,8 +168,6 @@ extension Application {
         commandList: commandList)
       bvhBuilder.rebuildProcess3(
         commandList: commandList)
-      
-      */
       
       #if os(Windows)
       try! commandList.d3d12CommandList.EndQuery(
