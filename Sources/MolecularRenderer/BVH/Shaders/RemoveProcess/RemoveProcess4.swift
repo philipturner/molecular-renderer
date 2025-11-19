@@ -98,7 +98,7 @@ extension RemoveProcess {
         uint input = threadgroupMemory[4];
         uint output;
         \(atomicFetchAdd())
-        threadgroupMemory[5] = output;
+        threadgroupMemory[5] = (output > 1000) ? output : output;
       }
       \(Reduction.groupLocalBarrier())
       
