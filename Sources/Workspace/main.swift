@@ -1,14 +1,9 @@
-import Foundation
 import HDL
 import MolecularRenderer
 import QuaternionModule
-import xTB
-
-xTB_Environment.verbosity = .muted
 
 // MARK: - Compile Structure
 
-// Passivate only the carbon atoms.
 func passivate(topology: inout Topology) {
   func createHydrogen(
     atomID: UInt32,
@@ -28,11 +23,6 @@ func passivate(topology: inout Topology) {
   var insertedAtoms: [Atom] = []
   var insertedBonds: [SIMD2<UInt32>] = []
   for atomID in topology.atoms.indices {
-    let atom = topology.atoms[atomID]
-    guard atom.atomicNumber == 6 else {
-      continue
-    }
-    
     let orbitalList = orbitalLists[atomID]
     for orbital in orbitalList {
       let hydrogen = createHydrogen(
@@ -51,119 +41,29 @@ func passivate(topology: inout Topology) {
   topology.bonds += insertedBonds
 }
 
-func createTripod(
-  isAzastannatrane: Bool
-) -> Topology {
-  var topology = Topology()
-  topology.atoms += [
-    Atom(position: SIMD3(0.00, 0.00, 0.00), element: .tin),
-    Atom(position: SIMD3(0.00, -0.26, -0.00), element: .nitrogen),
-  ]
-  
-  for legID in 0..<3 {
-    let baseAtomID = topology.atoms.count
-    var insertedAtoms: [Atom] = []
-    var insertedBonds: [SIMD2<UInt32>] = []
-    
-    // Isolate the temporary variables for this part in a contained scope.
-    do {
-      let carbon0 = Atom(
-        position: SIMD3(0.15, -0.28, 0.00), element: .carbon)
-      insertedAtoms.append(carbon0)
-      insertedBonds.append(
-        SIMD2(UInt32(1), UInt32(baseAtomID + 0)))
-      
-      let carbon1 = Atom(
-        position: SIMD3(0.23, -0.15, -0.05), element: .carbon)
-      insertedAtoms.append(carbon1)
-      insertedBonds.append(
-        SIMD2(UInt32(baseAtomID + 0), UInt32(baseAtomID + 1)))
-      
-      let nitrogen2 = Atom(
-        position: SIMD3(0.23, -0.00, 0.00),
-        element: isAzastannatrane ? .nitrogen : .carbon)
-      insertedAtoms.append(nitrogen2)
-      insertedBonds.append(
-        SIMD2(UInt32(baseAtomID + 1), UInt32(baseAtomID + 2)))
-      insertedBonds.append(
-        SIMD2(UInt32(baseAtomID + 2), UInt32(0)))
-      
-      let carbon3 = Atom(
-        position: SIMD3(0.38, -0.20, -0.05), element: .carbon)
-      insertedAtoms.append(carbon3)
-      insertedBonds.append(
-        SIMD2(UInt32(baseAtomID + 1), UInt32(baseAtomID + 3)))
-      
-      let sulfur4 = Atom(
-        position: SIMD3(0.45, -0.36, -0.05), element: .sulfur)
-      insertedAtoms.append(sulfur4)
-      insertedBonds.append(
-        SIMD2(UInt32(baseAtomID + 3), UInt32(baseAtomID + 4)))
-      
-      let hydrogen5 = Atom(
-        position: SIMD3(0.57, -0.36, -0.05), element: .hydrogen)
-      insertedAtoms.append(hydrogen5)
-      insertedBonds.append(
-        SIMD2(UInt32(baseAtomID + 4), UInt32(baseAtomID + 5)))
-    }
-    
-    if isAzastannatrane {
-      let carbon6 = Atom(
-        position: SIMD3(0.32, 0.08, -0.05), element: .carbon)
-      insertedAtoms.append(carbon6)
-      insertedBonds.append(
-        SIMD2(UInt32(baseAtomID + 2), UInt32(baseAtomID + 6)))
-      
-      let hydrogen7 = Atom(
-        position: SIMD3(0.32, 0.20, -0.05), element: .hydrogen)
-      insertedAtoms.append(hydrogen7)
-      insertedBonds.append(
-        SIMD2(UInt32(baseAtomID + 6), UInt32(baseAtomID + 7)))
-    }
-    
-    // Apply the rotation transform to all atoms, just before inserting.
-    let angleDegrees = Float(legID) * 120 - 30
-    let rotation = Quaternion<Float>(
-      angle: Float.pi / 180 * angleDegrees,
-      axis: SIMD3(0, 1, 0))
-    for relativeAtomID in insertedAtoms.indices {
-      var atom = insertedAtoms[relativeAtomID]
-      atom.position = rotation.act(on: atom.position)
-      insertedAtoms[relativeAtomID] = atom
-    }
-    topology.atoms += insertedAtoms
-    topology.bonds += insertedBonds
+func createTopology() -> Topology {
+  let lattice = Lattice<Cubic> { h, k, l in
+    Bounds { 10 * (h + k + l) }
+    Material { .checkerboard(.carbon, .silicon) }
   }
   
-  // Don't forget the feedstock.
-  topology.atoms += [
-    Atom(position: SIMD3(0.00, 0.19, 0.00), element: .hydrogen),
-  ]
-  
+  var reconstruction = Reconstruction()
+  reconstruction.atoms = lattice.atoms
+  reconstruction.material = .checkerboard(.silicon, .carbon)
+  var topology = reconstruction.compile()
   passivate(topology: &topology)
   return topology
 }
+let topology = createTopology()
+print(topology.atoms.count)
 
-func createCarbatranePositions() -> [Atom] {
-  let topology = createTripod(isAzastannatrane: false)
-  let trajectory = loadCachedTrajectory(tripod: topology)
-  guard trajectory.count > 0 else {
-    fatalError("No starting structure to render.")
+func createRotationCenter() -> SIMD3<Float> {
+  let latticeConstant = Constant(.square) {
+    .checkerboard(.silicon, .carbon)
   }
-  return trajectory.last!
+  let halfSize = latticeConstant * 5
+  return SIMD3<Float>(repeating: halfSize)
 }
-
-func createAzatranePositions() -> [Atom] {
-  let topology = createTripod(isAzastannatrane: true)
-  let trajectory = loadCachedTrajectory(tripod: topology)
-  guard trajectory.count > 0 else {
-    fatalError("No starting structure to render.")
-  }
-  return trajectory.last!
-}
-
-let carbatranePositions = createCarbatranePositions()
-let azatranePositions = createAzatranePositions()
 
 // MARK: - Launch Application
 
@@ -177,14 +77,15 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
+  displayDesc.frameBufferSize = SIMD2<Int>(1080, 1080)
+  displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
   // Set up the application.
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 1
+  applicationDesc.upscaleFactor = 3
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
@@ -195,101 +96,90 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-// Set the atoms of the compiled structure(s) here.
-//
-// Render static image showing both side and top view.
-var baseAtomID: Int = .zero
-for structureID in 0..<4 {
-  let angleDegrees = Float(90)
-  let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * angleDegrees,
-    axis: SIMD3(1, 0, 0))
-  
-  var positions: [Atom]
-  if structureID < 2 {
-    positions = carbatranePositions
-  } else {
-    positions = azatranePositions
-  }
-  
-  for atomID in positions.indices {
-    var atom = positions[atomID]
-   
-    // Apply the rotation before messing with any translations.
-    if structureID % 2 == 1 {
-      atom.position = rotation.act(on: atom.position)
-    }
-    
-    let separationDistanceX: Float = 1.5
-    let separationDistanceY: Float = 1.5
-    if structureID < 2 {
-      atom.x -= separationDistanceX / 2
-    } else {
-      atom.x += separationDistanceX / 2
-    }
-    if structureID % 2 == 0 {
-      atom.y -= separationDistanceY / 2
-    } else {
-      atom.y += separationDistanceY / 2
-    }
-    
-    application.atoms[baseAtomID + atomID] = atom
-  }
-  
-  baseAtomID += positions.count
+@MainActor
+func createTime() -> Float {
+  let elapsedFrames = application.clock.frames
+  let frameRate = application.display.frameRate
+  let seconds = Float(elapsedFrames) / Float(frameRate)
+  return seconds
 }
 
-// Set up the camera statically here.
-application.camera.position = SIMD3(0, 0, 9)
-application.camera.fovAngleVertical = Float.pi / 180 * 20
-application.camera.secondaryRayCount = 64
-
-do {
-  let image = application.render()
-  let frameBufferSize = application.display.frameBufferSize
-  let pixelCount = frameBufferSize[0] * frameBufferSize[1]
-  guard image.pixels.count == pixelCount else {
-    fatalError("Invalid pixel buffer size.")
-  }
+@MainActor
+func modifyAtoms() {
+  // 0.2 Hz rotation rate
+  let time = createTime()
+  let angleDegrees = 0.2 * time * 360
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * angleDegrees,
+    axis: SIMD3(0, 1, 0))
   
-  // Create the header.
-  let header = """
-  P6
-  \(frameBufferSize[0]) \(frameBufferSize[1])
-  255
+  // Circumvent a massive CPU-side bottleneck from 'rotation.act()'.
+  let basis0 = rotation.act(on: SIMD3<Float>(1, 0, 0))
+  let basis1 = rotation.act(on: SIMD3<Float>(0, 1, 0))
+  let basis2 = rotation.act(on: SIMD3<Float>(0, 0, 1))
   
-  """
-  let headerData = header.data(using: .utf8)!
+  let rotationCenter = createRotationCenter()
   
-  // Convert the pixels from FP16 to UInt8.
-  var output: [UInt8] = []
-  for pixel in image.pixels {
-    let scaled = pixel * 255
-    var rounded = scaled.rounded(.toNearestOrEven)
-    rounded.replace(
-      with: SIMD4<Float16>(repeating: 0),
-      where: rounded .< 0)
-    rounded.replace(
-      with: SIMD4<Float16>(repeating: 255),
-      where: rounded .> 255)
+  // Circumvent a massive CPU-side bottleneck from @MainActor referencing to
+  // things from the global scope.
+  let topologyCopy = topology
+  let applicationCopy = application
+  
+  for atomID in topology.atoms.indices {
+    var atom = topologyCopy.atoms[atomID]
+    let originalDelta = atom.position - rotationCenter
     
-    let integerValue = SIMD4<UInt8>(rounded)
-    output.append(integerValue[0])
-    output.append(integerValue[1])
-    output.append(integerValue[2])
+    var rotatedDelta: SIMD3<Float> = .zero
+    rotatedDelta += basis0 * originalDelta[0]
+    rotatedDelta += basis1 * originalDelta[1]
+    rotatedDelta += basis2 * originalDelta[2]
+    
+    atom.position = rotationCenter + rotatedDelta
+    applicationCopy.atoms[atomID] = atom
   }
-  let outputData = output.withUnsafeBufferPointer { bufferPointer in
-    Data(buffer: bufferPointer)
-  }
+}
+
+@MainActor
+func modifyCamera() {
+  // 0.04 Hz rotation rate
+  let time = createTime()
+  let angleDegrees = 0.04 * time * 360
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * angleDegrees,
+    axis: SIMD3(-1, 0, 0))
   
-  // Write to the file. The forward slash usage is safe on Windows.
-  let ppmData = headerData + outputData
-  let packagePath = FileManager.default.currentDirectoryPath
-  let filePath = "\(packagePath)/.build/image.ppm"
-  let succeeded = FileManager.default.createFile(
-    atPath: filePath,
-    contents: ppmData)
-  guard succeeded else {
-    fatalError("Could not write to file.")
+  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
+  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
+  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
+  application.camera.fovAngleVertical = Float.pi / 180 * 60
+  
+  let latticeConstant = Constant(.square) {
+    .checkerboard(.silicon, .carbon)
   }
+  let halfSize = latticeConstant * 5
+  
+  func deltaLength() -> Float {
+    let roundedDownTime = Int((time / 3).rounded(.down))
+    if roundedDownTime % 3 == 0 {
+      return 3 * halfSize
+    } else if roundedDownTime % 3 == 1 {
+      return 20
+    } else {
+      return 50
+    }
+  }
+  var cameraDelta = SIMD3<Float>(0, 0, deltaLength())
+  cameraDelta = rotation.act(on: cameraDelta)
+  
+  let rotationCenter = createRotationCenter()
+  application.camera.position = rotationCenter + cameraDelta
+}
+
+application.run {
+  modifyAtoms()
+  modifyCamera()
+  
+  var image = application.render()
+  image = application.upscale(image: image)
+  application.present(image: image)
 }
