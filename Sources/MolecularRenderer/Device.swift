@@ -22,6 +22,7 @@ public class Device {
   #else
   let dxgiAdapter: SwiftCOM.IDXGIAdapter4
   let d3d12Device: SwiftCOM.ID3D12Device
+  let supports16BitTypes: Bool
   
   // This option can double the CPU-side command encoding latency.
   static var enableDebug: Bool { false }
@@ -73,8 +74,11 @@ public class Device {
     self.dxgiAdapter = adapters[deviceID]
     self.d3d12Device = try! D3D12CreateDevice(
       dxgiAdapter, D3D_FEATURE_LEVEL_12_1)
+    
     self.vendor = Self.createVendor(
       adapter: dxgiAdapter)
+    self.supports16BitTypes = Self.createSupports16BitTypes(
+      device: d3d12Device)
     #endif
     
     #if os(Windows)
@@ -175,6 +179,14 @@ extension Device {
     default:
       fatalError("Unrecognized vendor ID: \(vendorID)")
     }
+  }
+  
+  static func createSupports16BitTypes(
+    device: SwiftCOM.ID3D12Device
+  ) -> Bool {
+    let featureSupportData: D3D12_FEATURE_DATA_D3D12_OPTIONS4 =
+    try! device.CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS4)
+    return featureSupportData.Native16BitShaderOpsSupported.boolValue
   }
   
   // Create an info queue from the 'ID3D12Device'.
