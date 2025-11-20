@@ -33,15 +33,34 @@ extension RebuildProcess {
   //   compress these two 16-bit offsets into a 32-bit word
   static func createSource2(
     worldDimension: Float,
-    vendor: Vendor
+    vendor: Vendor,
+    supports16BitTypes: Bool
     ) -> String {
     // atoms.atoms
     // voxels.dense.assignedSlotIDs
     // voxels.sparse.rebuiltVoxelCoords
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
+      #if os(Windows)
+      func references16ArgumentType() -> String {
+        if supports16BitTypes {
+          return "RWStructuredBuffer<uint16_t>"
+        } else {
+          return "RWBuffer<uint>"
+        }
+      }
+
+      func references16RootSignatureArgument() -> String {
+        if supports16BitTypes {
+          return "UAV(u6)"
+        } else {
+          return "DescriptorTable(UAV(u6, numDescriptors = 1))"
+        }
+      }
+      #endif
+
       #if os(macOS)
-      """
+      return """
       kernel void rebuildProcess2(
         \(CrashBuffer.functionArguments),
         device float4 *atoms [[buffer(1)]],
@@ -54,14 +73,14 @@ extension RebuildProcess {
         uint localID [[thread_position_in_threadgroup]])
       """
       #else
-      """
+      return """
       \(CrashBuffer.functionArguments)
       RWStructuredBuffer<float4> atoms : register(u1);
       RWStructuredBuffer<uint> assignedSlotIDs : register(u2);
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
       RWStructuredBuffer<uint> headers : register(u4);
       RWStructuredBuffer<uint> references32 : register(u5);
-      RWBuffer<uint> references16 : register(u6);
+      \(references16ArgumentType()) references16 : register(u6);
       groupshared uint threadgroupMemory[517];
       
       [numthreads(128, 1, 1)]
@@ -72,7 +91,7 @@ extension RebuildProcess {
         "UAV(u3),"
         "UAV(u4),"
         "UAV(u5),"
-        "DescriptorTable(UAV(u6, numDescriptors = 1)),"
+        "\(references16RootSignatureArgument()),"
       )]
       void rebuildProcess2(
         uint groupID : SV_GroupID,

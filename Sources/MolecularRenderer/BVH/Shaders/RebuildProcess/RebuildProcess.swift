@@ -17,7 +17,8 @@ class RebuildProcess {
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = Self.createSource2(
       worldDimension: worldDimension,
-      vendor: device.vendor)
+      vendor: device.vendor,
+      supports16BitTypes: device.supports16BitTypes)
     self.process2 = Shader(descriptor: shaderDesc)
 
     shaderDesc.name = "rebuildProcess3"

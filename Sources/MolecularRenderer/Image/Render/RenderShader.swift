@@ -5,7 +5,8 @@ struct RenderShader {
   static func createSource(
     isOffline: Bool,
     upscaleFactor: Float,
-    worldDimension: Float
+    worldDimension: Float,
+    supports16BitTypes: Bool
   ) -> String {
     // atoms.atoms
     // atoms.motionVectors
@@ -13,6 +14,24 @@ struct RenderShader {
     // voxels.dense.assignedSlotIDs
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
+      #if os(Windows)
+      func references16ArgumentType() -> String {
+        if supports16BitTypes {
+          return "RWStructuredBuffer<uint16_t>"
+        } else {
+          return "RWBuffer<uint>"
+        }
+      }
+
+      func references16RootSignatureArgument() -> String {
+        if supports16BitTypes {
+          return "UAV(u\(Self.references16))"
+        } else {
+          return "DescriptorTable(UAV(u\(Self.references16), numDescriptors = 1))"
+        }
+      }
+      #endif
+
       func colorTextureArgument() -> String {
         if !isOffline {
           #if os(macOS)
@@ -93,7 +112,7 @@ struct RenderShader {
       RWStructuredBuffer<uint> assignedSlotIDs : register(u\(Self.assignedSlotIDs));
       RWStructuredBuffer<uint> headers : register(u\(Self.headers));
       RWStructuredBuffer<uint> references32 : register(u\(Self.references32));
-      RWBuffer<uint> references16 : register(u\(Self.references16));
+      \(references16ArgumentType()) references16 : register(u\(Self.references16));
       \(colorTextureArgument())
       \(upscalingFunctionArguments())
       
@@ -109,7 +128,7 @@ struct RenderShader {
         "UAV(u\(Self.assignedSlotIDs)),"
         "UAV(u\(Self.headers)),"
         "UAV(u\(Self.references32)),"
-        "DescriptorTable(UAV(u\(Self.references16), numDescriptors = 1)),"
+        "\(references16RootSignatureArgument()),"
         "DescriptorTable(UAV(u\(Self.colorTexture), numDescriptors = 1)),"
         \(upscalingRootSignatureArguments())
       )]
@@ -272,6 +291,12 @@ struct RenderShader {
     func atomicNumber(_ input: String) -> String {
       "\(Shader.asuint)(\(input)) & 0xFF"
     }
+
+    func rayIntersector() -> String {
+      createRayIntersector(
+        worldDimension: worldDimension, 
+        supports16BitTypes: supports16BitTypes)
+    }
     
     return """
     \(Shader.importStandardLibrary)
@@ -281,7 +306,7 @@ struct RenderShader {
     \(AtomStyles.createAtomColors(AtomStyles.colors))
     \(createMatrixUtility())
     \(createRayGeneration())
-    \(createRayIntersector(worldDimension: worldDimension))
+    \(rayIntersector())
     \(createLightingUtility())
     
     \(RenderArgs.shaderDeclaration)
