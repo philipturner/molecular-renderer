@@ -35,11 +35,6 @@ class VoxelResources {
     }
     self.worldDimension = worldDimension
 
-/*
-8 GB: 144654
-4 GB: 72327
-*/
-    
     // Initialize the memory slot count.
     let memorySlotCount = Self.memorySlotCount(
       voxelAllocationSize: voxelAllocationSize)
@@ -205,11 +200,11 @@ class SparseVoxelResources {
     self.vacantSlotIDs = createBuffer(size: memorySlotCount * 4)
     
     self.headers = createBuffer(
-      size: 144654 * MemorySlot.header.size)
+      size: memorySlotCount * MemorySlot.header.size)
     self.references32 = createBuffer(
-      size: 144654 * MemorySlot.reference32.size)
+      size: memorySlotCount * MemorySlot.reference32.size)
     self.references16 = createBuffer(
-      size: 144654 * MemorySlot.reference16.size)
+      size: memorySlotCount * MemorySlot.reference16.size)
   }
 }
 
@@ -239,23 +234,10 @@ extension VoxelResources {
   }
   
   func encodeMemorySlots(descriptorHeap: DescriptorHeap) {
-    // TODO: Test whether we can fix the problem by only
-    // using 32-bit references. Perhaps a fallback mode
-    // where beefier GPUs can incur the extra bandwidth cost,
-    // in exchange for the DirectX API not breaking.
-    //
-    // Once that is attempted to solve the AMD problem, some
-    // possible optimizations:
-    // - RebuildProcess2 writes temporarily to a small
-    //   allocation encoded as UInt16 with a descriptor heap.
-    //   Later, the raw data gets copied to regions of UInt32
-    //   scoped larger buffer.
-    // - Shaders fetch UInt32 data and choose based on some
-    //   bitmasking or conditionals.
-    // - The two modes are switched based on amount of
-    //   memory allocated. And all of this only happens on
-    //   Windows.
-    let bufferByteCount = 100000 * MemorySlot.reference16.size
+    let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
+    guard bufferByteCount <= 4_000_000_000 else {
+      fatalError("Will have a GPU suspended crash at runtime.")
+    }
     
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R16_UINT
