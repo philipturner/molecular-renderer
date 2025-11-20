@@ -67,12 +67,12 @@ A large number of 107k atom cubes, each with a random orientation. All packed in
 | GTX 970         | 3.5 GB | 33M   |  14M |
 | M1              |   8 GB | 75M   |  n/a |
 | M1 Pro          |  16 GB | 150M  |  n/a |
-| RX 7900 XTX     |  24 GB | 225M  |  n/a |
+| RX 7900 XTX     |  24 GB | 225M  | 140M |
 | RTX 4090        |  24 GB | 225M  |  n/a |
 | M1 Max          |  32 GB | 300M  | 109M |
 | RTX 5090        |  32 GB | 300M  |  n/a |
-| M3 Max          | 128 GB | 1200M |  n/a |
-| M3 Ultra        | 512 GB | 4800M |  n/a |
+| M3 Ultra        |  96 GB | 900M  |  n/a |
+| M2 Ultra        | 192 GB | 1800M |  n/a |
 
 Another limiter to atom count might be moiré patterns. CAD workflows at the million atom scale should strive to maximize window size and minimize camera distance. By packing the nanoparts less closely, this test follows a bad practice and increases the camera distance. Therefore, we provide an option to pack the nanoparts densely and see how this affects both performance and quality.
 

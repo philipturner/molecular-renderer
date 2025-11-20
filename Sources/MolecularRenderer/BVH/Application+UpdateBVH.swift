@@ -112,7 +112,7 @@ extension Application {
       Self.upscaleMeter.integrate(upscaleLatency)
       */
 
-      if frameID < 60 {
+      if frameID < 150 {
         print(updateLatency + renderLatency + forgetLatency + upscaleLatency)
       }
     }
