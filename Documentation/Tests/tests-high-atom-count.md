@@ -65,7 +65,7 @@ A large number of 107k atom cubes, each with a random orientation. All packed in
 | GTX 970         | 3.5 GB | 33M   | 18M   | 14M   |
 | M1              |   8 GB | 75M   | n/a   | n/a   |
 | M1 Pro          |  16 GB | 150M  | n/a   | n/a   |
-| RX 7900 XTX     |  24 GB | 225M  | 188M  | 140M  |
+| RX 7900 XTX     |  24 GB | 225M  | 190M  | 140M  |
 | RTX 4090        |  24 GB | 225M  | n/a   | n/a   |
 | M1 Max          |  32 GB | 300M  | 153M  | 109M  |
 | RTX 5090        |  32 GB | 300M  | n/a   | n/a   |
