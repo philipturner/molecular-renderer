@@ -325,12 +325,18 @@ extension BVHBuilder {
         voxels.sparse.headers, index: 4)
       commandList.setBuffer(
         voxels.sparse.references32, index: 5)
+      
       #if os(macOS)
       commandList.setBuffer(
         voxels.sparse.references16, index: 6)
       #else
-      commandList.setDescriptor(
-        handleID: voxels.sparse.references16HandleID, index: 6)
+      if let handleID = voxels.sparse.references16HandleID {
+        commandList.setDescriptor(
+          handleID: handleID, index: 6)
+      } else {
+        commandList.setBuffer(
+          voxels.sparse.references16, index: 6)
+      }
       #endif
       
       let offset = GeneralCounters.offset(.rebuiltVoxelCount)

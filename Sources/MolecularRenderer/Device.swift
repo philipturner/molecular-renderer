@@ -16,13 +16,11 @@ public struct DeviceDescriptor {
 
 public class Device {
   // Stored properties for the device.
-  let vendor: Vendor
   #if os(macOS)
   let mtlDevice: MTLDevice
   #else
   let dxgiAdapter: SwiftCOM.IDXGIAdapter4
   let d3d12Device: SwiftCOM.ID3D12Device
-  let supports16BitTypes: Bool
   
   // This option can double the CPU-side command encoding latency.
   static var enableDebug: Bool { false }
@@ -33,12 +31,16 @@ public class Device {
   var dxgiInfoQueue: SwiftCOM.IDXGIInfoQueue?
   #endif
   
+  // Cached metadata about the device.
+  let vendor: Vendor
+  let supports16BitTypes: Bool
+
   // Stored properties for the command queue.
   private var _commandQueue: CommandQueue!
   var commandQueue: CommandQueue {
     self._commandQueue
   }
-  
+
   public init(descriptor: DeviceDescriptor) {
     guard let deviceID = descriptor.deviceID else {
       fatalError("Descriptor was incomplete.")
@@ -61,7 +63,6 @@ public class Device {
       fatalError("Apple silicon should have only one GPU.")
     }
     self.mtlDevice = devices[deviceID]
-    self.vendor = .apple
     #endif
     
     // Create the device (Windows).
@@ -74,11 +75,6 @@ public class Device {
     self.dxgiAdapter = adapters[deviceID]
     self.d3d12Device = try! D3D12CreateDevice(
       dxgiAdapter, D3D_FEATURE_LEVEL_12_1)
-    
-    self.vendor = Self.createVendor(
-      adapter: dxgiAdapter)
-    self.supports16BitTypes = Self.createSupports16BitTypes(
-      device: d3d12Device)
     #endif
     
     #if os(Windows)
@@ -93,6 +89,17 @@ public class Device {
     }
     #endif
     
+    // Create the cached metadata.
+    #if os(macOS)
+    self.vendor = .apple
+    self.supports16BitTypes = true
+    #else
+    self.vendor = Self.createVendor(
+      adapter: dxgiAdapter)
+    self.supports16BitTypes = Self.createSupports16BitTypes(
+      device: d3d12Device)
+    #endif
+
     // Create the command queue.
     self._commandQueue = CommandQueue(device: self)
   }
@@ -180,7 +187,7 @@ extension Device {
       fatalError("Unrecognized vendor ID: \(vendorID)")
     }
   }
-  
+
   static func createSupports16BitTypes(
     device: SwiftCOM.ID3D12Device
   ) -> Bool {
