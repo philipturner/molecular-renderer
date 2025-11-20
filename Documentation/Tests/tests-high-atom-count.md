@@ -15,6 +15,8 @@ Objective is to reach as many atoms as possible, until the Metal Performance HUD
 | Theoretical        | 1,546,000 | 954,000   |
 | Actual             | 933,742   | 820,503   |
 
+> With RX 7900 XTX installed in the PC instead of GTX 970, the achievable atom count drops to 755,795. Since this is a CPU bottleneck, the culprit could be AMD's drivers. 
+
 In the source code, look for the declaration of `beamDepth`. The default value is 16. Increase this number as much as possible.
 
 <details>
