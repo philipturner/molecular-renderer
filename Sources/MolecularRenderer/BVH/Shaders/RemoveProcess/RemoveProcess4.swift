@@ -69,6 +69,10 @@ extension RemoveProcess {
         operand: "input",
         output: "output")
     }
+
+    func waveID() -> String {
+      "localID / \(Reduction.waveGetLaneCount())"
+    }
     
     return """
     \(Shader.importStandardLibrary)
@@ -90,7 +94,7 @@ extension RemoveProcess {
       }
       uint countBitsResult = \(Reduction.waveActiveCountBits("isVacant"));
       
-      threadgroupMemory[localID / 32] = countBitsResult;
+      threadgroupMemory[\(waveID())] = countBitsResult;
       \(Reduction.groupLocalBarrier())
       \(Reduction.threadgroupSumPrimitive(offset: 0))
       
@@ -103,7 +107,7 @@ extension RemoveProcess {
       \(Reduction.groupLocalBarrier())
       
       uint address = \(Reduction.wavePrefixSum("uint(isVacant)"));
-      address += threadgroupMemory[localID / 32];
+      address += threadgroupMemory[\(waveID())];
       address += threadgroupMemory[5];
       if (isVacant) {
         vacantSlotIDs[address] = globalID;

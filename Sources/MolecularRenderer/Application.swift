@@ -204,7 +204,8 @@ public class Application {
     bvhBuilder.voxels.encodeMarks(
       descriptorHeap: descriptorHeap)
     bvhBuilder.voxels.encodeMemorySlots(
-      descriptorHeap: descriptorHeap)
+      descriptorHeap: descriptorHeap,
+      supports16BitTypes: device.supports16BitTypes)
   }
   #endif
   

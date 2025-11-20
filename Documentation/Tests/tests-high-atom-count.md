@@ -15,6 +15,8 @@ Objective is to reach as many atoms as possible, until the Metal Performance HUD
 | Theoretical        | 1,546,000 | 954,000   |
 | Actual             | 933,742   | 820,503   |
 
+> With RX 7900 XTX installed in the PC instead of GTX 970, the achievable atom count drops to 755,795. Since this is a CPU bottleneck, the culprit could be AMD's drivers. 
+
 In the source code, look for the declaration of `beamDepth`. The default value is 16. Increase this number as much as possible.
 
 <details>
@@ -60,17 +62,17 @@ Objective is to reach as many atoms as possible, until your GPU runs out of memo
 
 A large number of 107k atom cubes, each with a random orientation. All packed in a grid, with a spacing to ensure they don't overlap. This hits the pain points of partial filling that waste memory, therefore being a realistic example of achievable atom count.
 
-| Chip            | RAM    | Theoretical Max Atoms | Actual Max Atoms |
-| --------------- | -----: | --------------------: | ---------------: |
-| GTX 970         | 3.5 GB | 33M   |  14M |
-| M1 @ 60 Hz      |   8 GB | 75M   |  n/a |
-| M1 Pro @ 120 Hz |  16 GB | 150M  |  n/a |
-| 7900 XTX        |  24 GB | 225M  |  n/a |
-| RTX 4090        |  24 GB | 225M  |  n/a |
-| M1 Max          |  32 GB | 300M  | 109M |
-| RTX 5090        |  32 GB | 300M  |  n/a |
-| M3 Max          | 128 GB | 1200M |  n/a |
-| M3 Ultra        | 512 GB | 4800M |  n/a |
+| Chip            | RAM    | Theoretical Max Atoms | Actual (Dense) | Actual (Inefficient) |
+| --------------- | -----: | ----: | ----: | ----: |
+| GTX 970         | 3.5 GB | 33M   | 18M   | 14M   |
+| M1              |   8 GB | 75M   | n/a   | n/a   |
+| M1 Pro          |  16 GB | 150M  | n/a   | n/a   |
+| RX 7900 XTX     |  24 GB | 225M  | 190M  | 140M  |
+| RTX 4090        |  24 GB | 225M  | n/a   | n/a   |
+| M1 Max          |  32 GB | 300M  | 153M  | 109M  |
+| RTX 5090        |  32 GB | 300M  | n/a   | n/a   |
+| M3 Ultra        |  96 GB | 900M  | n/a   | n/a   |
+| M2 Ultra        | 192 GB | 1800M | n/a   | n/a   |
 
 Another limiter to atom count might be moiré patterns. CAD workflows at the million atom scale should strive to maximize window size and minimize camera distance. By packing the nanoparts less closely, this test follows a bad practice and increases the camera distance. Therefore, we provide an option to pack the nanoparts densely and see how this affects both performance and quality.
 

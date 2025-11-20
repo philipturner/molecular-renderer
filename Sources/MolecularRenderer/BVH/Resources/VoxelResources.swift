@@ -34,7 +34,7 @@ class VoxelResources {
       fatalError("World dimension was zero.")
     }
     self.worldDimension = worldDimension
-    
+
     // Initialize the memory slot count.
     let memorySlotCount = Self.memorySlotCount(
       voxelAllocationSize: voxelAllocationSize)
@@ -182,7 +182,7 @@ class SparseVoxelResources {
   let references32: Buffer
   let references16: Buffer
   #if os(Windows)
-  var references16HandleID: Int = -1
+  var references16HandleID: Int?
   #endif
   
   init(device: Device, memorySlotCount: Int) {
@@ -233,8 +233,18 @@ extension VoxelResources {
     dense.rebuiltMarksHandleID = handleID2
   }
   
-  func encodeMemorySlots(descriptorHeap: DescriptorHeap) {
+  func encodeMemorySlots(
+    descriptorHeap: DescriptorHeap,
+    supports16BitTypes: Bool
+  ) {
+    guard !supports16BitTypes else {
+      return
+    }
+
     let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
+    guard bufferByteCount <= 4_000_000_000 else {
+      fatalError("Will have a GPU suspended crash at runtime.")
+    }
     
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R16_UINT

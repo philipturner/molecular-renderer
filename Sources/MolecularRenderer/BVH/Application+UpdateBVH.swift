@@ -133,7 +133,7 @@ extension Application {
         transaction: transaction,
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
-      
+
       // Encode the remove process.
       bvhBuilder.removeProcess1(
         commandList: commandList,

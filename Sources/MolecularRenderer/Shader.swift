@@ -17,7 +17,8 @@ private func dxcompiler_compile(
   _ object: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
   _ objectLength: UnsafeMutablePointer<UInt32>,
   _ rootSignature: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
-  _ rootSignatureLength: UnsafeMutablePointer<UInt32>
+  _ rootSignatureLength: UnsafeMutablePointer<UInt32>,
+  _ enable16BitTypes: UInt8
 ) -> Int32
 #endif
 
@@ -93,6 +94,7 @@ class Shader {
     var objectLength: UInt32 = .zero
     var rootSignatureBlob: UnsafeMutablePointer<UInt8>?
     var rootSignatureLength: UInt32 = .zero
+    let enable16BitTypes: UInt8 = device.supports16BitTypes ? 1 : 0
     
     // Call into the DXC wrapper.
     name.withCString(encodedAs: UTF16.self) { name in
@@ -104,7 +106,8 @@ class Shader {
         &objectBlob,
         &objectLength,
         &rootSignatureBlob,
-        &rootSignatureLength)
+        &rootSignatureLength,
+        enable16BitTypes)
       if errorCode != 0 {
         fatalError("dxcompiler_compile failed with error code \(errorCode).")
       }

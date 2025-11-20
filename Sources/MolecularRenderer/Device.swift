@@ -31,12 +31,16 @@ public class Device {
   var dxgiInfoQueue: SwiftCOM.IDXGIInfoQueue?
   #endif
   
+  // Cached metadata about the device.
+  let vendor: Vendor
+  let supports16BitTypes: Bool
+
   // Stored properties for the command queue.
   private var _commandQueue: CommandQueue!
   var commandQueue: CommandQueue {
     self._commandQueue
   }
-  
+
   public init(descriptor: DeviceDescriptor) {
     guard let deviceID = descriptor.deviceID else {
       fatalError("Descriptor was incomplete.")
@@ -73,7 +77,6 @@ public class Device {
       dxgiAdapter, D3D_FEATURE_LEVEL_12_1)
     #endif
     
-    
     #if os(Windows)
     if Self.enableDebug {
       self.d3d12InfoQueue = Self.createInfoQueue(device: d3d12Device)
@@ -86,6 +89,17 @@ public class Device {
     }
     #endif
     
+    // Create the cached metadata.
+    #if os(macOS)
+    self.vendor = .apple
+    self.supports16BitTypes = true
+    #else
+    self.vendor = Self.createVendor(
+      adapter: dxgiAdapter)
+    self.supports16BitTypes = Self.createSupports16BitTypes(
+      device: d3d12Device)
+    #endif
+
     // Create the command queue.
     self._commandQueue = CommandQueue(device: self)
   }
@@ -152,6 +166,34 @@ extension Device {
     }
     
     return adapters
+  }
+
+  static func createVendor(
+    adapter: SwiftCOM.IDXGIAdapter4
+  ) -> Vendor {
+    let description = try! adapter.GetDesc()
+    let vendorID = description.VendorId
+
+    switch vendorID {
+    case 0x10DE:
+      return .nvidia
+    case 0x1002, 0x1022:
+      return .amd
+    case 0x163C, 0x8086, 0x8087:
+      return .intel
+    case 0x1414:
+      fatalError("Microsoft WARP device.")
+    default:
+      fatalError("Unrecognized vendor ID: \(vendorID)")
+    }
+  }
+
+  static func createSupports16BitTypes(
+    device: SwiftCOM.ID3D12Device
+  ) -> Bool {
+    let featureSupportData: D3D12_FEATURE_DATA_D3D12_OPTIONS4 =
+    try! device.CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS4)
+    return featureSupportData.Native16BitShaderOpsSupported.boolValue
   }
   
   // Create an info queue from the 'ID3D12Device'.

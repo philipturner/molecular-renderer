@@ -31,14 +31,36 @@ extension RebuildProcess {
   // otherwise
   //   store two offsets relative to the slot's region for 16-bit references
   //   compress these two 16-bit offsets into a 32-bit word
-  static func createSource2(worldDimension: Float) -> String {
+  static func createSource2(
+    worldDimension: Float,
+    vendor: Vendor,
+    supports16BitTypes: Bool
+    ) -> String {
     // atoms.atoms
     // voxels.dense.assignedSlotIDs
     // voxels.sparse.rebuiltVoxelCoords
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
+      #if os(Windows)
+      func references16ArgumentType() -> String {
+        if supports16BitTypes {
+          return "RWStructuredBuffer<uint16_t>"
+        } else {
+          return "RWBuffer<uint>"
+        }
+      }
+
+      func references16RootSignatureArgument() -> String {
+        if supports16BitTypes {
+          return "UAV(u6)"
+        } else {
+          return "DescriptorTable(UAV(u6, numDescriptors = 1))"
+        }
+      }
+      #endif
+
       #if os(macOS)
-      """
+      return """
       kernel void rebuildProcess2(
         \(CrashBuffer.functionArguments),
         device float4 *atoms [[buffer(1)]],
@@ -51,14 +73,14 @@ extension RebuildProcess {
         uint localID [[thread_position_in_threadgroup]])
       """
       #else
-      """
+      return """
       \(CrashBuffer.functionArguments)
       RWStructuredBuffer<float4> atoms : register(u1);
       RWStructuredBuffer<uint> assignedSlotIDs : register(u2);
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
       RWStructuredBuffer<uint> headers : register(u4);
       RWStructuredBuffer<uint> references32 : register(u5);
-      RWBuffer<uint> references16 : register(u6);
+      \(references16ArgumentType()) references16 : register(u6);
       groupshared uint threadgroupMemory[517];
       
       [numthreads(128, 1, 1)]
@@ -69,7 +91,7 @@ extension RebuildProcess {
         "UAV(u3),"
         "UAV(u4),"
         "UAV(u5),"
-        "DescriptorTable(UAV(u6, numDescriptors = 1)),"
+        "\(references16RootSignatureArgument()),"
       )]
       void rebuildProcess2(
         uint groupID : SV_GroupID,
@@ -90,6 +112,20 @@ extension RebuildProcess {
     func threadgroupAddress(_ i: String) -> String {
       "256 * (localID / 64) + (\(i) * 64) + (localID % 64)"
     }
+
+    func generateSmallAddress() -> String {
+      if vendor == .amd {
+        // Bypass a strange driver crash.
+        return """
+        uint3 xyz_AMD = uint3(xyz);
+        uint address = \(VoxelResources.generate("xyz_AMD", 8));
+        """
+      } else {
+        return """
+        float address = \(VoxelResources.generate("xyz", 8));
+        """
+      }
+    }
     
     func atomicFetchAdd() -> String {
       #if os(macOS)
@@ -107,12 +143,20 @@ extension RebuildProcess {
     
     func castUShort(_ input: String) -> String {
       #if os(macOS)
-      "ushort(\(input))"
+      return "ushort(\(input))"
       #else
-      input
+      if supports16BitTypes {
+        return "uint16_t(\(input))"
+      } else {
+        return input
+      }
       #endif
     }
-    
+
+    func waveID() -> String {
+      "localID / \(Reduction.waveGetLaneCount())"
+    }
+
     return """
     \(Shader.importStandardLibrary)
     
@@ -144,7 +188,7 @@ extension RebuildProcess {
         threadgroupMemory[address] = 0;
       }
       \(Reduction.groupLocalBarrier())
-      
+
       // =======================================================================
       // ===                            Phase I                              ===
       // =======================================================================
@@ -159,7 +203,7 @@ extension RebuildProcess {
           for (float y = boxMin[1]; y < boxMax[1]; ++y) {
             for (float x = boxMin[0]; x < boxMax[0]; ++x) {
               float3 xyz = float3(x, y, z);
-              float address = \(VoxelResources.generate("xyz", 8));
+              \(generateSmallAddress())
               
               uint offset;
               \(atomicFetchAdd())
@@ -186,16 +230,23 @@ extension RebuildProcess {
       
       uint wavePrefixSum = \(Reduction.wavePrefixSum("countersSum"));
       uint waveInclusiveSum = wavePrefixSum + countersSum;
-      uint waveTotalSum =
-      \(Reduction.waveReadLaneAt("waveInclusiveSum", laneID: 31));
+      uint waveTotalSum;
+      if (\(Reduction.waveGetLaneCount()) == 32) {
+        waveTotalSum =
+        \(Reduction.waveReadLaneAt("waveInclusiveSum", laneID: 31));
+      } else {
+        // Branch for 64-wide wavefronts.
+        waveTotalSum =
+        \(Reduction.waveReadLaneAt("waveInclusiveSum", laneID: 63));
+      }
       
-      threadgroupMemory[512 + (localID / 32)] = waveTotalSum;
+      threadgroupMemory[512 + \(waveID())] = waveTotalSum;
       \(Reduction.groupLocalBarrier())
       \(Reduction.threadgroupSumPrimitive(offset: 512))
       
       // Incorporate all contributions to the prefix sum.
       counters += wavePrefixSum;
-      counters += threadgroupMemory[512 + (localID / 32)];
+      counters += threadgroupMemory[512 + \(waveID())];
       \(Shader.unroll)
       for (uint i = 0; i < 4; ++i) {
         uint address = \(threadgroupAddress("i"));
@@ -244,7 +295,7 @@ extension RebuildProcess {
               // Narrow down the cells with a cube-sphere intersection test.
               bool intersected = cubeSphereTest(xyz, atom);
               if (intersected && all(xyz < boxMax)) {
-                float address = \(VoxelResources.generate("xyz", 8));
+                \(generateSmallAddress())
                 
                 uint offset;
                 \(atomicFetchAdd())
@@ -297,12 +348,18 @@ extension BVHBuilder {
         voxels.sparse.headers, index: 4)
       commandList.setBuffer(
         voxels.sparse.references32, index: 5)
+      
       #if os(macOS)
       commandList.setBuffer(
         voxels.sparse.references16, index: 6)
       #else
-      commandList.setDescriptor(
-        handleID: voxels.sparse.references16HandleID, index: 6)
+      if let handleID = voxels.sparse.references16HandleID {
+        commandList.setDescriptor(
+          handleID: handleID, index: 6)
+      } else {
+        commandList.setBuffer(
+          voxels.sparse.references16, index: 6)
+      }
       #endif
       
       let offset = GeneralCounters.offset(.rebuiltVoxelCount)

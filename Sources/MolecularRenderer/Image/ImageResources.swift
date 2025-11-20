@@ -31,7 +31,8 @@ class ImageResources {
     shaderDesc.source = RenderShader.createSource(
       isOffline: display.isOffline,
       upscaleFactor: upscaleFactor,
-      worldDimension: worldDimension)
+      worldDimension: worldDimension,
+      supports16BitTypes: device.supports16BitTypes)
     self.renderShader = Shader(descriptor: shaderDesc)
     
     var renderTargetDesc = RenderTargetDescriptor()

@@ -184,14 +184,21 @@ extension Application {
         commandList.setBuffer(
           bvhBuilder.voxels.sparse.references32,
           index: RenderShader.references32)
+        
         #if os(macOS)
         commandList.setBuffer(
           bvhBuilder.voxels.sparse.references16,
           index: RenderShader.references16)
         #else
-        commandList.setDescriptor(
-          handleID: bvhBuilder.voxels.sparse.references16HandleID,
-          index: RenderShader.references16)
+        if let handleID = bvhBuilder.voxels.sparse.references16HandleID {
+          commandList.setDescriptor(
+            handleID: handleID,
+            index: RenderShader.references16)
+        } else {
+          commandList.setBuffer(
+            bvhBuilder.voxels.sparse.references16,
+            index: RenderShader.references16)
+        }
         #endif
         
         // Bind the color texture.

@@ -6,7 +6,7 @@ class RebuildProcess {
   init(device: Device, worldDimension: Float) {
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
-    
+
     shaderDesc.name = "rebuildProcess1"
     shaderDesc.threadsPerGroup = SIMD3(4, 4, 4)
     shaderDesc.source = Self.createSource1(
@@ -16,9 +16,11 @@ class RebuildProcess {
     shaderDesc.name = "rebuildProcess2"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = Self.createSource2(
-      worldDimension: worldDimension)
+      worldDimension: worldDimension,
+      vendor: device.vendor,
+      supports16BitTypes: device.supports16BitTypes)
     self.process2 = Shader(descriptor: shaderDesc)
-    
+
     shaderDesc.name = "rebuildProcess3"
     shaderDesc.threadsPerGroup = SIMD3(4, 4, 4)
     shaderDesc.source = Self.createSource3(
