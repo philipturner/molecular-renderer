@@ -34,6 +34,11 @@ class VoxelResources {
       fatalError("World dimension was zero.")
     }
     self.worldDimension = worldDimension
+
+/*
+8 GB: 144654
+4 GB: 72327
+*/
     
     // Initialize the memory slot count.
     let memorySlotCount = Self.memorySlotCount(
@@ -200,11 +205,11 @@ class SparseVoxelResources {
     self.vacantSlotIDs = createBuffer(size: memorySlotCount * 4)
     
     self.headers = createBuffer(
-      size: memorySlotCount * MemorySlot.header.size)
+      size: 144654 * MemorySlot.header.size)
     self.references32 = createBuffer(
-      size: memorySlotCount * MemorySlot.reference32.size)
+      size: 144654 * MemorySlot.reference32.size)
     self.references16 = createBuffer(
-      size: memorySlotCount * MemorySlot.reference16.size)
+      size: 144654 * MemorySlot.reference16.size)
   }
 }
 
@@ -234,7 +239,11 @@ extension VoxelResources {
   }
   
   func encodeMemorySlots(descriptorHeap: DescriptorHeap) {
-    let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
+    // TODO: Test whether we can fix the problem by only
+    // using 32-bit references. Perhaps a fallback mode
+    // where beefier GPUs can incur the extra bandwidth cost,
+    // in exchange for the DirectX API not breaking.
+    let bufferByteCount = 1000 * MemorySlot.reference16.size
     
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R16_UINT
