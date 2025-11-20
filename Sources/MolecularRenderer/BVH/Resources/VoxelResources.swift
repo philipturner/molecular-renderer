@@ -243,6 +243,18 @@ extension VoxelResources {
     // using 32-bit references. Perhaps a fallback mode
     // where beefier GPUs can incur the extra bandwidth cost,
     // in exchange for the DirectX API not breaking.
+    //
+    // Once that is attempted to solve the AMD problem, some
+    // possible optimizations:
+    // - RebuildProcess2 writes temporarily to a small
+    //   allocation encoded as UInt16 with a descriptor heap.
+    //   Later, the raw data gets copied to regions of UInt32
+    //   scoped larger buffer.
+    // - Shaders fetch UInt32 data and choose based on some
+    //   bitmasking or conditionals.
+    // - The two modes are switched based on amount of
+    //   memory allocated. And all of this only happens on
+    //   Windows.
     let bufferByteCount = 1000 * MemorySlot.reference16.size
     
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
