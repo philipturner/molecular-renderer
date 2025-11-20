@@ -60,8 +60,6 @@ Objective is to reach as many atoms as possible, until your GPU runs out of memo
 
 A large number of 107k atom cubes, each with a random orientation. All packed in a grid, with a spacing to ensure they don't overlap. This hits the pain points of partial filling that waste memory, therefore being a realistic example of achievable atom count.
 
-> TODO: Gather data for AMD GPU.
-
 | Chip            | RAM    | Theoretical Max Atoms | Actual Max Atoms |
 | --------------- | -----: | --------------------: | ---------------: |
 | GTX 970         | 3.5 GB | 33M   |  14M |

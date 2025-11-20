@@ -8,7 +8,7 @@ import QuaternionModule
 // MARK: - User-Facing Options
 
 let isDenselyPacked: Bool = false
-let desiredAtomCount: Int = 141_000_000
+let desiredAtomCount: Int = 141_100_000
 let voxelAllocationSize: Int = 20_500_000_000
 
 // Loading speed in parts/frame (107k atoms/part).
