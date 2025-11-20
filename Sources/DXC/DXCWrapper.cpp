@@ -55,6 +55,7 @@ int32_t dxcompiler_compile(
   // 'dxcompiler.dll', not the AMD driver.
   arguments.push_back(L"cs_6_5");
   // disabled 16-bit types because of GTX 970 driver crash
+  arguments.push_back(L"-enable-16bit-types");
   arguments.push_back(L"-Qstrip_debug");
   arguments.push_back(L"-Qstrip_reflect");
   arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS);

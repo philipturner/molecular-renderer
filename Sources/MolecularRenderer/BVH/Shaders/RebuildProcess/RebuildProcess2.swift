@@ -96,6 +96,7 @@ extension RebuildProcess {
 
     func generateSmallAddress() -> String {
       if vendor == .amd {
+        // Bypass a strange driver crash.
         return """
         uint3 xyz_AMD = uint3(xyz);
         uint address = \(VoxelResources.generate("xyz_AMD", 8));

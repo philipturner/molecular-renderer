@@ -255,7 +255,7 @@ extension VoxelResources {
     // - The two modes are switched based on amount of
     //   memory allocated. And all of this only happens on
     //   Windows.
-    let bufferByteCount = 1000 * MemorySlot.reference16.size
+    let bufferByteCount = 100000 * MemorySlot.reference16.size
     
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R16_UINT
