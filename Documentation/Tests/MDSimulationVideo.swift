@@ -523,4 +523,3 @@ if !renderingOffline {
     fatalError("Could not write to file.")
   }
 }
-
