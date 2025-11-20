@@ -143,9 +143,13 @@ extension RebuildProcess {
     
     func castUShort(_ input: String) -> String {
       #if os(macOS)
-      "ushort(\(input))"
+      return "ushort(\(input))"
       #else
-      input
+      if supports16BitTypes {
+        return "uint16_t(\(input))"
+      } else {
+        return input
+      }
       #endif
     }
 
