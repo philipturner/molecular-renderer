@@ -7,4 +7,5 @@ enum Vendor {
   // for wave8/wave16 mode because we don't have an
   // Intel Arc GPU to test.
   case intel
+  
 }
