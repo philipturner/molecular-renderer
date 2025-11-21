@@ -40,13 +40,10 @@ enum MemorySlot {
   // large enough to cause an overflow for references16 (~11 GB).
   //
   // Windows:
-  // Bind 6 versions of references16 into the shader. AMD drivers
-  // cannot dynamically index into an array of resources
-  // (NonUniformResourceIndex problem), so don't pretend they do.
-  // This scales up to 64 GB of RAM. Existing GPUs max out at 32 GB.
-  //
-  // > Will likely need to revise the plans on Windows. First, check
-  // > whether the basic idea even works.
+  // Bind 6-12 versions of references16 into the shader. We must use
+  // a descriptor table with multiple entries, and properly address
+  // the NonUniformResourceIndex problem. This solution scales up to
+  // 64 GB of RAM. Existing GPUs max out at 32 GB.
   //
   // macOS:
   // Modify RemoveProcess3, AddProcess3, RebuildProcess2, Render to
