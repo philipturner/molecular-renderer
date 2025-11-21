@@ -28,7 +28,7 @@ class AtomResources {
   // Per atom in transaction
   let transactionIDs: RingBuffer
   let transactionAtoms: RingBuffer
-  
+
   init(descriptor: AtomResourcesDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
           let device = descriptor.device else {
@@ -96,7 +96,7 @@ extension AtomResources {
     guard bufferByteCount <= 4_000_000_000 else {
       fatalError("Will have a GPU suspended crash at runtime.")
     }
-    
+
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT
     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
@@ -152,9 +152,17 @@ extension AtomResources {
 #endif
 
 extension AtomResources {
-  static var functionArguments: String {
+  static func functionArguments(
+    _ supports16BitTypes: Bool
+  ) -> String {
+    #if os(Windows)
+    func motionVectorsArgumentType() -> String {
+      if 
+    }
+    #endif
+
     #if os(macOS)
-    """
+    return """
     constant TransactionArgs &transactionArgs [[buffer(1)]],
     device uint *transactionIDs [[buffer(2)]],
     device float4 *transactionAtoms [[buffer(3)]],
@@ -165,7 +173,7 @@ extension AtomResources {
     device ushort4 *relativeOffsets2 [[buffer(8)]]
     """
     #else
-    """
+    return """
     ConstantBuffer<TransactionArgs> transactionArgs : register(b1);
     RWStructuredBuffer<uint> transactionIDs : register(u2);
     RWStructuredBuffer<float4> transactionAtoms : register(u3);

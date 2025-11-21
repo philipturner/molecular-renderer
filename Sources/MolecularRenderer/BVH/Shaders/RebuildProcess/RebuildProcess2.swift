@@ -41,7 +41,20 @@ extension RebuildProcess {
     // voxels.sparse.rebuiltVoxelCoords
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
-      #if os(Windows)
+      #if os(macOS)
+      return """
+      kernel void rebuildProcess2(
+        \(CrashBuffer.functionArguments),
+        device float4 *atoms [[buffer(1)]],
+        device uint *assignedSlotIDs [[buffer(2)]],
+        device uint *rebuiltVoxelCoords [[buffer(3)]],
+        device uint *headers [[buffer(4)]],
+        device uint *references32 [[buffer(5)]],
+        device ushort *references16 [[buffer(6)]],
+        uint groupID [[threadgroup_position_in_grid]],
+        uint localID [[thread_position_in_threadgroup]])
+      """
+      #else
       func references16ArgumentType() -> String {
         if supports16BitTypes {
           return "RWStructuredBuffer<uint16_t>"
@@ -57,22 +70,7 @@ extension RebuildProcess {
           return "DescriptorTable(UAV(u6, numDescriptors = 1))"
         }
       }
-      #endif
 
-      #if os(macOS)
-      return """
-      kernel void rebuildProcess2(
-        \(CrashBuffer.functionArguments),
-        device float4 *atoms [[buffer(1)]],
-        device uint *assignedSlotIDs [[buffer(2)]],
-        device uint *rebuiltVoxelCoords [[buffer(3)]],
-        device uint *headers [[buffer(4)]],
-        device uint *references32 [[buffer(5)]],
-        device ushort *references16 [[buffer(6)]],
-        uint groupID [[threadgroup_position_in_grid]],
-        uint localID [[thread_position_in_threadgroup]])
-      """
-      #else
       return """
       \(CrashBuffer.functionArguments)
       RWStructuredBuffer<float4> atoms : register(u1);
