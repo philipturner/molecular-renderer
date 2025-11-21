@@ -41,9 +41,9 @@ struct RenderShader {
 
       func references16RootSignatureArgument() -> String {
         if supports16BitTypes {
-          return "UAV(u\(Self.references16))"
+          return "UAV(u100)"
         } else {
-          return "DescriptorTable(UAV(u\(Self.references16), numDescriptors = 1))"
+          return "DescriptorTable(UAV(u100, numDescriptors = 1))"
         }
       }
       #endif
@@ -128,7 +128,7 @@ struct RenderShader {
       RWStructuredBuffer<uint> assignedSlotIDs : register(u\(Self.assignedSlotIDs));
       RWStructuredBuffer<uint> headers : register(u\(Self.headers));
       RWStructuredBuffer<uint> references32 : register(u\(Self.references32));
-      \(references16ArgumentType()) references16 : register(u\(Self.references16));
+      \(references16ArgumentType()) references16 : register(u100);
       \(colorTextureArgument())
       \(upscalingFunctionArguments())
       

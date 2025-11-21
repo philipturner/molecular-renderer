@@ -78,8 +78,7 @@ extension RebuildProcess {
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
       RWStructuredBuffer<uint> headers : register(u4);
       RWStructuredBuffer<uint> references32 : register(u5);
-      \(references16ArgumentType()) references16_0 : register(u6);
-      \(references16ArgumentType()) references16_1 : register(u7);
+      \(references16ArgumentType()) references16 : register(u6);
       groupshared uint threadgroupMemory[517];
       
       [numthreads(128, 1, 1)]
@@ -91,7 +90,6 @@ extension RebuildProcess {
         "UAV(u4),"
         "UAV(u5),"
         "\(references16RootSignatureArgument(index: 6)),"
-        "\(references16RootSignatureArgument(index: 7)),"
       )]
       void rebuildProcess2(
         uint groupID : SV_GroupID,
@@ -272,12 +270,6 @@ extension RebuildProcess {
       // ===                            Phase III                            ===
       // =======================================================================
       
-      RWStructuredBuffer<uint16_t> references16;
-      if (slotID < 1000) {
-        references16 = references16_0;
-      } else {
-        references16 = references16_1;
-      }
       uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
       
       for (uint i = localID; i < atomCount; i += 128) {
