@@ -10,9 +10,9 @@ extension AddProcess {
   // read from dense.assignedSlotIDs
   // write a 32-bit reference into sparse.memorySlots
   static func createSource3(
-    worldDimension: Float,
-    supports16BitTypes: Bool
-    ) -> String {
+    supports16BitTypes: Bool,
+    worldDimension: Float
+  ) -> String {
     // atoms.*
     // voxels.dense.assignedSlotIDs
     // voxels.dense.atomicCounters

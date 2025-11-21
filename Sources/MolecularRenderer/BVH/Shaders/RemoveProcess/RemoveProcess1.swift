@@ -9,8 +9,8 @@ extension RemoveProcess {
   // write to group.atomsRemovedMarks
   // write to dense.atomsRemovedMarks
   static func createSource1(
-    worldDimension: Float,
-    supports16BitTypes: Bool
+    supports16BitTypes: Bool,
+    worldDimension: Float
   ) -> String {
     // atoms.*
     // voxels.group.atomsRemovedMarks

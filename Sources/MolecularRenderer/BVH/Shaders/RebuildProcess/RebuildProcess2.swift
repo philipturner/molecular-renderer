@@ -62,7 +62,7 @@ extension RebuildProcess {
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
       RWStructuredBuffer<uint> headers : register(u4);
       RWStructuredBuffer<uint> references32 : register(u5);
-      \(SparseVoxelResources.ref16FunctionArgument())
+      \(SparseVoxelResources.ref16FunctionArgument(memorySlotCount))
       groupshared uint threadgroupMemory[517];
       
       [numthreads(128, 1, 1)]
@@ -73,7 +73,7 @@ extension RebuildProcess {
         "UAV(u3),"
         "UAV(u4),"
         "UAV(u5),"
-        "\(SparseVoxelResources.ref16RootSignatureArgument()),"
+        "\(SparseVoxelResources.ref16RootSignatureArgument(memorySlotCount)),"
       )]
       void rebuildProcess2(
         uint groupID : SV_GroupID,

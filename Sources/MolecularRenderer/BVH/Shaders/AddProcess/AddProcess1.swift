@@ -9,8 +9,8 @@ extension AddProcess {
   // write to dense.atomicCounters with 8 partial sums
   // save the relativeOffsets
   static func createSource1(
-    worldDimension: Float,
-    supports16BitTypes: Bool
+    supports16BitTypes: Bool,
+    worldDimension: Float
   ) -> String {
     // atoms.*
     // voxels.group.addedMarks
