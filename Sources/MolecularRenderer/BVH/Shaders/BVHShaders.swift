@@ -1,5 +1,6 @@
 struct BVHShadersDescriptor {
   var device: Device?
+  var memorySlotCount: Int?
   var worldDimension: Float?
 }
 
@@ -19,15 +20,9 @@ class BVHShaders {
       fatalError("Descriptor was incomplete.")
     }
     
-    self.remove = RemoveProcess(
-      device: device,
-      worldDimension: worldDimension)
-    self.add = AddProcess(
-      device: device,
-      worldDimension: worldDimension)
-    self.rebuild = RebuildProcess(
-      device: device,
-      worldDimension: worldDimension)
+    self.remove = RemoveProcess(descriptor: descriptor)
+    self.add = AddProcess(descriptor: descriptor)
+    self.rebuild = RebuildProcess(descriptor: descriptor)
     
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device

@@ -210,11 +210,15 @@ class SparseVoxelResources {
   // Re-mapping the buffer slot to 100 because in HLSL, buffer labels
   // don't correspond to RootParameterIndex.
   #if os(Windows)
-  static func ref16FunctionArgument() -> String {
+  static func ref16FunctionArgument(
+    _ memorySlotCount: Int
+  ) -> String {
     return "RWBuffer<uint> references16 : register(u100);"
   }
   
-  static func ref16RootSignatureArgument() -> String {
+  static func ref16RootSignatureArgument(
+    _ memorySlotCount: Int
+  ) -> String {
     return "DescriptorTable(UAV(u100, numDescriptors = 1))"
   }
   #endif

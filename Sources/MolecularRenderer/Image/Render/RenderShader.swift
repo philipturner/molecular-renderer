@@ -1,13 +1,26 @@
+struct RenderShaderDescriptor {
+  var isOffline: Bool?
+  var memorySlotCount: Int?
+  var supports16BitTypes: Bool?
+  var upscaleFactor: Float?
+  var worldDimension: Float?
+}
+
 struct RenderShader {
   // [numthreads(8, 8, 1)]
   // dispatch threads SIMD3(colorTexture.width, colorTexture.height, 1)
   // threadgroup memory 4096 B
   static func createSource(
-    isOffline: Bool,
-    upscaleFactor: Float,
-    worldDimension: Float,
-    supports16BitTypes: Bool
+    descriptor: RenderShaderDescriptor
   ) -> String {
+    guard let isOffline = descriptor.isOffline,
+          let memorySlotCount = descriptor.memorySlotCount,
+          let supports16BitTypes = descriptor.supports16BitTypes,
+          let upscaleFactor = descriptor.upscaleFactor,
+          let worldDimension = descriptor.worldDimension else {
+      fatalError("Descriptor was incomplete.")
+    }
+    
     // atoms.atoms
     // atoms.motionVectors
     // voxels.group.occupiedMarks
