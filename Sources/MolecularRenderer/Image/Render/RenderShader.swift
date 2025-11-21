@@ -294,8 +294,7 @@ struct RenderShader {
 
     func rayIntersector() -> String {
       createRayIntersector(
-        worldDimension: worldDimension, 
-        supports16BitTypes: supports16BitTypes)
+        worldDimension: worldDimension)
     }
     
     return """

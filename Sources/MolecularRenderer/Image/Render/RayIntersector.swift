@@ -451,26 +451,15 @@ private func createIntersectAO(
 }
 
 func createRayIntersector(
-  worldDimension: Float,
-  supports16BitTypes: Bool
+  worldDimension: Float
 ) -> String {
   // atoms.atoms
   // voxels.group.occupiedMarks
   // voxels.dense.assignedSlotIDs
   // voxels.sparse.memorySlots [32, 16]
   func bvhBuffers() -> String {
-    #if os(Windows)
-    func references16ArgumentType() -> String {
-      if supports16BitTypes {
-        return "RWStructuredBuffer<uint16_t>"
-      } else {
-        return "RWBuffer<uint>"
-      }
-    }
-    #endif
-
     #if os(macOS)
-    return """
+    """
     device float4 *atoms;
     device uint *voxelGroup8OccupiedMarks;
     device uint *voxelGroup32OccupiedMarks;
@@ -481,14 +470,14 @@ func createRayIntersector(
     threadgroup uint2 *memoryTape;
     """
     #else
-    return """
+    """
     RWStructuredBuffer<float4> atoms;
     RWStructuredBuffer<uint> voxelGroup8OccupiedMarks;
     RWStructuredBuffer<uint> voxelGroup32OccupiedMarks;
     RWStructuredBuffer<uint> assignedSlotIDs;
     RWStructuredBuffer<uint> headers;
     RWStructuredBuffer<uint> references32;
-    \(references16ArgumentType()) references16;
+    RWBuffer<uint> references16;
     """
     #endif
   }
