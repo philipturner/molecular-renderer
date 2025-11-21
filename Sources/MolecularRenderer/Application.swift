@@ -3,9 +3,6 @@ import SwiftCOM
 import WinSDK
 #endif
 
-// TODO: Remove temporary import for debugging.
-import Foundation
-
 public struct ApplicationDescriptor {
   public var device: Device?
   public var display: Display?
@@ -60,9 +57,6 @@ public class Application {
           let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
-
-    // TODO
-    exit(0)
     
     // Check this early to avoid propagation of undefined behavior into shader
     // codegen and other parts that rely on the upscale factor.
