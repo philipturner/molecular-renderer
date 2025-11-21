@@ -155,20 +155,16 @@ extension Application {
           .nativeBuffers[frameID % 3]
         commandList.setBuffer(
           cameraArgsBuffer, index: RenderShader.cameraArgs)
+
+        // Bind the per-address buffers.
         commandList.setBuffer(
-          bvhBuilder.atoms.atoms, index: RenderShader.atoms)
-        
-        // Bind the motion vectors.
-        #if os(macOS)
-        commandList.setBuffer(
-          bvhBuilder.atoms.motionVectors,
+          bvhBuilder.atoms.atoms,
+          index: RenderShader.atoms)
+        bvhBuilder.atoms.bindMotionVectors(
+          commandList: commandList,
           index: RenderShader.motionVectors)
-        #else
-        commandList.setDescriptor(
-          handleID: bvhBuilder.atoms.motionVectorsHandleID,
-          index: RenderShader.motionVectors)
-        #endif
         
+        // Bind the voxel data.
         commandList.setBuffer(
           bvhBuilder.voxels.group.occupiedMarks8,
           index: RenderShader.voxelGroup8OccupiedMarks)

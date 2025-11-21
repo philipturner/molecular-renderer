@@ -212,6 +212,22 @@ extension AtomResources {
     """
   }
   #endif
+
+  func bindMotionVectors(
+    commandList: CommandList,
+    index: Int
+  ) {
+    #if os(macOS)
+    commandList.setBuffer(motionVectors, index: index)
+    #else
+    if let handleID = motionVectorsHandleID {
+      commandList.setDescriptor(
+        handleID: handleID, index: index)
+    } else {
+      commandList.setBuffer(motionVectors, index: index)
+    }
+    #endif
+  }
   
   func setBufferBindings(
     commandList: CommandList,
@@ -226,25 +242,16 @@ extension AtomResources {
     let atomsBuffer = transactionAtoms.nativeBuffers[inFlightFrameID]
     commandList.setBuffer(idsBuffer, index: 2)
     commandList.setBuffer(atomsBuffer, index: 3)
-
-    // Bind the motion vectors.
-    #if os(macOS)
-    commandList.setBuffer(motionVectors, index: 5)
-    #else
-    if let handleID = motionVectors
-    #endif
     
-    // Bind the other per-address buffers.
+    // Bind the per-address buffers.
     commandList.setBuffer(atoms, index: 4)
+    bindMotionVectors(
+      commandList: commandList, index: 5)
     #if os(macOS)
-    
     commandList.setBuffer(addressOccupiedMarks, index: 6)
     commandList.setBuffer(relativeOffsets1, index: 7)
     commandList.setBuffer(relativeOffsets2, index: 8)
     #else
-    if let handleID
-    commandList.setDescriptor(
-      handleID: motionVectorsHandleID, index: 5)
     commandList.setDescriptor(
       handleID: addressOccupiedMarksHandleID, index: 6)
     commandList.setDescriptor(
