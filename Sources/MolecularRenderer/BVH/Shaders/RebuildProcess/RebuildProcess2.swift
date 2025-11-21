@@ -32,9 +32,9 @@ extension RebuildProcess {
   //   store two offsets relative to the slot's region for 16-bit references
   //   compress these two 16-bit offsets into a 32-bit word
   static func createSource2(
-    worldDimension: Float,
+    memorySlotCount: Int,
     vendor: Vendor,
-    memorySlotCount: Int
+    worldDimension: Float
   ) -> String {
     // atoms.atoms
     // voxels.dense.assignedSlotIDs
