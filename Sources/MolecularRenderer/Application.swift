@@ -43,8 +43,8 @@ public class Application {
   #endif
   
   // Other resources
-  let imageResources: ImageResources
   let bvhBuilder: BVHBuilder
+  let imageResources: ImageResources
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {
@@ -104,13 +104,6 @@ public class Application {
     #endif
     
     // Create the other resources.
-    var imageResourcesDesc = ImageResourcesDescriptor()
-    imageResourcesDesc.device = device
-    imageResourcesDesc.display = display
-    imageResourcesDesc.upscaleFactor = upscaleFactor
-    imageResourcesDesc.worldDimension = worldDimension
-    self.imageResources = ImageResources(descriptor: imageResourcesDesc)
-    
     var bvhBuilderDesc = BVHBuilderDescriptor()
     bvhBuilderDesc.addressSpaceSize = atoms.addressSpaceSize
     bvhBuilderDesc.device = device
@@ -118,6 +111,14 @@ public class Application {
     bvhBuilderDesc.worldDimension = worldDimension
     self.bvhBuilder = BVHBuilder(descriptor: bvhBuilderDesc)
     
+    var imageResourcesDesc = ImageResourcesDescriptor()
+    imageResourcesDesc.device = device
+    imageResourcesDesc.display = display
+    imageResourcesDesc.memorySlotCount = bvhBuilder.voxels.memorySlotCount
+    imageResourcesDesc.upscaleFactor = upscaleFactor
+    imageResourcesDesc.worldDimension = worldDimension
+    self.imageResources = ImageResources(descriptor: imageResourcesDesc)
+
     #if os(Windows)
     // Bind resources to the descriptor heap.
     encodeDescriptorHeap()

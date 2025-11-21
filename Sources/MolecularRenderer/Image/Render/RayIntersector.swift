@@ -451,6 +451,7 @@ private func createIntersectAO(
 }
 
 func createRayIntersector(
+  memorySlotCount: Int,
   worldDimension: Float
 ) -> String {
   // atoms.atoms
