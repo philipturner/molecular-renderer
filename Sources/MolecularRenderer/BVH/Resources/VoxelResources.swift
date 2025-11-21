@@ -206,6 +206,22 @@ class SparseVoxelResources {
     self.references16 = createBuffer(
       size: memorySlotCount * MemorySlot.reference16.size)
   }
+
+  func bindReferences16(
+    commandList: CommandList, 
+    index: Int
+  ) {
+    #if os(macOS)
+    commandList.setBuffer(references16, index: index)
+    #else
+    if let handleID = references16HandleID {
+      commandList.setDescriptor(
+        handleID: handleID, index: index)
+    } else {
+      commandList.setBuffer(references16, index: index)
+    }
+    #endif
+  }
 }
 
 #if os(Windows)
