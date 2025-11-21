@@ -174,7 +174,7 @@ extension AtomResources {
         return "RWBuffer<float4>"
       }
     }
-    
+
     return """
     ConstantBuffer<TransactionArgs> transactionArgs : register(b1);
     RWStructuredBuffer<uint> transactionIDs : register(u2);
@@ -226,15 +226,23 @@ extension AtomResources {
     let atomsBuffer = transactionAtoms.nativeBuffers[inFlightFrameID]
     commandList.setBuffer(idsBuffer, index: 2)
     commandList.setBuffer(atomsBuffer, index: 3)
-    
-    // Bind the per-address buffers.
-    commandList.setBuffer(atoms, index: 4)
+
+    // Bind the motion vectors.
     #if os(macOS)
     commandList.setBuffer(motionVectors, index: 5)
+    #else
+    if let handleID = motionVectors
+    #endif
+    
+    // Bind the other per-address buffers.
+    commandList.setBuffer(atoms, index: 4)
+    #if os(macOS)
+    
     commandList.setBuffer(addressOccupiedMarks, index: 6)
     commandList.setBuffer(relativeOffsets1, index: 7)
     commandList.setBuffer(relativeOffsets2, index: 8)
     #else
+    if let handleID
     commandList.setDescriptor(
       handleID: motionVectorsHandleID, index: 5)
     commandList.setDescriptor(

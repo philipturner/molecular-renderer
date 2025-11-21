@@ -343,6 +343,7 @@ extension BVHBuilder {
       commandList.setBuffer(
         voxels.sparse.references32, index: 5)
       
+      // Bind the 16-bit references.
       #if os(macOS)
       commandList.setBuffer(
         voxels.sparse.references16, index: 6)

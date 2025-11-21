@@ -185,6 +185,7 @@ extension Application {
           bvhBuilder.voxels.sparse.references32,
           index: RenderShader.references32)
         
+        // Bind the 16-bit references.
         #if os(macOS)
         commandList.setBuffer(
           bvhBuilder.voxels.sparse.references16,
