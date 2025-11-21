@@ -35,6 +35,19 @@ enum MemorySlot {
     }
   }
 
+  // Response to the overflow problem:
+  // Branch that only activates when voxelAllocationSize is
+  // large enough to cause an overflow for references16 (~11 GB).
+  //
+  // Windows:
+  // Bind 6 versions of references16 into the shader. AMD drivers
+  // cannot dynamically index into an array of resources
+  // (NonUniformResourceIndex problem), so don't pretend they do.
+  // This scales up to 64 GB of RAM. Existing GPUs max out at 32 GB.
+  //
+  // > Will likely need to revise the plans on Windows. First, check
+  // > whether the basic idea even works.
+
   // Offset (in bytes) of the small headers within a header slot.
   static var smallHeadersOffset: Int { 2 * 4 }
 }

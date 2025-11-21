@@ -270,7 +270,7 @@ extension RebuildProcess {
       // ===                            Phase III                            ===
       // =======================================================================
       
-      uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
+      uint64_t listAddress16 = uint64_t(slotID) * \(MemorySlot.reference16.size / 2);
       
       for (uint i = localID; i < atomCount; i += 128) {
         uint atomID = references32[listAddress + i];
@@ -294,7 +294,7 @@ extension RebuildProcess {
                 uint offset;
                 \(atomicFetchAdd())
                 
-                references16[listAddress16 + offset] = \(castUShort("i"));
+                references16[listAddress16 + uint64_t(offset)] = \(castUShort("i"));
               }
             }
           }
