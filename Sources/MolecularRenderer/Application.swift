@@ -196,7 +196,8 @@ public class Application {
       descriptorHeap: descriptorHeap)
     
     bvhBuilder.atoms.encodeMotionVectors(
-      descriptorHeap: descriptorHeap)
+      descriptorHeap: descriptorHeap,
+      supports16BitTypes: device.supports16BitTypes)
     bvhBuilder.atoms.encodeAddressOccupiedMarks(
       descriptorHeap: descriptorHeap)
     bvhBuilder.atoms.encodeRelativeOffsets(

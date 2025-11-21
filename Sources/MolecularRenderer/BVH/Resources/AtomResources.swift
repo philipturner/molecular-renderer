@@ -19,7 +19,7 @@ class AtomResources {
   let relativeOffsets1: Buffer
   let relativeOffsets2: Buffer
   #if os(Windows)
-  var motionVectorsHandleID: Int = -1
+  var motionVectorsHandleID: Int?
   var addressOccupiedMarksHandleID: Int = -1
   var relativeOffsets1HandleID: Int = -1
   var relativeOffsets2HandleID: Int = -1
@@ -82,7 +82,21 @@ class AtomResources {
 
 #if os(Windows)
 extension AtomResources {
-  func encodeMotionVectors(descriptorHeap: DescriptorHeap) {
+  func encodeMotionVectors(
+    descriptorHeap: DescriptorHeap,
+    supports16BitTypes: Bool
+  ) {
+    guard !supports16BitTypes else {
+      return
+    }
+
+    // We have never encountered this error, but buffers may become large enough
+    // to reach the 4 GB range at 500M atoms. So we proactively do this.
+    let bufferByteCount = addressSpaceSize * 8
+    guard bufferByteCount <= 4_000_000_000 else {
+      fatalError("Will have a GPU suspended crash at runtime.")
+    }
+    
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT
     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
