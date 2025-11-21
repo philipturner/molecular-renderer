@@ -4,15 +4,19 @@ class RemoveProcess {
   let process3: Shader
   let process4: Shader
   
-  init(device: Device, worldDimension: Float) {
+  init(descriptor: BVHShadersDescriptor) {
+    guard let device = descriptor.device,
+          let worldDimension = descriptor.worldDimension else {
+      fatalError("Descriptor was incomplete.")
+    }
+    
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
-    
     shaderDesc.name = "removeProcess1"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = Self.createSource1(
-      worldDimension: worldDimension,
-      supports16BitTypes: device.supports16BitTypes)
+      supports16BitTypes: device.supports16BitTypes,
+      worldDimension: worldDimension)
     self.process1 = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "removeProcess2"

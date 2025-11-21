@@ -26,7 +26,6 @@ class BVHShaders {
     
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
-    
     shaderDesc.name = "clearBuffer"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = ClearBuffer.createSource()
