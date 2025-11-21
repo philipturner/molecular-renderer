@@ -8,7 +8,10 @@ extension RemoveProcess {
   //   2 if moved
   // write to group.atomsRemovedMarks
   // write to dense.atomsRemovedMarks
-  static func createSource1(worldDimension: Float) -> String {
+  static func createSource1(
+    worldDimension: Float,
+    supports16BitTypes: Bool
+  ) -> String {
     // atoms.*
     // voxels.group.atomsRemovedMarks
     // voxels.dense.atomsRemovedMarks
@@ -17,7 +20,7 @@ extension RemoveProcess {
       """
       kernel void removeProcess1(
         \(CrashBuffer.functionArguments),
-        \(AtomResources.functionArguments),
+        \(AtomResources.functionArguments(supports16BitTypes)),
         device uint *voxelGroupAtomsRemovedMarks [[buffer(9)]],
         device uchar *atomsRemovedMarks [[buffer(10)]],
         uint globalID [[thread_position_in_grid]])
@@ -25,14 +28,14 @@ extension RemoveProcess {
       #else
       """
       \(CrashBuffer.functionArguments)
-      \(AtomResources.functionArguments)
+      \(AtomResources.functionArguments(supports16BitTypes))
       RWStructuredBuffer<uint> voxelGroupAtomsRemovedMarks : register(u9);
       RWBuffer<uint> atomsRemovedMarks : register(u10);
       
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
-        \(AtomResources.rootSignatureArguments)
+        \(AtomResources.rootSignatureArguments(supports16BitTypes))
         "UAV(u9),"
         "DescriptorTable(UAV(u10, numDescriptors = 1)),"
       )]

@@ -140,15 +140,11 @@ extension RebuildProcess {
     }
     
     func castUShort(_ input: String) -> String {
-      #if os(macOS)
-      return "ushort(\(input))"
-      #else
       if supports16BitTypes {
         return "uint16_t(\(input))"
       } else {
         return input
       }
-      #endif
     }
 
     func waveID() -> String {
