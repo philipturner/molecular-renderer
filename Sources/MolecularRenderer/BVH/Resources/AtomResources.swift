@@ -174,7 +174,7 @@ extension AtomResources {
         return "RWBuffer<float4>"
       }
     }
-
+    
     return """
     ConstantBuffer<TransactionArgs> transactionArgs : register(b1);
     RWStructuredBuffer<uint> transactionIDs : register(u2);

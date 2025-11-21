@@ -15,6 +15,22 @@ struct RenderShader {
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
       #if os(Windows)
+      func motionVectorsArgumentType() -> String {
+        if supports16BitTypes {
+          return "RWStructuredBuffer<half4>"
+        } else {
+          return "RWBuffer<float4>"
+        }
+      }
+
+      func motionVectorsRootSignatureArgument() -> String {
+        if supports16BitTypes {
+          return "UAV(u\(Self.motionVectors))"
+        } else {
+          return "DescriptorTable(UAV(u\(Self.motionVectors), numDescriptors = 1))"
+        }
+      }
+
       func references16ArgumentType() -> String {
         if supports16BitTypes {
           return "RWStructuredBuffer<uint16_t>"
@@ -106,7 +122,7 @@ struct RenderShader {
       ConstantBuffer<RenderArgs> renderArgs : register(b\(Self.renderArgs));
       ConstantBuffer<CameraArgsList> cameraArgs : register(b\(Self.cameraArgs));
       RWStructuredBuffer<float4> atoms : register(u\(Self.atoms));
-      RWBuffer<float4> motionVectors : register(u\(Self.motionVectors));
+      \(motionVectorsArgumentType()) motionVectors : register(u\(Self.motionVectors));
       RWStructuredBuffer<uint> voxelGroup8OccupiedMarks : register(u\(Self.voxelGroup8OccupiedMarks));
       RWStructuredBuffer<uint> voxelGroup32OccupiedMarks : register(u\(Self.voxelGroup32OccupiedMarks));
       RWStructuredBuffer<uint> assignedSlotIDs : register(u\(Self.assignedSlotIDs));
@@ -122,7 +138,7 @@ struct RenderShader {
         "RootConstants(b\(Self.renderArgs), num32BitConstants = \(byteCount / 4)),"
         "CBV(b\(Self.cameraArgs)),"
         "UAV(u\(Self.atoms)),"
-        "DescriptorTable(UAV(u\(Self.motionVectors), numDescriptors = 1)),"
+        "\(motionVectorsRootSignatureArgument()),"
         "UAV(u\(Self.voxelGroup8OccupiedMarks)),"
         "UAV(u\(Self.voxelGroup32OccupiedMarks)),"
         "UAV(u\(Self.assignedSlotIDs)),"
