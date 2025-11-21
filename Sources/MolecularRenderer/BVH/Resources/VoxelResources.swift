@@ -259,8 +259,8 @@ extension VoxelResources {
   }
   
   func encodeMemorySlots(descriptorHeap: DescriptorHeap) {
-    let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
-    guard bufferByteCount <= UInt32.max else {
+    let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+    guard memorySlotCount <= MemorySlot.reference16.max32BitSlotCount else {
       fatalError("Will have a GPU suspended crash at runtime.")
     }
     

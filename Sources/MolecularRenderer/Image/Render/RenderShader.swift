@@ -112,7 +112,7 @@ struct RenderShader {
       RWStructuredBuffer<uint> assignedSlotIDs : register(u\(Self.assignedSlotIDs));
       RWStructuredBuffer<uint> headers : register(u\(Self.headers));
       RWStructuredBuffer<uint> references32 : register(u\(Self.references32));
-      \(SparseVoxelResources.ref16FunctionArgument(supports16BitTypes))
+      \(SparseVoxelResources.ref16FunctionArgument())
       \(colorTextureArgument())
       \(upscalingFunctionArguments())
       
@@ -128,7 +128,7 @@ struct RenderShader {
         "UAV(u\(Self.assignedSlotIDs)),"
         "UAV(u\(Self.headers)),"
         "UAV(u\(Self.references32)),"
-        "\(SparseVoxelResources.ref16RootSignatureArgument(supports16BitTypes)),"
+        "\(SparseVoxelResources.ref16RootSignatureArgument()),"
         "DescriptorTable(UAV(u\(Self.colorTexture), numDescriptors = 1)),"
         \(upscalingRootSignatureArguments())
       )]
