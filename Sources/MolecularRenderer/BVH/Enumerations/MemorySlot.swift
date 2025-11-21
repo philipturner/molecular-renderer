@@ -47,6 +47,11 @@ enum MemorySlot {
   //
   // > Will likely need to revise the plans on Windows. First, check
   // > whether the basic idea even works.
+  //
+  // macOS:
+  // Modify RemoveProcess3, AddProcess3, RebuildProcess2, Render to
+  // use some form of 64-bit arithmetic. When possible, store pointers
+  // in shader registers with the 64-bit offset already applied.
 
   // Offset (in bytes) of the small headers within a header slot.
   static var smallHeadersOffset: Int { 2 * 4 }
