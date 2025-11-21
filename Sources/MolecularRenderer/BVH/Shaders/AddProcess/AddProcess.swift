@@ -10,7 +10,8 @@ class AddProcess {
     shaderDesc.name = "addProcess1"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = Self.createSource1(
-      worldDimension: worldDimension)
+      worldDimension: worldDimension,
+      supports16BitTypes: device.supports16BitTypes)
     self.process1 = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "addProcess2"
@@ -22,7 +23,8 @@ class AddProcess {
     shaderDesc.name = "addProcess3"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = Self.createSource3(
-      worldDimension: worldDimension)
+      worldDimension: worldDimension,
+      supports16BitTypes: device.supports16BitTypes)
     self.process3 = Shader(descriptor: shaderDesc)
   }
   

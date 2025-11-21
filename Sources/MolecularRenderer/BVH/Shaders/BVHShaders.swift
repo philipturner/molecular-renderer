@@ -45,7 +45,8 @@ class BVHShaders {
     
     shaderDesc.name = "resetMotionVectors"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
-    shaderDesc.source = ResetIdle.resetMotionVectors()
+    shaderDesc.source = ResetIdle.resetMotionVectors(
+      supports16BitTypes: device.supports16BitTypes)
     self.resetMotionVectors = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "resetVoxelMarks"
