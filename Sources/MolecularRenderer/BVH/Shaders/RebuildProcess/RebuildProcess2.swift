@@ -63,11 +63,11 @@ extension RebuildProcess {
         }
       }
 
-      func references16RootSignatureArgument() -> String {
+      func references16RootSignatureArgument(index: Int) -> String {
         if supports16BitTypes {
-          return "UAV(u6)"
+          return "UAV(u\(index))"
         } else {
-          return "DescriptorTable(UAV(u6, numDescriptors = 1))"
+          return "DescriptorTable(UAV(u\(index), numDescriptors = 1))"
         }
       }
 
@@ -78,7 +78,8 @@ extension RebuildProcess {
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
       RWStructuredBuffer<uint> headers : register(u4);
       RWStructuredBuffer<uint> references32 : register(u5);
-      \(references16ArgumentType()) references16 : register(u6);
+      \(references16ArgumentType()) references16_0 : register(u6);
+      \(references16ArgumentType()) references16_1 : register(u7);
       groupshared uint threadgroupMemory[517];
       
       [numthreads(128, 1, 1)]
@@ -89,7 +90,8 @@ extension RebuildProcess {
         "UAV(u3),"
         "UAV(u4),"
         "UAV(u5),"
-        "\(references16RootSignatureArgument()),"
+        "\(references16RootSignatureArgument(index: 6)),"
+        "\(references16RootSignatureArgument(index: 7)),"
       )]
       void rebuildProcess2(
         uint groupID : SV_GroupID,
@@ -270,7 +272,13 @@ extension RebuildProcess {
       // ===                            Phase III                            ===
       // =======================================================================
       
-      uint64_t listAddress16 = uint64_t(slotID) * \(MemorySlot.reference16.size / 2);
+      RWStructuredBuffer<uint16_t> references16;
+      if (slotID < 1000) {
+        references16 = references16_0;
+      } else {
+        references16 = references16_1;
+      }
+      uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
       
       for (uint i = localID; i < atomCount; i += 128) {
         uint atomID = references32[listAddress + i];
@@ -294,7 +302,7 @@ extension RebuildProcess {
                 uint offset;
                 \(atomicFetchAdd())
                 
-                references16[listAddress16 + uint64_t(offset)] = \(castUShort("i"));
+                references16[listAddress16 + offset] = \(castUShort("i"));
               }
             }
           }
