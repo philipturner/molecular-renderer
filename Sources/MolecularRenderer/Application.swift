@@ -57,7 +57,7 @@ public class Application {
           let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
-    
+
     // Check this early to avoid propagation of undefined behavior into shader
     // codegen and other parts that rely on the upscale factor.
     if display.isOffline {

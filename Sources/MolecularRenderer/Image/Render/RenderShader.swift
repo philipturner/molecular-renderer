@@ -30,22 +30,6 @@ struct RenderShader {
           return "DescriptorTable(UAV(u\(Self.motionVectors), numDescriptors = 1))"
         }
       }
-
-      func references16ArgumentType() -> String {
-        if supports16BitTypes {
-          return "RWStructuredBuffer<uint16_t>"
-        } else {
-          return "RWBuffer<uint>"
-        }
-      }
-
-      func references16RootSignatureArgument() -> String {
-        if supports16BitTypes {
-          return "UAV(u100)"
-        } else {
-          return "DescriptorTable(UAV(u100, numDescriptors = 1))"
-        }
-      }
       #endif
 
       func colorTextureArgument() -> String {
@@ -128,7 +112,7 @@ struct RenderShader {
       RWStructuredBuffer<uint> assignedSlotIDs : register(u\(Self.assignedSlotIDs));
       RWStructuredBuffer<uint> headers : register(u\(Self.headers));
       RWStructuredBuffer<uint> references32 : register(u\(Self.references32));
-      \(references16ArgumentType()) references16 : register(u100);
+      \(SparseVoxelResources.ref16FunctionArgument(supports16BitTypes))
       \(colorTextureArgument())
       \(upscalingFunctionArguments())
       
@@ -144,7 +128,7 @@ struct RenderShader {
         "UAV(u\(Self.assignedSlotIDs)),"
         "UAV(u\(Self.headers)),"
         "UAV(u\(Self.references32)),"
-        "\(references16RootSignatureArgument()),"
+        "\(SparseVoxelResources.ref16RootSignatureArgument(supports16BitTypes)),"
         "DescriptorTable(UAV(u\(Self.colorTexture), numDescriptors = 1)),"
         \(upscalingRootSignatureArguments())
       )]

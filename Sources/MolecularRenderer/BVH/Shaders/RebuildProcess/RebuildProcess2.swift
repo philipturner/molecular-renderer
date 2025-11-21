@@ -42,7 +42,7 @@ extension RebuildProcess {
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
       #if os(macOS)
-      return """
+      """
       kernel void rebuildProcess2(
         \(CrashBuffer.functionArguments),
         device float4 *atoms [[buffer(1)]],
@@ -55,30 +55,14 @@ extension RebuildProcess {
         uint localID [[thread_position_in_threadgroup]])
       """
       #else
-      func references16ArgumentType() -> String {
-        if supports16BitTypes {
-          return "RWStructuredBuffer<uint16_t>"
-        } else {
-          return "RWBuffer<uint>"
-        }
-      }
-
-      func references16RootSignatureArgument(index: Int) -> String {
-        if supports16BitTypes {
-          return "UAV(u\(index))"
-        } else {
-          return "DescriptorTable(UAV(u\(index), numDescriptors = 1))"
-        }
-      }
-
-      return """
+      """
       \(CrashBuffer.functionArguments)
       RWStructuredBuffer<float4> atoms : register(u1);
       RWStructuredBuffer<uint> assignedSlotIDs : register(u2);
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
       RWStructuredBuffer<uint> headers : register(u4);
       RWStructuredBuffer<uint> references32 : register(u5);
-      \(references16ArgumentType()) references16 : register(u6);
+      \(SparseVoxelResources.ref16FunctionArgument(supports16BitTypes))
       groupshared uint threadgroupMemory[517];
       
       [numthreads(128, 1, 1)]
@@ -89,7 +73,7 @@ extension RebuildProcess {
         "UAV(u3),"
         "UAV(u4),"
         "UAV(u5),"
-        "\(references16RootSignatureArgument(index: 6)),"
+        "\(SparseVoxelResources.ref16RootSignatureArgument(supports16BitTypes)),"
       )]
       void rebuildProcess2(
         uint groupID : SV_GroupID,
