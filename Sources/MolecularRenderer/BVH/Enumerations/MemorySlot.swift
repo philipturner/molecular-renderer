@@ -31,6 +31,10 @@ enum MemorySlot {
     case .reference32:
       return 4_000_000_000 / 3072
     case .reference16:
+      // Depending on how things turn out, the limit may be 2 billion
+      // elements on Windows. Rather than being limited by 32-bit
+      // integer overflow on the GPU, we are limited by DX12 bugs on
+      // the CPU.
       return 4_000_000_000 / 20480
     }
   }
