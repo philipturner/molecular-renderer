@@ -33,9 +33,8 @@ extension RebuildProcess {
   //   compress these two 16-bit offsets into a 32-bit word
   static func createSource2(
     worldDimension: Float,
-    vendor: Vendor,
-    supports16BitTypes: Bool
-    ) -> String {
+    vendor: Vendor
+  ) -> String {
     // atoms.atoms
     // voxels.dense.assignedSlotIDs
     // voxels.sparse.rebuiltVoxelCoords
@@ -62,7 +61,7 @@ extension RebuildProcess {
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
       RWStructuredBuffer<uint> headers : register(u4);
       RWStructuredBuffer<uint> references32 : register(u5);
-      \(SparseVoxelResources.ref16FunctionArgument(supports16BitTypes))
+      \(SparseVoxelResources.ref16FunctionArgument())
       groupshared uint threadgroupMemory[517];
       
       [numthreads(128, 1, 1)]
@@ -73,7 +72,7 @@ extension RebuildProcess {
         "UAV(u3),"
         "UAV(u4),"
         "UAV(u5),"
-        "\(SparseVoxelResources.ref16RootSignatureArgument(supports16BitTypes)),"
+        "\(SparseVoxelResources.ref16RootSignatureArgument()),"
       )]
       void rebuildProcess2(
         uint groupID : SV_GroupID,
@@ -124,11 +123,11 @@ extension RebuildProcess {
     }
     
     func castUShort(_ input: String) -> String {
-      if supports16BitTypes {
-        return "uint16_t(\(input))"
-      } else {
-        return input
-      }
+      #if os(macOS)
+      return "ushort(\(input))"
+      #else
+      return input
+      #endif
     }
 
     func waveID() -> String {

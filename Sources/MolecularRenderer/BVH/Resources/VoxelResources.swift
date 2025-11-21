@@ -182,7 +182,7 @@ class SparseVoxelResources {
   let references32: Buffer
   let references16: Buffer
   #if os(Windows)
-  var references16HandleID: Int?
+  var references16HandleID: Int = -1
   #endif
   
   init(device: Device, memorySlotCount: Int) {
@@ -210,24 +210,12 @@ class SparseVoxelResources {
   // Re-mapping the buffer slot to 100 because in HLSL, buffer labels
   // don't correspond to RootParameterIndex.
   #if os(Windows)
-  static func ref16FunctionArgument(
-    _ supports16BitTypes: Bool
-  ) -> String {
-    if supports16BitTypes {
-      return "RWStructuredBuffer<uint16_t> references16 : register(u100);"
-    } else {
-      return "RWBuffer<uint> references16 : register(u100);"
-    }
+  static func ref16FunctionArgument() -> String {
+    return "RWBuffer<uint> references16 : register(u100);"
   }
   
-  static func ref16RootSignatureArgument(
-    _ supports16BitTypes: Bool
-  ) -> String {
-    if supports16BitTypes {
-      return "DescriptorTable(UAV(u100, numDescriptors = 1))"
-    } else {
-      return "DescriptorTable(UAV(u100, numDescriptors = 1))"
-    }
+  static func ref16RootSignatureArgument() -> String {
+    return "DescriptorTable(UAV(u100, numDescriptors = 1))"
   }
   #endif
 
@@ -238,12 +226,9 @@ class SparseVoxelResources {
     #if os(macOS)
     commandList.setBuffer(references16, index: index)
     #else
-    if let handleID = references16HandleID {
-      commandList.setDescriptor(
-        handleID: handleID, index: index)
-    } else {
-      commandList.setBuffer(references16, index: index)
-    }
+    let handleID = references16HandleID
+    commandList.setDescriptor(
+      handleID: handleID, index: index)
     #endif
   }
 }
@@ -273,49 +258,25 @@ extension VoxelResources {
     dense.rebuiltMarksHandleID = handleID2
   }
   
-  func encodeMemorySlots(
-    descriptorHeap: DescriptorHeap,
-    supports16BitTypes: Bool
-  ) {
-    if !supports16BitTypes {
-      let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
-      guard bufferByteCount <= UInt32.max else {
-        fatalError("Will have a GPU suspended crash at runtime.")
-      }
-      
-      var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
-      uavDesc.Format = DXGI_FORMAT_R16_UINT
-      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
-      uavDesc.Buffer.FirstElement = 0
-      uavDesc.Buffer.NumElements = UInt32(bufferByteCount / 2)
-      uavDesc.Buffer.StructureByteStride = 0
-      uavDesc.Buffer.CounterOffsetInBytes = 0
-      uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
-      
-      let handleID = descriptorHeap.createUAV(
-        resource: sparse.references16.d3d12Resource,
-        uavDesc: uavDesc)
-      sparse.references16HandleID = handleID
-    } else {
-      let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
-      guard bufferByteCount <= UInt32.max else {
-        fatalError("Will have silent errors on the GPU timeline.")
-      }
-      
-      var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
-      uavDesc.Format = DXGI_FORMAT_UNKNOWN
-      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
-      uavDesc.Buffer.FirstElement = 0
-      uavDesc.Buffer.NumElements = UInt32(bufferByteCount / 2)
-      uavDesc.Buffer.StructureByteStride = 2
-      uavDesc.Buffer.CounterOffsetInBytes = 0
-      uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
-      
-      let handleID = descriptorHeap.createUAV(
-        resource: sparse.references16.d3d12Resource,
-        uavDesc: uavDesc)
-      sparse.references16HandleID = handleID
+  func encodeMemorySlots(descriptorHeap: DescriptorHeap) {
+    let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
+    guard bufferByteCount <= UInt32.max else {
+      fatalError("Will have a GPU suspended crash at runtime.")
     }
+    
+    var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
+    uavDesc.Format = DXGI_FORMAT_R16_UINT
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
+    uavDesc.Buffer.FirstElement = 0
+    uavDesc.Buffer.NumElements = UInt32(bufferByteCount / 2)
+    uavDesc.Buffer.StructureByteStride = 0
+    uavDesc.Buffer.CounterOffsetInBytes = 0
+    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
+    
+    let handleID = descriptorHeap.createUAV(
+      resource: sparse.references16.d3d12Resource,
+      uavDesc: uavDesc)
+    sparse.references16HandleID = handleID
   }
 }
 #endif
