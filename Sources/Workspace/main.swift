@@ -7,9 +7,9 @@ import QuaternionModule
 
 // MARK: - User-Facing Options
 
-let isDenselyPacked: Bool = false
-let desiredAtomCount: Int = 10_000_000
-let voxelAllocationSize: Int = 1_500_000_000
+let isDenselyPacked: Bool = true
+let desiredAtomCount: Int = 120_000_000
+let voxelAllocationSize: Int = 14_000_000_000
 
 // Loading speed in parts/frame (107k atoms/part).
 //
@@ -32,11 +32,11 @@ let worldDimension: Float = 384
 //
 // Moiré patterns are a little bit less severe on macOS, probably due to the
 // use of MetalFX instead of FidelityFX.
-let fovAngleDegrees: Float = 110
+let fovAngleDegrees: Float = 60
 let screenDimension: Int = 1440
 
 // Mode that searches for a bug with 32-bit overflows in shader code.
-let bugDiagnosisMode: Bool = false
+let bugDiagnosisMode: Bool = true
 
 // MARK: - Compile Structure
 
