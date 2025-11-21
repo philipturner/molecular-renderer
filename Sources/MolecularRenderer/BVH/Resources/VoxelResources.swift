@@ -224,7 +224,7 @@ class SparseVoxelResources {
     _ supports16BitTypes: Bool
   ) -> String {
     if supports16BitTypes {
-      return "UAV(u100)"
+      return "DescriptorTable(UAV(u100, numDescriptors = 1))"
     } else {
       return "DescriptorTable(UAV(u100, numDescriptors = 1))"
     }
@@ -277,28 +277,45 @@ extension VoxelResources {
     descriptorHeap: DescriptorHeap,
     supports16BitTypes: Bool
   ) {
-    guard !supports16BitTypes else {
-      return
+    if !supports16BitTypes {
+      let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
+      guard bufferByteCount <= UInt32.max else {
+        fatalError("Will have a GPU suspended crash at runtime.")
+      }
+      
+      var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
+      uavDesc.Format = DXGI_FORMAT_R16_UINT
+      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
+      uavDesc.Buffer.FirstElement = 0
+      uavDesc.Buffer.NumElements = UInt32(bufferByteCount / 2)
+      uavDesc.Buffer.StructureByteStride = 0
+      uavDesc.Buffer.CounterOffsetInBytes = 0
+      uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
+      
+      let handleID = descriptorHeap.createUAV(
+        resource: sparse.references16.d3d12Resource,
+        uavDesc: uavDesc)
+      sparse.references16HandleID = handleID
+    } else {
+      let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
+      guard bufferByteCount <= UInt32.max else {
+        fatalError("Will have silent errors on the GPU timeline.")
+      }
+      
+      var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
+      uavDesc.Format = DXGI_FORMAT_UNKNOWN
+      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
+      uavDesc.Buffer.FirstElement = 0
+      uavDesc.Buffer.NumElements = UInt32(bufferByteCount / 2)
+      uavDesc.Buffer.StructureByteStride = 2
+      uavDesc.Buffer.CounterOffsetInBytes = 0
+      uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
+      
+      let handleID = descriptorHeap.createUAV(
+        resource: sparse.references16.d3d12Resource,
+        uavDesc: uavDesc)
+      sparse.references16HandleID = handleID
     }
-
-    let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
-    guard bufferByteCount <= 4_000_000_000 else {
-      fatalError("Will have a GPU suspended crash at runtime.")
-    }
-    
-    var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
-    uavDesc.Format = DXGI_FORMAT_R16_UINT
-    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
-    uavDesc.Buffer.FirstElement = 0
-    uavDesc.Buffer.NumElements = UInt32(bufferByteCount / 2)
-    uavDesc.Buffer.StructureByteStride = 0
-    uavDesc.Buffer.CounterOffsetInBytes = 0
-    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
-    
-    let handleID = descriptorHeap.createUAV(
-      resource: sparse.references16.d3d12Resource,
-      uavDesc: uavDesc)
-    sparse.references16HandleID = handleID
   }
 }
 #endif

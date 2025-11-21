@@ -7,12 +7,12 @@ import QuaternionModule
 
 // MARK: - User-Facing Options
 
-// 12M, 1.4 GB
-// 48M, 5.6 GB
-// 60M, 7.2 GB
+// 12M, 1.4 GB -> under 2^32 bytes for ref16
+// 48M, 5.6 GB -> under 2^32 bytes for ref16
+// 60M, 7.0 GB -> over 2^32 bytes for ref16
 let isDenselyPacked: Bool = true
-let desiredAtomCount: Int = 12_000_000
-let voxelAllocationSize: Int = 1_400_000_000
+let desiredAtomCount: Int = 60_000_000
+let voxelAllocationSize: Int = 7_000_000_000
 
 // Loading speed in parts/frame (107k atoms/part).
 //
