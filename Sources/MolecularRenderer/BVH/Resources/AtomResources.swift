@@ -155,12 +155,6 @@ extension AtomResources {
   static func functionArguments(
     _ supports16BitTypes: Bool
   ) -> String {
-    #if os(Windows)
-    func motionVectorsArgumentType() -> String {
-      if 
-    }
-    #endif
-
     #if os(macOS)
     return """
     constant TransactionArgs &transactionArgs [[buffer(1)]],
@@ -173,12 +167,20 @@ extension AtomResources {
     device ushort4 *relativeOffsets2 [[buffer(8)]]
     """
     #else
+    func motionVectorsArgumentType() -> String {
+      if supports16BitTypes {
+        return "RWStructuredBuffer<half4>"
+      } else {
+        return "RWBuffer<float4>"
+      }
+    }
+
     return """
     ConstantBuffer<TransactionArgs> transactionArgs : register(b1);
     RWStructuredBuffer<uint> transactionIDs : register(u2);
     RWStructuredBuffer<float4> transactionAtoms : register(u3);
     RWStructuredBuffer<float4> atoms : register(u4);
-    RWBuffer<float4> motionVectors : register(u5);
+    \(motionVectorsArgumentType()) motionVectors : register(u5);
     RWBuffer<uint> addressOccupiedMarks : register(u6);
     RWBuffer<uint4> relativeOffsets1 : register(u7);
     RWBuffer<uint4> relativeOffsets2 : register(u8);
@@ -187,13 +189,23 @@ extension AtomResources {
   }
   
   #if os(Windows)
-  static var rootSignatureArguments: String {
-    """
+  static func rootSignatureArguments(
+    _ supports16BitTypes: Bool
+  ) -> String {
+    func motionVectorsRootSignatureArgument() -> String {
+      if supports16BitTypes {
+        return "UAV(u5)"
+      } else {
+        return "DescriptorTable(UAV(u5, numDescriptors = 1))"
+      }
+    }
+
+    return """
     "RootConstants(b1, num32BitConstants = 3),"
     "UAV(u2),"
     "UAV(u3),"
     "UAV(u4),"
-    "DescriptorTable(UAV(u5, numDescriptors = 1)),"
+    "\(motionVectorsRootSignatureArgument()),"
     "DescriptorTable(UAV(u6, numDescriptors = 1)),"
     "DescriptorTable(UAV(u7, numDescriptors = 1)),"
     "DescriptorTable(UAV(u8, numDescriptors = 1)),"
