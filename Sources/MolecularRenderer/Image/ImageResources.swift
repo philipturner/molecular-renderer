@@ -31,7 +31,7 @@ class ImageResources {
     renderShaderDesc.worldDimension = worldDimension
     let renderShaderSource = RenderShader.createSource(
       descriptor: renderShaderDesc)
-
+    
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
     shaderDesc.name = "render"
