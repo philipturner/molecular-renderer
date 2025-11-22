@@ -224,7 +224,9 @@ class SparseVoxelResources {
     let regionCount = Self.regionCount(
       memorySlotCount: memorySlotCount)
     if regionCount <= 1 {
-      return "RWBuffer<uint> references16 : register(u100);"
+      return """
+      RWBuffer<uint> references16 : register(u100);
+      """
     } else {
       return """
       RWBuffer<uint> references16[\(regionCount)] : register(u100);
@@ -239,7 +241,9 @@ class SparseVoxelResources {
   ) -> String {
     let regionCount = Self.regionCount(
       memorySlotCount: memorySlotCount)
-    return "DescriptorTable(UAV(u100, numDescriptors = \(regionCount)))"
+    return """
+    DescriptorTable(UAV(u100, numDescriptors = \(regionCount)))
+    """
   }
   #endif
 

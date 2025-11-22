@@ -135,6 +135,18 @@ extension RebuildProcess {
       "localID / \(Reduction.waveGetLaneCount())"
     }
 
+    func initializeAddress16() -> String {
+      return """
+      uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
+      """
+    }
+    
+    func writeAddress16() -> String {
+      return """
+      references16[listAddress16 + offset] = \(castUShort("i"));
+      """
+    }
+
     return """
     \(Shader.importStandardLibrary)
     
@@ -254,7 +266,7 @@ extension RebuildProcess {
       // ===                            Phase III                            ===
       // =======================================================================
       
-      uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
+      \(initializeAddress16())
       
       for (uint i = localID; i < atomCount; i += 128) {
         uint atomID = references32[listAddress + i];
@@ -278,7 +290,7 @@ extension RebuildProcess {
                 uint offset;
                 \(atomicFetchAdd())
                 
-                references16[listAddress16 + offset] = \(castUShort("i"));
+                \(writeAddress16())
               }
             }
           }
