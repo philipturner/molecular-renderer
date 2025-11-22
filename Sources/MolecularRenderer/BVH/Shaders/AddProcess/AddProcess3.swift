@@ -10,6 +10,7 @@ extension AddProcess {
   // read from dense.assignedSlotIDs
   // write a 32-bit reference into sparse.memorySlots
   static func createSource3(
+    memorySlotCount: Int,
     supports16BitTypes: Bool,
     worldDimension: Float
   ) -> String {

@@ -229,17 +229,26 @@ class SparseVoxelResources {
     #endif
   }
   
+  static func overflows32(memorySlotCount: Int) -> Bool {
+    return overflows16(memorySlotCount: memorySlotCount)
+  }
+  
+  static func overflows16(memorySlotCount: Int) -> Bool {
+    let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+    return memorySlotCount > max32BitSlotCount
+  }
+  
+  #if os(Windows)
   // The number of ~4 GB regions the references16 buffer is divided into.
   static func regionCount(memorySlotCount: Int) -> Int {
     let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
-
+    
     var output = memorySlotCount
     output += max32BitSlotCount - 1
     output /= max32BitSlotCount
     return output
   }
   
-  #if os(Windows)
   static func ref16FunctionArgument(
     _ memorySlotCount: Int
   ) -> String {

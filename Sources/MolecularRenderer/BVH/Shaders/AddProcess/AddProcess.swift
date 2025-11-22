@@ -5,6 +5,7 @@ class AddProcess {
   
   init(descriptor: BVHShadersDescriptor) {
     guard let device = descriptor.device,
+          let memorySlotCount = descriptor.memorySlotCount,
           let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
@@ -27,6 +28,7 @@ class AddProcess {
     shaderDesc.name = "addProcess3"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = Self.createSource3(
+      memorySlotCount: memorySlotCount,
       supports16BitTypes: device.supports16BitTypes,
       worldDimension: worldDimension)
     self.process3 = Shader(descriptor: shaderDesc)

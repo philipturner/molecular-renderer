@@ -61,13 +61,10 @@ private func createTestCell(memorySlotCount: Int) -> String {
   }
 
   func createBody() -> String {
-    let regionCount = SparseVoxelResources.regionCount(
+    let overflows16 = SparseVoxelResources.overflows16(
       memorySlotCount: memorySlotCount)
-    var max32BitSlotCount: Int {
-      MemorySlot.reference16.max32BitSlotCount
-    }
-
-    if regionCount <= 1 {
+    
+    if !overflows16  {
       return """
       uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
       uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
@@ -124,6 +121,8 @@ private func createTestCell(memorySlotCount: Int) -> String {
       }
       """
       #else
+      let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+      
       return """
       uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
       uint regionID = slotID / \(max32BitSlotCount);

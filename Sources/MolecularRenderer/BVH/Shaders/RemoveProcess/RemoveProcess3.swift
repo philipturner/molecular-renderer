@@ -12,7 +12,10 @@ extension RemoveProcess {
   // if atoms remain, write to dense.rebuiltMarks
   // otherwise
   //   reset entry in dense.assignedSlotIDs and sparse.assignedVoxelCoords
-  static func createSource3(worldDimension: Float) -> String {
+  static func createSource3(
+    memorySlotCount: Int,
+    worldDimension: Float
+  ) -> String {
     // atoms.addressOccupiedMarks
     // voxels.dense.assignedSlotIDs
     // voxels.dense.rebuiltMarks
@@ -77,6 +80,14 @@ extension RemoveProcess {
       "localID / \(Reduction.waveGetLaneCount())"
     }
     
+//    func initializeAddress32() -> String {
+//      #if os(macOS)
+//      let regionCount = SparseVoxelResources.regionCount(
+//        memorySlotCount: memorySlotCount)
+//      
+//      #endif
+//    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -95,7 +106,7 @@ extension RemoveProcess {
       
       uint slotID = assignedSlotIDs[voxelID];
       uint headerAddress = slotID * \(MemorySlot.header.size / 4);
-      uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+      uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
       
       // check the addressOccupiedMark of each atom in voxel
       uint beforeAtomCount = headers[headerAddress];
@@ -108,7 +119,7 @@ extension RemoveProcess {
         uint atomID = \(UInt32.max);
         bool shouldKeep = false;
         if (inLoopBounds) {
-          atomID = references32[listAddress + i];
+          atomID = references32[listAddress32 + i];
           if (addressOccupiedMarks[atomID] == 1) {
             shouldKeep = true;
           }
@@ -131,7 +142,7 @@ extension RemoveProcess {
         \(Reduction.groupLocalBarrier())
         
         if (shouldKeep) {
-          references32[listAddress + localOffset] = atomID;
+          references32[listAddress32 + localOffset] = atomID;
         }
       }
       if (localID == 0) {

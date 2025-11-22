@@ -38,7 +38,7 @@ enum MemorySlot {
       #endif
     }
   }
-
+  
   // Response to the overflow problem:
   // Branch that only activates when voxelAllocationSize is
   // large enough to cause an overflow for references16 (~11 GB).
