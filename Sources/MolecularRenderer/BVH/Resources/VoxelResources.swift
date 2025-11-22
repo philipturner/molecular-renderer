@@ -223,6 +223,7 @@ class SparseVoxelResources {
   ) -> String {
     let regionCount = Self.regionCount(
       memorySlotCount: memorySlotCount)
+    
     if regionCount <= 1 {
       return """
       RWBuffer<uint> references16 : register(u100);

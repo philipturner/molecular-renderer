@@ -136,15 +136,39 @@ extension RebuildProcess {
     }
 
     func initializeAddress16() -> String {
-      return """
-      uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
-      """
+      let regionCount = SparseVoxelResources.regionCount(
+        memorySlotCount: memorySlotCount)
+      let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+
+      if regionCount <= 1 {
+        return """
+        uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
+        """
+      } else {
+        #if os(macOS)
+
+        #else
+        return """
+        uint regionID = slotID / \(max32BitSlotCount);
+        uint listAddress16 = (slotID - regionID * \(max32BitSlotCount)) *
+        \(MemorySlot.reference16.size / 2);
+        RWBuffer<uint> destination16 = references16[regionID];
+        """
+        #endif
+      }
     }
     
     func writeAddress16() -> String {
-      return """
-      references16[listAddress16 + offset] = \(castUShort("i"));
-      """
+      let regionCount = SparseVoxelResources.regionCount(
+        memorySlotCount: memorySlotCount)
+
+      if regionCount <= 1 {
+        return """
+        references16[listAddress16 + offset] = \(castUShort("i"));
+        """
+      } else {
+        
+      }
     }
 
     return """
