@@ -1,5 +1,10 @@
 # Tests: High Atom Count
 
+Table of Contents:
+- [Rotating Beam](#rotating-beam)
+- [Long Distances](#long-distances)
+- [Large Scenes](#large-scenes)
+
 ## Rotating Beam
 
 Objective is to reach as many atoms as possible, until the Metal Performance HUD shows the FPS dropping below the display's native refresh rate. Windows users can detect the drop by observing stuttering in the animation. When you are just at the limit of atom count, it may take a few seconds for the FPS to stabilize at the target value.

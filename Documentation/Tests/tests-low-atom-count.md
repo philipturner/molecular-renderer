@@ -1,5 +1,13 @@
 # Tests: Low Atom Count
 
+Table of Contents:
+- [Upscaling](#upscaling)
+- [OpenMM Plugin](#openmm-plugin)
+- [MM4](#mm4)
+- [xTB](#xtb)
+- [Propargyl Alcohol Tripod](#propargyl-alcohol-tripod)
+- [Stannatrane Tripod](#stannatrane-tripod)
+
 ## Upscaling
 
 Animation where both the molecule and camera are rotating. Alternates between isopropanol and silane every 3 seconds. Checks that the upscaler can correctly keep track of motion vectors, while upscaling the resolution by 3x.
