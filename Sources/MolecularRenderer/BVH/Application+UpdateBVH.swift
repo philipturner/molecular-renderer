@@ -164,10 +164,8 @@ extension Application {
         commandList: commandList)
       bvhBuilder.rebuildProcess1(
         commandList: commandList)
-      /*
       bvhBuilder.rebuildProcess2(
         commandList: commandList)
-      */
       bvhBuilder.rebuildProcess3(
         commandList: commandList)
       

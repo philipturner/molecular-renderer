@@ -180,7 +180,6 @@ class SparseVoxelResources {
   
   let headers: Buffer
   let references32: Buffer
-
   #if os(macOS)
   let references16: Buffer
   #else
@@ -206,7 +205,6 @@ class SparseVoxelResources {
       size: memorySlotCount * MemorySlot.header.size)
     self.references32 = createBuffer(
       size: memorySlotCount * MemorySlot.reference32.size)
-    
     #if os(macOS)
     self.references16 = createBuffer(
       size: memorySlotCount * MemorySlot.reference16.size)

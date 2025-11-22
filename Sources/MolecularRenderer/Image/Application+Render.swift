@@ -143,7 +143,6 @@ extension Application {
       #endif
       
       // Encode the compute command.
-      /*
       commandList.withPipelineState(imageResources.renderShader) {
         bvhBuilder.counters.crashBuffer.setBufferBindings(
           commandList: commandList)
@@ -245,7 +244,6 @@ extension Application {
         }
         commandList.dispatch(groups: createGroupCount32())
       }
-      */
       
       #if os(Windows)
       bvhBuilder.computeUAVBarrier(commandList: commandList)
