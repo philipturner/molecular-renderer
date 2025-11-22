@@ -8,8 +8,6 @@ struct ImageResourcesDescriptor {
 
 class ImageResources {
   let renderShader: Shader
-  let upscaleShader: Shader
-
   let renderTarget: RenderTarget
   let upscaler: Upscaler?
   
@@ -23,7 +21,6 @@ class ImageResources {
       fatalError("Descriptor was incomplete.")
     }
     self.renderShader = Self.createRenderShader(descriptor: descriptor)
-    self.upscaleShader = Self.createUpscaleShader(descriptor: descriptor)
 
     var renderTargetDesc = RenderTargetDescriptor()
     renderTargetDesc.device = device
@@ -73,23 +70,6 @@ class ImageResources {
     #endif
     shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     shaderDesc.source = renderShaderSource
-    return Shader(descriptor: shaderDesc)
-  }
-
-  private static func createUpscaleShader(
-    descriptor: ImageResourcesDescriptor
-  ) -> Shader {
-    guard let device = descriptor.device,
-          let upscaleFactor = descriptor.upscaleFactor else {
-      fatalError("Descriptor was incomplete.")
-    }
-
-    var shaderDesc = ShaderDescriptor()
-    shaderDesc.device = device
-    shaderDesc.name = "upscale"
-    shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
-    shaderDesc.source = UpscaleShader.createSource(
-      upscaleFactor: upscaleFactor)
     return Shader(descriptor: shaderDesc)
   }
   

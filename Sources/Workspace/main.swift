@@ -1,7 +1,6 @@
 import HDL
 import MM4
 import MolecularRenderer
-import QuaternionModule
 
 // MARK: - Compile Structure
 
@@ -227,7 +226,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1920)
+  displayDesc.frameBufferSize = SIMD2<Int>(1080, 1440)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
@@ -235,7 +234,7 @@ func createApplication() -> Application {
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 2
+  applicationDesc.upscaleFactor = 3
   
   applicationDesc.addressSpaceSize = 4_000_000
   applicationDesc.voxelAllocationSize = 500_000_000
@@ -274,31 +273,12 @@ func modifyAtoms() {
 
 @MainActor
 func modifyCamera() {
-  let rotation1 = Quaternion<Float>(
-    angle: Float.pi / 180 * 10,
-    axis: SIMD3(1, 0, 0))
-  let rotation2 = Quaternion<Float>(
-    angle: Float.pi / 180 * 10,
-    axis: SIMD3(0, 1, 0))
-  let rotation3 = Quaternion<Float>(
-    angle: Float.pi / 180 * 10,
-    axis: SIMD3(0, 0, 1))
+  application.camera.position = SIMD3(0.20, 0.20, 1.40)
   
-  func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
-    var output = input
-    output = rotation1.act(on: output)
-    output = rotation2.act(on: output)
-    output = rotation3.act(on: output)
-    return output
-  }
-
-  application.camera.basis.0 = transform(SIMD3(1, 0, 0))
-  application.camera.basis.1 = transform(SIMD3(0, 1, 0))
-  application.camera.basis.2 = transform(SIMD3(0, 0, 1))
-  
-  application.camera.position = transform(SIMD3(0.20, 0.20, 1.40))
+  application.camera.basis.0 = SIMD3(1, 0, 0)
+  application.camera.basis.1 = SIMD3(0, 1, 0)
+  application.camera.basis.2 = SIMD3(0, 0, 1)
   application.camera.fovAngleVertical = Float.pi / 180 * 60
-  application.camera.secondaryRayCount = nil
 }
 
 // Enter the run loop.

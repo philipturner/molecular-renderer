@@ -103,8 +103,7 @@ extension Application {
     jitterOffsetDesc.index = frameID
     jitterOffsetDesc.upscaleFactor = imageResources.renderTarget.upscaleFactor
     
-    //return JitterOffset.create(descriptor: jitterOffsetDesc)
-    return .zero
+    return JitterOffset.create(descriptor: jitterOffsetDesc)
   }
   
   public func upscale(image: Image) -> Image {
@@ -219,8 +218,8 @@ extension Application {
       
       // Sharpening harms the quality of bright shiny light reflections
       // (specular effect), making it look pixelated instead of smooth.
-      dispatch.value.enableSharpening = true
-      dispatch.value.sharpness = 0.5
+      dispatch.value.enableSharpening = false
+      dispatch.value.sharpness = 0
       dispatch.value.frameTimeDelta = 2 // this doesn't do anything
       dispatch.value.preExposure = 1
       
@@ -234,8 +233,7 @@ extension Application {
       dispatch.value.cameraFar = 0.075 // 75 pm, circumvents debug warning
       dispatch.value.cameraFovAngleVertical = camera.fovAngleVertical
       dispatch.value.viewSpaceToMetersFactor = 1
-      dispatch.value.flags = UInt32(
-        FFX_UPSCALE_FLAG_DRAW_DEBUG_VIEW.rawValue)
+      dispatch.value.flags = 0
       
       // Encode the GPU commands for upscaling.
       upscaler.ffxContext.dispatch(descriptor: dispatch)
@@ -256,49 +254,5 @@ extension Application {
         48)
     }
     #endif
-  }
-
-  // Fallback for debugging if the upscaler goes wrong, or for easily
-  // visualizing the 3 inputs to the upscaler.
-  private func fallbackUpscale() {
-    device.commandQueue.withCommandList { commandList in
-      // Bind the descriptor heap.
-      #if os(Windows)
-      commandList.setDescriptorHeap(descriptorHeap)
-      #endif
-      
-      // Encode the compute command.
-      commandList.withPipelineState(imageResources.upscaleShader) {
-        // Bind the textures.
-        #if os(macOS)
-        let colorTexture = renderTarget.colorTextures[frameID % 2]
-        let upscaledTexture = renderTarget.upscaledTextures[frameID % 2]
-        commandList.mtlCommandEncoder
-          .setTexture(colorTexture, index: 0)
-        commandList.mtlCommandEncoder
-          .setTexture(upscaledTexture, index: 1)
-        #else
-        commandList.setDescriptor(
-          handleID: frameID % 2, index: 0)
-        commandList.setDescriptor(
-          handleID: 6 + frameID % 2, index: 1)
-        #endif
-        
-        // Determine the dispatch grid size.
-        func createGroupCount32() -> SIMD3<UInt32> {
-          var groupCount = display.frameBufferSize
-          
-          let groupSize = SIMD2<Int>(8, 8)
-          groupCount &+= groupSize &- 1
-          groupCount /= groupSize
-          
-          return SIMD3<UInt32>(
-            UInt32(groupCount[0]),
-            UInt32(groupCount[1]),
-            UInt32(1))
-        }
-        commandList.dispatch(groups: createGroupCount32())
-      }
-    }
   }
 }
