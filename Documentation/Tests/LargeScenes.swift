@@ -203,17 +203,16 @@ func createRandomRotation() -> RotationBasis {
   let random1 = createRandomDirection()
   let random2 = createRandomDirection()
   
-  var cross12 = cross(random1, random2)
+  let cross12 = cross(random1, random2)
   let cross12Length = (cross12 * cross12).sum().squareRoot()
-  if cross12Length < 0.001 || cross12Length > 1 {
-    // TODO: Fix this problem by trying again. It's an issue in the range of
-    // several 100M atoms.
-    fatalError("Could not take cross product.")
+  
+  // Fix: most failures come from cross12Length = 1.0000001
+  if cross12Length < 0.001 || cross12Length > 1.001 {
+    fatalError("Could not take cross product: \(cross12Length)")
   }
-  cross12 /= cross12Length
   
   let xAxis = random1
-  let yAxis = cross12
+  let yAxis = cross12 / cross12Length
   let zAxis = cross(xAxis, yAxis)
   
   return (xAxis, yAxis, zAxis)
