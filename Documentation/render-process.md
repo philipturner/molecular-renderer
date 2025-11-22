@@ -1,5 +1,13 @@
 # Render Process
 
+Table of Contents:
+- [Rendering Performance](#rendering-performance)
+- [Ambient Occlusion Sample Count](#ambient-occlusion-sample-count)
+- [Distance Scaling Behavior](#distance-scaling-behavior)
+- [MetalFX Latency Issues](#metalfx-latency-issues)
+- [FidelityFX Quality Issues](#fidelityfx-quality-issues)
+- [FidelityFX Banding Bug](#fidelityfx-banding-bug)
+
 ![Render Process Diagram](./RenderProcessDiagram.png)
 
 Revision: offline rendering uses synchronous code instead of asynchronous handlers. There is no triple-buffering in the backend, because speed is not the primary design goal for offline renderers.
@@ -133,7 +141,7 @@ For the MM4 test, there is a graphical glitch when the simulation ends and the a
 
 I checked that my code was doing everything correctly. The bug appears even when every pixel of the depth texture is forced to 0.5. It still appears when the jitter offsets are set to zero (which may worsen the grid lines artifact). The intermediate color texture doesn't have the artifact. The bug does not affect offline renders, where upscaling is turned off.
 
-One culprit could be changing the system's GPU from GTX 970 to RX 7900 XTX. The latter supports 16-bit ALU arithmetic. It could be a problem that only appears in FidelityFX's shader variants that use FP16 to optimize execution speed. There is no way to disable use of 16-bit variants, except recompiling the binaries from source.
+One culprit could be changing the system's GPU from GTX 970 to RX 7900 XTX. The latter supports 16-bit ALU arithmetic. It could be a problem that only appears in FidelityFX's shader variants that use FP16 to optimize execution speed. There is no way to disable use of 16-bit variants, except recompiling the FidelityFX binary from source.
 
 ![FidelityFX Banding Bug](./FidelityFXBandingBug.png)
 
