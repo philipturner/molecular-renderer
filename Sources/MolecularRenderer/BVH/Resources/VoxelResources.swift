@@ -285,7 +285,7 @@ extension VoxelResources {
   func encodeMemorySlots(descriptorHeap: DescriptorHeap) {
     func slotRange(regionID: Int) -> Range<Int> {
       let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
-      var startSlotID = regionID * max32BitSlotCount
+      let startSlotID = regionID * max32BitSlotCount
       var endSlotID = startSlotID + max32BitSlotCount
       endSlotID = min(endSlotID, memorySlotCount)
       return startSlotID..<endSlotID
@@ -294,11 +294,13 @@ extension VoxelResources {
     let regionCount = SparseVoxelResources.regionCount(
       memorySlotCount: memorySlotCount)
     for regionID in 0..<regionCount {
+      let range = slotRange(regionID: regionID)
+
       var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
       uavDesc.Format = DXGI_FORMAT_R16_UINT
       uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
-      uavDesc.Buffer.FirstElement = 0
-      uavDesc.Buffer.NumElements = UInt32(bufferByteCount / 2)
+      uavDesc.Buffer.FirstElement = UInt64(range.startIndex * 20480)
+      uavDesc.Buffer.NumElements = UInt32(range.count * 20480)
       uavDesc.Buffer.StructureByteStride = 0
       uavDesc.Buffer.CounterOffsetInBytes = 0
       uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
