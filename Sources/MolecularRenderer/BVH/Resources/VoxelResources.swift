@@ -180,8 +180,11 @@ class SparseVoxelResources {
   
   let headers: Buffer
   let references32: Buffer
+
+  #if os(macOS)
   let references16: Buffer
-  #if os(Windows)
+  #else
+  var references16: [Buffer] = []
   var references16HandleID: Int = -1
   #endif
   
@@ -203,8 +206,29 @@ class SparseVoxelResources {
       size: memorySlotCount * MemorySlot.header.size)
     self.references32 = createBuffer(
       size: memorySlotCount * MemorySlot.reference32.size)
+    
+    #if os(macOS)
     self.references16 = createBuffer(
       size: memorySlotCount * MemorySlot.reference16.size)
+    #else
+    func slotRange(regionID: Int) -> Range<Int> {
+      let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+      let startSlotID = regionID * max32BitSlotCount
+      var endSlotID = startSlotID + max32BitSlotCount
+      endSlotID = min(endSlotID, memorySlotCount)
+      return startSlotID..<endSlotID
+    }
+
+    let regionCount = SparseVoxelResources.regionCount(
+      memorySlotCount: memorySlotCount)
+    for regionID in 0..<regionCount {
+      let range = slotRange(regionID: regionID)
+
+      let buffer = createBuffer(
+        size: range.count * MemorySlot.reference16.size)
+      self.references16.append(buffer)
+    }
+    #endif
   }
 
   #if os(Windows)
@@ -304,14 +328,15 @@ extension VoxelResources {
       var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
       uavDesc.Format = DXGI_FORMAT_R16_UINT
       uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
-      uavDesc.Buffer.FirstElement = UInt64(range.startIndex * 20480)
+      uavDesc.Buffer.FirstElement = 0
       uavDesc.Buffer.NumElements = UInt32(range.count * 20480)
       uavDesc.Buffer.StructureByteStride = 0
       uavDesc.Buffer.CounterOffsetInBytes = 0
       uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
       
+      let buffer = sparse.references16[regionID]
       let handleID = descriptorHeap.createUAV(
-        resource: sparse.references16.d3d12Resource,
+        resource: buffer.d3d12Resource,
         uavDesc: uavDesc)
       if regionID == 0 {
         sparse.references16HandleID = handleID
