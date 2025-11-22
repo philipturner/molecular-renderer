@@ -223,7 +223,7 @@ class SparseVoxelResources {
   ) -> String {
     let regionCount = Self.regionCount(
       memorySlotCount: memorySlotCount)
-    if regionCount == 1 {
+    if regionCount <= 1 {
       return "RWBuffer<uint> references16 : register(u100);"
     } else {
       return """
@@ -283,26 +283,33 @@ extension VoxelResources {
   }
   
   func encodeMemorySlots(descriptorHeap: DescriptorHeap) {
-    let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
-    guard memorySlotCount <= max32BitSlotCount else {
-      fatalError("Will have a GPU suspended crash at runtime.")
+    func slotRange(regionID: Int) -> Range<Int> {
+      let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+      var startSlotID = regionID * max32BitSlotCount
+      var endSlotID = startSlotID + max32BitSlotCount
+      endSlotID = min(endSlotID, memorySlotCount)
+      return startSlotID..<endSlotID
     }
-
-    let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
     
-    var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
-    uavDesc.Format = DXGI_FORMAT_R16_UINT
-    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
-    uavDesc.Buffer.FirstElement = 0
-    uavDesc.Buffer.NumElements = UInt32(bufferByteCount / 2)
-    uavDesc.Buffer.StructureByteStride = 0
-    uavDesc.Buffer.CounterOffsetInBytes = 0
-    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
-    
-    let handleID = descriptorHeap.createUAV(
-      resource: sparse.references16.d3d12Resource,
-      uavDesc: uavDesc)
-    sparse.references16HandleID = handleID
+    let regionCount = SparseVoxelResources.regionCount(
+      memorySlotCount: memorySlotCount)
+    for regionID in 0..<regionCount {
+      var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
+      uavDesc.Format = DXGI_FORMAT_R16_UINT
+      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
+      uavDesc.Buffer.FirstElement = 0
+      uavDesc.Buffer.NumElements = UInt32(bufferByteCount / 2)
+      uavDesc.Buffer.StructureByteStride = 0
+      uavDesc.Buffer.CounterOffsetInBytes = 0
+      uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
+      
+      let handleID = descriptorHeap.createUAV(
+        resource: sparse.references16.d3d12Resource,
+        uavDesc: uavDesc)
+      if regionID == 0 {
+        sparse.references16HandleID = handleID
+      }
+    }
   }
 }
 #endif
