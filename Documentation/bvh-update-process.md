@@ -2,6 +2,12 @@
 
 This is an effort to organize the numerous sub-tasks of the acceleration structure PR, and provide a high-level understanding for those seeking to debug/modify the finished code.
 
+Table of Contents:
+- [Acceleration Structure Layout](#acceleration-structure-layout)
+- [Idle/Active Paradigm](#idle-active-paradigm)
+- [Stages](#stages)
+- [Memory Allocation](#memory-allocation)
+
 ## Acceleration Structure Layout
 
 Simplest implementation:
