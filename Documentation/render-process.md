@@ -135,6 +135,6 @@ I checked that my code was doing everything correctly. To bug appears even when 
 
 One culprit could be changing the system's GPU from GTX 970 to RX 7900 XTX. The latter supports 16-bit ALU arithmetic. It could be a problem that only appears in FidelityFX's shader variants that use FP16 to optimize execution speed.
 
-TODO: Upload media
+![FidelityFX Banding Bug](./FidelityFXBandingBug.png)
 
 _Screenshot of a 3x upscaled render with the banding bug._
