@@ -129,7 +129,8 @@ private func createTestCell(memorySlotCount: Int) -> String {
       uint regionID = slotID / \(max32BitSlotCount);
       uint listAddress16 = (slotID - regionID * \(max32BitSlotCount)) *
       \(MemorySlot.reference16.size / 2);
-      RWBuffer<uint> destination16 = references16[regionID];
+      RWBuffer<uint> destination16 =
+      references16[NonUniformResourceIndex(regionID)];
       
       // Set the loop bounds register.
       uint referenceCursor = smallHeader & 0xFFFF;
