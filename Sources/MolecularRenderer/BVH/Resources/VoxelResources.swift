@@ -228,8 +228,7 @@ class SparseVoxelResources {
     }
     #endif
   }
-
-  #if os(Windows)
+  
   // The number of ~4 GB regions the references16 buffer is divided into.
   static func regionCount(memorySlotCount: Int) -> Int {
     let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
@@ -239,7 +238,8 @@ class SparseVoxelResources {
     output /= max32BitSlotCount
     return output
   }
-
+  
+  #if os(Windows)
   static func ref16FunctionArgument(
     _ memorySlotCount: Int
   ) -> String {

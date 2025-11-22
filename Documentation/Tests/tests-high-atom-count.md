@@ -58,8 +58,6 @@ The structure is a hydrogen-passivated, Si(100)-(2×1) lattice generated with [`
 
 ## Large Scenes
 
-> Note: There is currently a bug with extremely large atom counts. 32-bit integers in shader code overflow, making memory accesses invalid. The atoms closest to the user are overwritten last in time, thus making the bug harder to detect (dense packing). Inefficient packing has such poor visual quality, you wouldn't even check for the bug. I found it when reaching ~400M atoms on M3 Ultra with dense packing. The bug appears at somewhere between 100&ndash;200M atoms on that machine. The bug contaminates the new benchmarks with the 7900 XTX, and might even contaminate the existing M1 Max data.
-
 Objective is to reach as many atoms as possible, until your GPU runs out of memory.
 
 A large number of 107k atom cubes, each with a random orientation. All packed in a grid, with a spacing to ensure they don't overlap. This hits the pain points of partial filling that waste memory, therefore being a realistic example of achievable atom count.
