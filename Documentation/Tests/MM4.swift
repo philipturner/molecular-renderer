@@ -280,7 +280,7 @@ func modifyAtoms() {
 
 @MainActor
 func modifyCamera() {
-  // Add user option for avoiding graphical bug on Windows.
+  // 0.005 Hz rotation rate
   let time = createTime()
   let angleDegrees = 0.005 * time * 360
   let rotation = Quaternion<Float>(
