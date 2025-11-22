@@ -3,6 +3,12 @@ import MM4
 import MolecularRenderer
 import QuaternionModule
 
+// MARK: - User-Facing Options
+
+// Mode that prevents the scene from being still enough
+// to trigger the FidelityFX banding bug.
+let bugAvoidanceMode: Bool = false
+
 // MARK: - Compile Structure
 
 let lattice = Lattice<Cubic> { h, k, l in
@@ -280,12 +286,20 @@ func modifyCamera() {
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * angleDegrees,
     axis: SIMD3(0, 1, 0))
+
+  func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
+    if bugAvoidanceMode {
+      return rotation.act(on: input)
+    } else {
+      return input
+    }
+  }
   
-  application.camera.position = rotation.act(on: SIMD3(0.20, 0.20, 1.40))
+  application.camera.position = transform(SIMD3(0.20, 0.20, 1.40))
   
-  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
-  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
-  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
+  application.camera.basis.0 = transform(SIMD3(1, 0, 0))
+  application.camera.basis.1 = transform(SIMD3(0, 1, 0))
+  application.camera.basis.2 = transform(SIMD3(0, 0, 1))
   application.camera.fovAngleVertical = Float.pi / 180 * 60
 }
 

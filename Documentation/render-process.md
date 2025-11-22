@@ -128,3 +128,5 @@ There are a few other, minor artifacts. Along the border between a silicon and h
 Despite its downsides, FSR 3 makes it possible to bring Molecular Renderer to the Windows target audience. Older GPUs work precisely because FSR 3 does not rely on computationally intensive neural networks, and it does not require hardware FP16 arithmetic.
 
 > TODO: Document the graphical glitch with banding for the MM4 test.
+
+> TODO: One final attempt: disable 16-bit types in the FidelityFX backend code.
