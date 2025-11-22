@@ -138,8 +138,7 @@ extension RebuildProcess {
     func initializeAddress16() -> String {
       let regionCount = SparseVoxelResources.regionCount(
         memorySlotCount: memorySlotCount)
-      let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
-
+      
       if regionCount <= 1 {
         return """
         uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
@@ -151,6 +150,8 @@ extension RebuildProcess {
         ulong(slotID) * \(MemorySlot.reference16.size / 2);
         """
         #else
+        let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+        
         return """
         uint regionID = slotID / \(max32BitSlotCount);
         uint listAddress16 = (slotID - regionID * \(max32BitSlotCount)) *

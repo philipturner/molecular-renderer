@@ -59,6 +59,43 @@ private func createTestCell(memorySlotCount: Int) -> String {
     "inout IntersectionResult result"
     #endif
   }
+
+  func createBody() -> String {
+    let regionCount = SparseVoxelResources.regionCount(
+      memorySlotCount: memorySlotCount)
+
+    if regionCount <= 1 {
+      return """
+      uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+      uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
+      
+      // Set the loop bounds register.
+      uint referenceCursor = smallHeader & 0xFFFF;
+      uint referenceEnd = smallHeader >> 16;
+      referenceCursor += listAddress16;
+      referenceEnd += listAddress16;
+      
+      // Prevent infinite loops from corrupted BVH data.
+      referenceEnd = min(referenceEnd, referenceCursor + 128);
+      
+      // Test every atom in the voxel.
+      while (referenceCursor < referenceEnd) {
+        uint reference16 = references16[referenceCursor];
+        uint atomID = references32[listAddress + reference16];
+        float4 atom = atoms[atomID];
+        
+        intersectAtom(result,
+                      query,
+                      atom,
+                      atomID);
+        
+        referenceCursor += 1;
+      }
+      """
+    } else {
+
+    }
+  }
   
   return """
   void testCell(\(resultArgument()),
@@ -66,31 +103,7 @@ private func createTestCell(memorySlotCount: Int) -> String {
                 uint slotID,
                 uint smallHeader)
   {
-    uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
-    uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
-    
-    // Set the loop bounds register.
-    uint referenceCursor = smallHeader & 0xFFFF;
-    uint referenceEnd = smallHeader >> 16;
-    referenceCursor += listAddress16;
-    referenceEnd += listAddress16;
-    
-    // Prevent infinite loops from corrupted BVH data.
-    referenceEnd = min(referenceEnd, referenceCursor + 128);
-    
-    // Test every atom in the voxel.
-    while (referenceCursor < referenceEnd) {
-      uint reference16 = references16[referenceCursor];
-      uint atomID = references32[listAddress + reference16];
-      float4 atom = atoms[atomID];
-      
-      intersectAtom(result,
-                    query,
-                    atom,
-                    atomID);
-      
-      referenceCursor += 1;
-    }
+    \(createBody())
   }
   """
 }
