@@ -135,6 +135,22 @@ extension RebuildProcess {
       "localID / \(Reduction.waveGetLaneCount())"
     }
     
+    func initializeAddress32() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+        """
+      } else {
+        return """
+        device uint *destination32 = references32 +
+        ulong(slotID) * \(MemorySlot.reference32.size / 4);
+        """
+      }
+    }
+    
     func initializeAddress16() -> String {
       let overflows16 = SparseVoxelResources.overflows16(
         memorySlotCount: memorySlotCount)
@@ -161,7 +177,22 @@ extension RebuildProcess {
         #endif
       }
     }
-
+    
+    func getAtomID() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        uint atomID = references32[listAddress + i];
+        """
+      } else {
+        return """
+        uint atomID = destination32[i];
+        """
+      }
+    }
+    
     func writeAddress16() -> String {
       let overflows16 = SparseVoxelResources.overflows16(
         memorySlotCount: memorySlotCount)
@@ -207,7 +238,7 @@ extension RebuildProcess {
       
       uint slotID = assignedSlotIDs[voxelID];
       uint headerAddress = slotID * \(MemorySlot.header.size / 4);
-      uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+      \(initializeAddress32())
       uint atomCount = headers[headerAddress];
       
       \(Shader.unroll)
@@ -222,7 +253,7 @@ extension RebuildProcess {
       // =======================================================================
       
       for (uint i = localID; i < atomCount; i += 128) {
-        uint atomID = references32[listAddress + i];
+        \(getAtomID())
         float4 atom = atoms[atomID];
         \(computeLoopBounds())
         
@@ -307,7 +338,7 @@ extension RebuildProcess {
       \(initializeAddress16())
       
       for (uint i = localID; i < atomCount; i += 128) {
-        uint atomID = references32[listAddress + i];
+        \(getAtomID())
         float4 atom = atoms[atomID];
         \(computeLoopBounds())
         
