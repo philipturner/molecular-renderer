@@ -227,7 +227,7 @@ class SparseVoxelResources {
       return "RWBuffer<uint> references16 : register(u100);"
     } else {
       return """
-      RWBuffer<uint> references16[\(regionCount)] : register(u100);"
+      RWBuffer<uint> references16[\(regionCount)] : register(u100);
       """
     }
   }
