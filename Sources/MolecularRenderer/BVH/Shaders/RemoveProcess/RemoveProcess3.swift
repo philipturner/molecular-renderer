@@ -89,7 +89,6 @@ extension RemoveProcess {
         uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
         """
       } else {
-        fatalError("Test")
         return """
         device uint *destination32 = references32 +
         ulong(slotID) * \(MemorySlot.reference32.size / 4);
@@ -106,7 +105,6 @@ extension RemoveProcess {
         atomID = references32[listAddress32 + i];
         """
       } else {
-        fatalError("Test")
         return """
         atomID = destination32[i];
         """
@@ -122,7 +120,6 @@ extension RemoveProcess {
         references32[listAddress32 + localOffset] = atomID;
         """
       } else {
-        fatalError("Test")
         return """
         destination32[localOffset] = atomID;
         """
