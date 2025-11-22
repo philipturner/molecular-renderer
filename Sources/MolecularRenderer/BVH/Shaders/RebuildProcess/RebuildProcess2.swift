@@ -167,7 +167,13 @@ extension RebuildProcess {
         references16[listAddress16 + offset] = \(castUShort("i"));
         """
       } else {
-        
+        #if os(macOS)
+
+        #else
+        return """
+        destination16[listAddress16 + offset] = \(castUShort("i"));
+        """
+        #endif
       }
     }
 

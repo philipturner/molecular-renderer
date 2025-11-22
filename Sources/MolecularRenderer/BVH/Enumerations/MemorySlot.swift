@@ -49,6 +49,10 @@ enum MemorySlot {
   // the NonUniformResourceIndex problem. With 32 GB of RAM, 6 versions
   // of references16 would be bound.
   //
+  // TODO: Test for a regression in rendering speed on the AMD GPU.
+  // Measure the latency on the GPU timeline before and after crossing
+  // the 4 GB threshold.
+  //
   // macOS:
   // Modify RemoveProcess3, AddProcess3, RebuildProcess2, Render to
   // use some form of 64-bit arithmetic. When possible, store pointers
