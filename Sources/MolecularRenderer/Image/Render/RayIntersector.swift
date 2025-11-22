@@ -59,7 +59,7 @@ private func createTestCell(memorySlotCount: Int) -> String {
     "inout IntersectionResult result"
     #endif
   }
-
+  
   func createBody() -> String {
     let overflows16 = SparseVoxelResources.overflows16(
       memorySlotCount: memorySlotCount)
@@ -94,8 +94,40 @@ private func createTestCell(memorySlotCount: Int) -> String {
       """
     } else {
       #if os(macOS)
+      func initializeAddress32() -> String {
+        let overflows32 = SparseVoxelResources.overflows32(
+          memorySlotCount: memorySlotCount)
+        
+        if !overflows32 {
+          return """
+          uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+          """
+        } else {
+          return """
+          device uint *destination32 = references32 +
+          ulong(slotID) * \(MemorySlot.reference32.size / 4);
+          """
+        }
+      }
+      
+      func getAtomID() -> String {
+        let overflows32 = SparseVoxelResources.overflows32(
+          memorySlotCount: memorySlotCount)
+        
+        if !overflows32 {
+          return """
+          uint atomID = references32[listAddress32 + reference16];
+          """
+        } else {
+          fatalError("Hello world")
+          return """
+          uint atomID = destination32[reference16];
+          """
+        }
+      }
+      
       return """
-      uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+      \(initializeAddress32())
       device ushort *destination16 = references16 +
       ulong(slotID) * \(MemorySlot.reference16.size / 2);
       
@@ -109,7 +141,7 @@ private func createTestCell(memorySlotCount: Int) -> String {
       // Test every atom in the voxel.
       while (referenceCursor < referenceEnd) {
         uint reference16 = destination16[referenceCursor];
-        uint atomID = references32[listAddress32 + reference16];
+        \(getAtomID())
         float4 atom = atoms[atomID];
         
         intersectAtom(result,

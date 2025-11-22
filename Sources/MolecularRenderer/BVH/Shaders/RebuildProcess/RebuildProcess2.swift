@@ -184,7 +184,7 @@ extension RebuildProcess {
       
       if !overflows32 {
         return """
-        uint atomID = references32[listAddress + i];
+        uint atomID = references32[listAddress32 + i];
         """
       } else {
         return """

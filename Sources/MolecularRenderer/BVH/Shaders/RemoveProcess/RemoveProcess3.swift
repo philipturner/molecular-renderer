@@ -75,7 +75,7 @@ extension RemoveProcess {
       ""
       #endif
     }
-
+    
     func waveID() -> String {
       "localID / \(Reduction.waveGetLaneCount())"
     }
