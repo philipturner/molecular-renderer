@@ -72,6 +72,7 @@ extension AddProcess {
         references32[listAddress32 + offset] = atomID;
         """
       } else {
+        fatalError("Test")
         return """
         device uint *destination32 = references32 +
         ulong(slotID) * \(MemorySlot.reference32.size / 4);

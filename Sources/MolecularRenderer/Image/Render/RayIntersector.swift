@@ -103,6 +103,7 @@ private func createTestCell(memorySlotCount: Int) -> String {
           uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
           """
         } else {
+          fatalError("Test")
           return """
           device uint *destination32 = references32 +
           ulong(slotID) * \(MemorySlot.reference32.size / 4);
@@ -119,7 +120,7 @@ private func createTestCell(memorySlotCount: Int) -> String {
           uint atomID = references32[listAddress32 + reference16];
           """
         } else {
-          fatalError("Hello world")
+          fatalError("Test")
           return """
           uint atomID = destination32[reference16];
           """
