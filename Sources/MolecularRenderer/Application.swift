@@ -205,8 +205,10 @@ public class Application {
       descriptorHeap: descriptorHeap)
     bvhBuilder.voxels.encodeMarks(
       descriptorHeap: descriptorHeap)
+      /*
     bvhBuilder.voxels.encodeMemorySlots(
       descriptorHeap: descriptorHeap)
+      */
   }
   #endif
   
