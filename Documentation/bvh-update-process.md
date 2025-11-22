@@ -4,7 +4,7 @@ This is an effort to organize the numerous sub-tasks of the acceleration structu
 
 Table of Contents:
 - [Acceleration Structure Layout](#acceleration-structure-layout)
-- [Idle/Active Paradigm](#idle-active-paradigm)
+- [Idle/Active Paradigm](#idleactive-paradigm)
 - [Stages](#stages)
 - [Memory Allocation](#memory-allocation)
 
