@@ -81,7 +81,8 @@ extension Application {
     jitterOffsetDesc.index = frameID
     jitterOffsetDesc.upscaleFactor = imageResources.renderTarget.upscaleFactor
     
-    return JitterOffset.create(descriptor: jitterOffsetDesc)
+    //return JitterOffset.create(descriptor: jitterOffsetDesc)
+    return .zero
   }
   
   private func createRenderArgs() -> RenderArgs {

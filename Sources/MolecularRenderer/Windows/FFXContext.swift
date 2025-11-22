@@ -29,6 +29,8 @@ class FFXContext {
       FFX_UPSCALE_ENABLE_DEPTH_INFINITE.rawValue)
     createContext.value.flags |= UInt32(
       FFX_UPSCALE_ENABLE_DEBUG_CHECKING.rawValue)
+    createContext.value.flags |= UInt32(
+      FFX_UPSCALE_ENABLE_DEBUG_VISUALIZATION.rawValue)
     
     // Set the texture dimensions.
     func createFFXDimensions(

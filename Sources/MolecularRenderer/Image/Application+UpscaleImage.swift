@@ -103,7 +103,8 @@ extension Application {
     jitterOffsetDesc.index = frameID
     jitterOffsetDesc.upscaleFactor = imageResources.renderTarget.upscaleFactor
     
-    return JitterOffset.create(descriptor: jitterOffsetDesc)
+    //return JitterOffset.create(descriptor: jitterOffsetDesc)
+    return .zero
   }
   
   public func upscale(image: Image) -> Image {
@@ -113,7 +114,7 @@ extension Application {
     guard image.scaleFactor == 1 else {
       fatalError("Received image with incorrect scale factor.")
     }
-    fallbackUpscale()
+    standardUpscale()
     
     var output = Image()
     output.scaleFactor = imageResources.renderTarget.upscaleFactor
@@ -218,8 +219,8 @@ extension Application {
       
       // Sharpening harms the quality of bright shiny light reflections
       // (specular effect), making it look pixelated instead of smooth.
-      dispatch.value.enableSharpening = false
-      dispatch.value.sharpness = 0
+      dispatch.value.enableSharpening = true
+      dispatch.value.sharpness = 0.5
       dispatch.value.frameTimeDelta = 2 // this doesn't do anything
       dispatch.value.preExposure = 1
       
@@ -233,7 +234,8 @@ extension Application {
       dispatch.value.cameraFar = 0.075 // 75 pm, circumvents debug warning
       dispatch.value.cameraFovAngleVertical = camera.fovAngleVertical
       dispatch.value.viewSpaceToMetersFactor = 1
-      dispatch.value.flags = 0
+      dispatch.value.flags = UInt32(
+        FFX_UPSCALE_FLAG_DRAW_DEBUG_VIEW.rawValue)
       
       // Encode the GPU commands for upscaling.
       upscaler.ffxContext.dispatch(descriptor: dispatch)
@@ -277,7 +279,7 @@ extension Application {
           .setTexture(upscaledTexture, index: 1)
         #else
         commandList.setDescriptor(
-          handleID: 2 + frameID % 2, index: 0)
+          handleID: frameID % 2, index: 0)
         commandList.setDescriptor(
           handleID: 6 + frameID % 2, index: 1)
         #endif
