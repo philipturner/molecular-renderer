@@ -113,7 +113,7 @@ extension Application {
     guard image.scaleFactor == 1 else {
       fatalError("Received image with incorrect scale factor.")
     }
-    standardUpscale()
+    fallbackUpscale()
     
     var output = Image()
     output.scaleFactor = imageResources.renderTarget.upscaleFactor
@@ -277,7 +277,7 @@ extension Application {
           .setTexture(upscaledTexture, index: 1)
         #else
         commandList.setDescriptor(
-          handleID: frameID % 2, index: 0)
+          handleID: 2 + frameID % 2, index: 0)
         commandList.setDescriptor(
           handleID: 6 + frameID % 2, index: 1)
         #endif

@@ -55,6 +55,25 @@ struct UpscaleShader {
     
     return """
     \(importStandardLibrary())
+
+    float convertToChannel(
+      float hue,
+      float saturation,
+      float lightness,
+      uint n
+    ) {
+      float k = float(n) + hue / 30;
+      k -= 12 * floor(k / 12);
+      
+      float a = saturation;
+      a *= min(lightness, 1 - lightness);
+      
+      float output = min(k - 3, 9 - k);
+      output = max(output, float(-1));
+      output = min(output, float(1));
+      output = lightness - a * output;
+      return output;
+    }
     
     \(functionSignature())
     {
@@ -62,6 +81,22 @@ struct UpscaleShader {
       uint2 inputCoords = pixelCoords / \(Int(upscaleFactor));
       \(readColor())
       
+      color.x -= 0.07;
+      color.x = 25 * color.x;
+      if (color.x > 1) {
+        color.x = 0;
+      }
+      color.x = saturate(color.x);
+
+      float hue = color.x * 360;
+      float saturation = 1.0;
+      float lightness = 0.5;
+      
+      float red = convertToChannel(hue, saturation, lightness, 0);
+      float green = convertToChannel(hue, saturation, lightness, 8);
+      float blue = convertToChannel(hue, saturation, lightness, 4);
+      color = float4(red, green, blue, 1.00);
+
       // Write to the output texture.
       \(writeColor())
     }

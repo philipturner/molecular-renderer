@@ -227,7 +227,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(720, 960)
+  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1920)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
@@ -298,6 +298,7 @@ func modifyCamera() {
   
   application.camera.position = transform(SIMD3(0.20, 0.20, 1.40))
   application.camera.fovAngleVertical = Float.pi / 180 * 60
+  application.camera.secondaryRayCount = nil
 }
 
 // Enter the run loop.
