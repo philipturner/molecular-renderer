@@ -280,9 +280,9 @@ func modifyAtoms() {
 
 @MainActor
 func modifyCamera() {
-  // 0.005 Hz rotation rate
+  // 0.01 Hz rotation rate
   let time = createTime()
-  let angleDegrees = 0.005 * time * 360
+  let angleDegrees = 0.01 * time * 360
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * angleDegrees,
     axis: SIMD3(0, 1, 0))
