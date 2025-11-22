@@ -460,7 +460,7 @@ func createRayIntersector(
   // voxels.sparse.memorySlots [32, 16]
   func bvhBuffers() -> String {
     #if os(macOS)
-    """
+    return """
     device float4 *atoms;
     device uint *voxelGroup8OccupiedMarks;
     device uint *voxelGroup32OccupiedMarks;
@@ -471,14 +471,25 @@ func createRayIntersector(
     threadgroup uint2 *memoryTape;
     """
     #else
-    """
+    func ref16Argument() -> String {
+      let regionCount = SparseVoxelResources.regionCount(
+        memorySlotCount: memorySlotCount)
+      
+      if regionCount <= 1 {
+        return "RWBuffer<uint> references16;"
+      } else {
+        return "RWBuffer<uint> references16[\(regionCount)];"
+      }
+    }
+
+    return """
     RWStructuredBuffer<float4> atoms;
     RWStructuredBuffer<uint> voxelGroup8OccupiedMarks;
     RWStructuredBuffer<uint> voxelGroup32OccupiedMarks;
     RWStructuredBuffer<uint> assignedSlotIDs;
     RWStructuredBuffer<uint> headers;
     RWStructuredBuffer<uint> references32;
-    RWBuffer<uint> references16;
+    \(ref16Argument())
     """
     #endif
   }
