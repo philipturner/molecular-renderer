@@ -133,7 +133,7 @@ For the MM4 test, there is a graphical glitch when the simulation ends and the a
 
 I checked that my code was doing everything correctly. To bug appears even when every pixel of the depth texture is forced to 0.5. It still appears when the jitter offsets are set to zero (which may worsen the grid lines artifact). The intermediate texture doesn't have the artifact. Offline renders are not affected.
 
-Another culprit could be changing the system's GPU from GTX 970 to RX 7900 XTX. The latter supports 16-bit ALU arithmetic. It could be a problem that only appears in FidelityFX's shader variants that use FP16 to optimize shader execution speed.
+One culprit could be changing the system's GPU from GTX 970 to RX 7900 XTX. The latter supports 16-bit ALU arithmetic. It could be a problem that only appears in FidelityFX's shader variants that use FP16 to optimize execution speed.
 
 TODO: Upload media
 
