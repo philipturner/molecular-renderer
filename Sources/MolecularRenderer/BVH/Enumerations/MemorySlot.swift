@@ -57,7 +57,7 @@ enum MemorySlot {
   // The solution will scale to 430-460 GB of RAM, as we won't account
   // for 32-bit overflows of '.header'. This will pose some scaling
   // issues if we implement the more memory-efficient BVH structure.
-
+  
   // Offset (in bytes) of the small headers within a header slot.
   static var smallHeadersOffset: Int { 2 * 4 }
 }
