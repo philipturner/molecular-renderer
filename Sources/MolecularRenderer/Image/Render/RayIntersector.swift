@@ -80,7 +80,7 @@ private func createTestCell() -> String {
     
     // Test every atom in the voxel.
     while (referenceCursor < referenceEnd) {
-      uint reference16 = references16[referenceCursor];
+      uint reference16 = references16[0][referenceCursor];
       uint atomID = references32[listAddress + reference16];
       float4 atom = atoms[atomID];
       
@@ -478,7 +478,7 @@ func createRayIntersector(
     RWStructuredBuffer<uint> assignedSlotIDs;
     RWStructuredBuffer<uint> headers;
     RWStructuredBuffer<uint> references32;
-    RWBuffer<uint> references16;
+    RWBuffer<uint> references16[1];
     """
     #endif
   }
