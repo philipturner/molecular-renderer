@@ -1,6 +1,7 @@
 import HDL
 import MM4
 import MolecularRenderer
+import QuaternionModule
 
 // MARK: - Compile Structure
 
@@ -273,11 +274,18 @@ func modifyAtoms() {
 
 @MainActor
 func modifyCamera() {
-  application.camera.position = SIMD3(0.20, 0.20, 1.40)
+  // Add user option for avoiding graphical bug on Windows.
+  let time = createTime()
+  let angleDegrees = 0.005 * time * 360
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * angleDegrees,
+    axis: SIMD3(0, 1, 0))
   
-  application.camera.basis.0 = SIMD3(1, 0, 0)
-  application.camera.basis.1 = SIMD3(0, 1, 0)
-  application.camera.basis.2 = SIMD3(0, 0, 1)
+  application.camera.position = rotation.act(on: SIMD3(0.20, 0.20, 1.40))
+  
+  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
+  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
+  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
   application.camera.fovAngleVertical = Float.pi / 180 * 60
 }
 
