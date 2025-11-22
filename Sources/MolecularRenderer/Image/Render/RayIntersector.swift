@@ -63,10 +63,13 @@ private func createTestCell(memorySlotCount: Int) -> String {
   func createBody() -> String {
     let regionCount = SparseVoxelResources.regionCount(
       memorySlotCount: memorySlotCount)
+    var max32BitSlotCount: Int {
+      MemorySlot.reference16.max32BitSlotCount
+    }
 
     if regionCount <= 1 {
       return """
-      uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+      uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
       uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
       
       // Set the loop bounds register.
@@ -81,7 +84,7 @@ private func createTestCell(memorySlotCount: Int) -> String {
       // Test every atom in the voxel.
       while (referenceCursor < referenceEnd) {
         uint reference16 = references16[referenceCursor];
-        uint atomID = references32[listAddress + reference16];
+        uint atomID = references32[listAddress32 + reference16];
         float4 atom = atoms[atomID];
         
         intersectAtom(result,
@@ -93,7 +96,65 @@ private func createTestCell(memorySlotCount: Int) -> String {
       }
       """
     } else {
-
+      #if os(macOS)
+      return """
+      uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+      device ushort *destination16 = references16 +
+      ulong(slotID) * \(MemorySlot.reference16.size / 2);
+      
+      // Set the loop bounds register.
+      uint referenceCursor = smallHeader & 0xFFFF;
+      uint referenceEnd = smallHeader >> 16;
+      
+      // Prevent infinite loops from corrupted BVH data.
+      referenceEnd = min(referenceEnd, referenceCursor + 128);
+      
+      // Test every atom in the voxel.
+      while (referenceCursor < referenceEnd) {
+        uint reference16 = destination16[referenceCursor];
+        uint atomID = references32[listAddress32 + reference16];
+        float4 atom = atoms[atomID];
+        
+        intersectAtom(result,
+                      query,
+                      atom,
+                      atomID);
+        
+        referenceCursor += 1;
+      }
+      """
+      #else
+      return """
+      uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+      uint regionID = slotID / \(max32BitSlotCount);
+      uint listAddress16 = (slotID - regionID * \(max32BitSlotCount)) *
+      \(MemorySlot.reference16.size / 2);
+      RWBuffer<uint> destination16 = references16[regionID];
+      
+      // Set the loop bounds register.
+      uint referenceCursor = smallHeader & 0xFFFF;
+      uint referenceEnd = smallHeader >> 16;
+      referenceCursor += listAddress16;
+      referenceEnd += listAddress16;
+      
+      // Prevent infinite loops from corrupted BVH data.
+      referenceEnd = min(referenceEnd, referenceCursor + 128);
+      
+      // Test every atom in the voxel.
+      while (referenceCursor < referenceEnd) {
+        uint reference16 = destination16[referenceCursor];
+        uint atomID = references32[listAddress32 + reference16];
+        float4 atom = atoms[atomID];
+        
+        intersectAtom(result,
+                      query,
+                      atom,
+                      atomID);
+        
+        referenceCursor += 1;
+      }
+      """
+      #endif
     }
   }
   
