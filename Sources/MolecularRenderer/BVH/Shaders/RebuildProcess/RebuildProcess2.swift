@@ -207,8 +207,6 @@ extension RebuildProcess {
         destination16[offset] = \(castUShort("i"));
         """
         #else
-        let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
-        
         return """
         destination16[listAddress16 + offset] = \(castUShort("i"));
         """
