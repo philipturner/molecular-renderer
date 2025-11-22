@@ -213,7 +213,7 @@ class SparseVoxelResources {
   static func ref16FunctionArgument(
     _ memorySlotCount: Int
   ) -> String {
-    return "RWBuffer<uint> references16[1] : register(u100);"
+    return "RWBuffer<uint> references16 : register(u100);"
   }
   
   static func ref16RootSignatureArgument(

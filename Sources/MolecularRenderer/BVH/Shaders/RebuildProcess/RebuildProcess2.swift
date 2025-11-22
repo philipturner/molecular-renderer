@@ -278,7 +278,7 @@ extension RebuildProcess {
                 uint offset;
                 \(atomicFetchAdd())
                 
-                references16[0][listAddress16 + offset] = \(castUShort("i"));
+                references16[listAddress16 + offset] = \(castUShort("i"));
               }
             }
           }
