@@ -62,6 +62,24 @@ extension AddProcess {
       #endif
     }
     
+    func setAtomID() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+        references32[listAddress32 + offset] = atomID;
+        """
+      } else {
+        return """
+        device uint *destination32 = references32 +
+        ulong(slotID) * \(MemorySlot.reference32.size / 4);
+        destination32[offset] = atomID;
+        """
+      }
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -134,8 +152,7 @@ extension AddProcess {
             }
             
             uint slotID = assignedSlotIDs[voxelID];
-            uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
-            references32[listAddress + offset] = atomID;
+            \(setAtomID())
           }
         }
       }
