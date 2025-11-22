@@ -8,6 +8,8 @@ struct ImageResourcesDescriptor {
 
 class ImageResources {
   let renderShader: Shader
+  let upscaleShader: Shader
+
   let renderTarget: RenderTarget
   let upscaler: Upscaler?
   
@@ -15,6 +17,37 @@ class ImageResources {
   var previousCameraArgs: CameraArgs?
   
   init(descriptor: ImageResourcesDescriptor) {
+    guard let device = descriptor.device,
+          let display = descriptor.display,
+          let upscaleFactor = descriptor.upscaleFactor else {
+      fatalError("Descriptor was incomplete.")
+    }
+    self.renderShader = Self.createRenderShader(descriptor: descriptor)
+    self.upscaleShader = Self.createUpscaleShader(descriptor: descriptor)
+
+    var renderTargetDesc = RenderTargetDescriptor()
+    renderTargetDesc.device = device
+    renderTargetDesc.display = display
+    renderTargetDesc.upscaleFactor = upscaleFactor
+    self.renderTarget = RenderTarget(descriptor: renderTargetDesc)
+    
+    if upscaleFactor > 1 {
+      var upscalerDesc = UpscalerDescriptor()
+      upscalerDesc.device = device
+      upscalerDesc.display = display
+      upscalerDesc.upscaleFactor = upscaleFactor
+      self.upscaler = Upscaler(descriptor: upscalerDesc)
+    } else {
+      self.upscaler = nil
+    }
+    
+    self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
+    self.previousCameraArgs = nil
+  }
+
+  private static func createRenderShader(
+    descriptor: ImageResourcesDescriptor
+  ) -> Shader {
     guard let device = descriptor.device,
           let display = descriptor.display,
           let memorySlotCount = descriptor.memorySlotCount,
@@ -40,26 +73,24 @@ class ImageResources {
     #endif
     shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     shaderDesc.source = renderShaderSource
-    self.renderShader = Shader(descriptor: shaderDesc)
-    
-    var renderTargetDesc = RenderTargetDescriptor()
-    renderTargetDesc.device = device
-    renderTargetDesc.display = display
-    renderTargetDesc.upscaleFactor = upscaleFactor
-    self.renderTarget = RenderTarget(descriptor: renderTargetDesc)
-    
-    if upscaleFactor > 1 {
-      var upscalerDesc = UpscalerDescriptor()
-      upscalerDesc.device = device
-      upscalerDesc.display = display
-      upscalerDesc.upscaleFactor = upscaleFactor
-      self.upscaler = Upscaler(descriptor: upscalerDesc)
-    } else {
-      self.upscaler = nil
+    return Shader(descriptor: shaderDesc)
+  }
+
+  private static func createUpscaleShader(
+    descriptor: ImageResourcesDescriptor
+  ) -> Shader {
+    guard let device = descriptor.device,
+          let upscaleFactor = descriptor.upscaleFactor else {
+      fatalError("Descriptor was incomplete.")
     }
-    
-    self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
-    self.previousCameraArgs = nil
+
+    var shaderDesc = ShaderDescriptor()
+    shaderDesc.device = device
+    shaderDesc.name = "upscale"
+    shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
+    shaderDesc.source = UpscaleShader.createSource(
+      upscaleFactor: upscaleFactor)
+    return Shader(descriptor: shaderDesc)
   }
   
   private static func createCameraArgsBuffer(
