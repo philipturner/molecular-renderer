@@ -89,7 +89,40 @@ extension RemoveProcess {
         uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
         """
       } else {
-        fatalError("Hello world.")
+        return """
+        device uint *destination32 = references32 +
+        ulong(slotID) * \(MemorySlot.reference32.size / 4);
+        """
+      }
+    }
+    
+    func getAtomID() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        atomID = references32[listAddress32 + i];
+        """
+      } else {
+        return """
+        atomID = destination32[i];
+        """
+      }
+    }
+    
+    func setAtomID() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        references32[listAddress32 + localOffset] = atomID;
+        """
+      } else {
+        return """
+        destination32[localOffset] = atomID;
+        """
       }
     }
     
@@ -124,7 +157,7 @@ extension RemoveProcess {
         uint atomID = \(UInt32.max);
         bool shouldKeep = false;
         if (inLoopBounds) {
-          atomID = references32[listAddress32 + i];
+          \(getAtomID())
           if (addressOccupiedMarks[atomID] == 1) {
             shouldKeep = true;
           }
@@ -147,7 +180,7 @@ extension RemoveProcess {
         \(Reduction.groupLocalBarrier())
         
         if (shouldKeep) {
-          references32[listAddress32 + localOffset] = atomID;
+          \(setAtomID())
         }
       }
       if (localID == 0) {
