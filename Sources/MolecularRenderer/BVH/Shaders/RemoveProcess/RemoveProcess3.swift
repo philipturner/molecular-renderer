@@ -80,13 +80,18 @@ extension RemoveProcess {
       "localID / \(Reduction.waveGetLaneCount())"
     }
     
-//    func initializeAddress32() -> String {
-//      #if os(macOS)
-//      let regionCount = SparseVoxelResources.regionCount(
-//        memorySlotCount: memorySlotCount)
-//      
-//      #endif
-//    }
+    func initializeAddress32() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+        """
+      } else {
+        fatalError("Hello world.")
+      }
+    }
     
     return """
     \(Shader.importStandardLibrary)
@@ -106,7 +111,7 @@ extension RemoveProcess {
       
       uint slotID = assignedSlotIDs[voxelID];
       uint headerAddress = slotID * \(MemorySlot.header.size / 4);
-      uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+      \(initializeAddress32())
       
       // check the addressOccupiedMark of each atom in voxel
       uint beforeAtomCount = headers[headerAddress];

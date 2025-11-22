@@ -230,7 +230,12 @@ class SparseVoxelResources {
   }
   
   static func overflows32(memorySlotCount: Int) -> Bool {
+    #if os(macOS)
+    // TODO: Use reference32.max32BitSlotCount once everything is debugged.
     return overflows16(memorySlotCount: memorySlotCount)
+    #else
+    return false
+    #endif
   }
   
   static func overflows16(memorySlotCount: Int) -> Bool {

@@ -130,11 +130,11 @@ extension RebuildProcess {
       return input
       #endif
     }
-
+    
     func waveID() -> String {
       "localID / \(Reduction.waveGetLaneCount())"
     }
-
+    
     func initializeAddress16() -> String {
       let overflows16 = SparseVoxelResources.overflows16(
         memorySlotCount: memorySlotCount)
