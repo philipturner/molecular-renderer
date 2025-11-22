@@ -131,7 +131,7 @@ Despite its downsides, FSR 3 makes it possible to bring Molecular Renderer to th
 
 For the MM4 test, there is a graphical glitch when the simulation ends and the atoms are still. There appears to be banding based on angle of the surface, relative to the camera direction. In addition, there may be a faint pattern of grid lines. It could be one of the quality regressions of FSR 3 compared to FSR 2 ([1](https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/issues/133), [2](https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/issues/134)).
 
-I checked that my code was doing everything correctly. To bug appears even when every pixel of the depth texture is forced to 0.5. It still appears when the jitter offsets are set to zero (which may worsen the grid lines artifact). The intermediate texture doesn't have the artifact. Offline renders are not affected.
+I checked that my code was doing everything correctly. The bug appears even when every pixel of the depth texture is forced to 0.5. It still appears when the jitter offsets are set to zero (which may worsen the grid lines artifact). The intermediate color texture doesn't have the artifact. The bug does not affect offline renders, where upscaling is turned off.
 
 One culprit could be changing the system's GPU from GTX 970 to RX 7900 XTX. The latter supports 16-bit ALU arithmetic. It could be a problem that only appears in FidelityFX's shader variants that use FP16 to optimize execution speed. There is no way to disable use of 16-bit variants, except recompiling the binaries from source.
 
