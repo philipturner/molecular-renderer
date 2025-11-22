@@ -146,7 +146,10 @@ extension RebuildProcess {
         """
       } else {
         #if os(macOS)
-
+        return """
+        device ushort *destination16 = references16 +
+        ulong(slotID) * \(MemorySlot.reference16.size / 2);
+        """
         #else
         return """
         uint regionID = slotID / \(max32BitSlotCount);
@@ -157,7 +160,7 @@ extension RebuildProcess {
         #endif
       }
     }
-    
+
     func writeAddress16() -> String {
       let regionCount = SparseVoxelResources.regionCount(
         memorySlotCount: memorySlotCount)
@@ -168,7 +171,9 @@ extension RebuildProcess {
         """
       } else {
         #if os(macOS)
-
+        return """
+        destination16[offset] = \(castUShort("i"));
+        """
         #else
         return """
         destination16[listAddress16 + offset] = \(castUShort("i"));
