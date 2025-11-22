@@ -41,7 +41,7 @@ enum MemorySlot {
   
   // Response to the overflow problem:
   // Branch that only activates when voxelAllocationSize is
-  // large enough to cause an overflow for references16 (~11 GB).
+  // large enough to cause an overflow for references16 (5.5-11.0 GB).
   //
   // Windows:
   // Bind multiple versions of references16 into the shader. We must use
