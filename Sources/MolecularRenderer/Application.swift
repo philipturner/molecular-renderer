@@ -43,8 +43,8 @@ public class Application {
   #endif
   
   // Other resources
-  let imageResources: ImageResources
   let bvhBuilder: BVHBuilder
+  let imageResources: ImageResources
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {
@@ -57,7 +57,7 @@ public class Application {
           let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
-    
+
     // Check this early to avoid propagation of undefined behavior into shader
     // codegen and other parts that rely on the upscale factor.
     if display.isOffline {
@@ -104,13 +104,6 @@ public class Application {
     #endif
     
     // Create the other resources.
-    var imageResourcesDesc = ImageResourcesDescriptor()
-    imageResourcesDesc.device = device
-    imageResourcesDesc.display = display
-    imageResourcesDesc.upscaleFactor = upscaleFactor
-    imageResourcesDesc.worldDimension = worldDimension
-    self.imageResources = ImageResources(descriptor: imageResourcesDesc)
-    
     var bvhBuilderDesc = BVHBuilderDescriptor()
     bvhBuilderDesc.addressSpaceSize = atoms.addressSpaceSize
     bvhBuilderDesc.device = device
@@ -118,6 +111,14 @@ public class Application {
     bvhBuilderDesc.worldDimension = worldDimension
     self.bvhBuilder = BVHBuilder(descriptor: bvhBuilderDesc)
     
+    var imageResourcesDesc = ImageResourcesDescriptor()
+    imageResourcesDesc.device = device
+    imageResourcesDesc.display = display
+    imageResourcesDesc.memorySlotCount = bvhBuilder.voxels.memorySlotCount
+    imageResourcesDesc.upscaleFactor = upscaleFactor
+    imageResourcesDesc.worldDimension = worldDimension
+    self.imageResources = ImageResources(descriptor: imageResourcesDesc)
+
     #if os(Windows)
     // Bind resources to the descriptor heap.
     encodeDescriptorHeap()
@@ -196,7 +197,8 @@ public class Application {
       descriptorHeap: descriptorHeap)
     
     bvhBuilder.atoms.encodeMotionVectors(
-      descriptorHeap: descriptorHeap)
+      descriptorHeap: descriptorHeap,
+      supports16BitTypes: device.supports16BitTypes)
     bvhBuilder.atoms.encodeAddressOccupiedMarks(
       descriptorHeap: descriptorHeap)
     bvhBuilder.atoms.encodeRelativeOffsets(
@@ -204,8 +206,7 @@ public class Application {
     bvhBuilder.voxels.encodeMarks(
       descriptorHeap: descriptorHeap)
     bvhBuilder.voxels.encodeMemorySlots(
-      descriptorHeap: descriptorHeap,
-      supports16BitTypes: device.supports16BitTypes)
+      descriptorHeap: descriptorHeap)
   }
   #endif
   

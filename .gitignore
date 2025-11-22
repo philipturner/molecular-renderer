@@ -110,3 +110,6 @@ gfnff_charges
 
 # ZIP file workaround for Google Drive downloads being weird on Windows.
 /*.zip
+
+# Strange issue that happened once on Windows.
+desktop.ini

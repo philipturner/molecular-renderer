@@ -9,7 +9,11 @@ extension AddProcess {
   //   add to relativeOffset, generating the correct offset
   // read from dense.assignedSlotIDs
   // write a 32-bit reference into sparse.memorySlots
-  static func createSource3(worldDimension: Float) -> String {
+  static func createSource3(
+    memorySlotCount: Int,
+    supports16BitTypes: Bool,
+    worldDimension: Float
+  ) -> String {
     // atoms.*
     // voxels.dense.assignedSlotIDs
     // voxels.dense.atomicCounters
@@ -19,7 +23,7 @@ extension AddProcess {
       """
       kernel void addProcess3(
         \(CrashBuffer.functionArguments),
-        \(AtomResources.functionArguments),
+        \(AtomResources.functionArguments(supports16BitTypes)),
         device uint *assignedSlotIDs [[buffer(9)]],
         device uint *atomicCounters [[buffer(10)]],
         device uint *references32 [[buffer(11)]],
@@ -29,7 +33,7 @@ extension AddProcess {
       #else
       """
       \(CrashBuffer.functionArguments)
-      \(AtomResources.functionArguments)
+      \(AtomResources.functionArguments(supports16BitTypes))
       RWStructuredBuffer<uint> assignedSlotIDs : register(u9);
       RWStructuredBuffer<uint> atomicCounters : register(u10);
       RWStructuredBuffer<uint> references32 : register(u11);
@@ -38,7 +42,7 @@ extension AddProcess {
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
-        \(AtomResources.rootSignatureArguments)
+        \(AtomResources.rootSignatureArguments(supports16BitTypes))
         "UAV(u9),"
         "UAV(u10),"
         "UAV(u11),"
@@ -56,6 +60,24 @@ extension AddProcess {
       #else
       ""
       #endif
+    }
+    
+    func setAtomID() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+        references32[listAddress32 + offset] = atomID;
+        """
+      } else {
+        return """
+        device uint *destination32 = references32 +
+        ulong(slotID) * \(MemorySlot.reference32.size / 4);
+        destination32[offset] = atomID;
+        """
+      }
     }
     
     return """
@@ -130,8 +152,7 @@ extension AddProcess {
             }
             
             uint slotID = assignedSlotIDs[voxelID];
-            uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
-            references32[listAddress + offset] = atomID;
+            \(setAtomID())
           }
         }
       }

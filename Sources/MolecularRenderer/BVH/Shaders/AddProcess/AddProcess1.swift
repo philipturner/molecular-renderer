@@ -8,7 +8,10 @@ extension AddProcess {
   // write to group.addedMarks
   // write to dense.atomicCounters with 8 partial sums
   // save the relativeOffsets
-  static func createSource1(worldDimension: Float) -> String {
+  static func createSource1(
+    supports16BitTypes: Bool,
+    worldDimension: Float
+  ) -> String {
     // atoms.*
     // voxels.group.addedMarks
     // voxels.dense.atomicCounters
@@ -17,7 +20,7 @@ extension AddProcess {
       """
       kernel void addProcess1(
         \(CrashBuffer.functionArguments),
-        \(AtomResources.functionArguments),
+        \(AtomResources.functionArguments(supports16BitTypes)),
         device uint *voxelGroupAddedMarks [[buffer(9)]],
         device atomic_uint *atomicCounters [[buffer(10)]],
         uint globalID [[thread_position_in_grid]],
@@ -26,7 +29,7 @@ extension AddProcess {
       #else
       """
       \(CrashBuffer.functionArguments)
-      \(AtomResources.functionArguments)
+      \(AtomResources.functionArguments(supports16BitTypes))
       RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u9);
       RWStructuredBuffer<uint> atomicCounters : register(u10);
       groupshared uint cachedRelativeOffsets[8 * 128];
@@ -34,7 +37,7 @@ extension AddProcess {
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
-        \(AtomResources.rootSignatureArguments)
+        \(AtomResources.rootSignatureArguments(supports16BitTypes))
         "UAV(u9),"
         "UAV(u10),"
       )]
@@ -54,11 +57,11 @@ extension AddProcess {
     }
     
     func castHalf4(_ input: String) -> String {
-      #if os(macOS)
-      "half4(\(input))"
-      #else
-      input
-      #endif
+      if supports16BitTypes {
+        return "half4(\(input))"
+      } else {
+        return input
+      }
     }
     
     func atomicFetchAdd() -> String {

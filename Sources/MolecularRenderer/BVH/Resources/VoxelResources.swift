@@ -180,9 +180,11 @@ class SparseVoxelResources {
   
   let headers: Buffer
   let references32: Buffer
+  #if os(macOS)
   let references16: Buffer
-  #if os(Windows)
-  var references16HandleID: Int?
+  #else
+  var references16: [Buffer] = []
+  var references16HandleID: Int = -1
   #endif
   
   init(device: Device, memorySlotCount: Int) {
@@ -203,8 +205,96 @@ class SparseVoxelResources {
       size: memorySlotCount * MemorySlot.header.size)
     self.references32 = createBuffer(
       size: memorySlotCount * MemorySlot.reference32.size)
+    #if os(macOS)
     self.references16 = createBuffer(
       size: memorySlotCount * MemorySlot.reference16.size)
+    #else
+    func slotRange(regionID: Int) -> Range<Int> {
+      let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+      let startSlotID = regionID * max32BitSlotCount
+      var endSlotID = startSlotID + max32BitSlotCount
+      endSlotID = min(endSlotID, memorySlotCount)
+      return startSlotID..<endSlotID
+    }
+
+    let regionCount = SparseVoxelResources.regionCount(
+      memorySlotCount: memorySlotCount)
+    for regionID in 0..<regionCount {
+      let range = slotRange(regionID: regionID)
+
+      let buffer = createBuffer(
+        size: range.count * MemorySlot.reference16.size)
+      self.references16.append(buffer)
+    }
+    #endif
+  }
+  
+  static func overflows32(memorySlotCount: Int) -> Bool {
+    #if os(macOS)
+    let max32BitSlotCount = MemorySlot.reference32.max32BitSlotCount
+    return memorySlotCount > max32BitSlotCount
+    #else
+    return false
+    #endif
+  }
+  
+  static func overflows16(memorySlotCount: Int) -> Bool {
+    let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+    return memorySlotCount > max32BitSlotCount
+  }
+  
+  #if os(Windows)
+  // The number of ~4 GB regions the references16 buffer is divided into.
+  static func regionCount(memorySlotCount: Int) -> Int {
+    let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+    
+    var output = memorySlotCount
+    output += max32BitSlotCount - 1
+    output /= max32BitSlotCount
+    return output
+  }
+  
+  static func ref16FunctionArgument(
+    _ memorySlotCount: Int
+  ) -> String {
+    let regionCount = Self.regionCount(
+      memorySlotCount: memorySlotCount)
+    
+    if regionCount <= 1 {
+      return """
+      RWBuffer<uint> references16 : register(u100);
+      """
+    } else {
+      return """
+      RWBuffer<uint> references16[\(regionCount)] : register(u100);
+      """
+    }
+  }
+  
+  // Re-mapping the buffer slot to 100 because in HLSL, buffer labels
+  // don't correspond to RootParameterIndex.
+  static func ref16RootSignatureArgument(
+    _ memorySlotCount: Int
+  ) -> String {
+    let regionCount = Self.regionCount(
+      memorySlotCount: memorySlotCount)
+    return """
+    DescriptorTable(UAV(u100, numDescriptors = \(regionCount)))
+    """
+  }
+  #endif
+
+  func bindReferences16(
+    commandList: CommandList, 
+    index: Int
+  ) {
+    #if os(macOS)
+    commandList.setBuffer(references16, index: index)
+    #else
+    let handleID = references16HandleID
+    commandList.setDescriptor(
+      handleID: handleID, index: index)
+    #endif
   }
 }
 
@@ -233,32 +323,37 @@ extension VoxelResources {
     dense.rebuiltMarksHandleID = handleID2
   }
   
-  func encodeMemorySlots(
-    descriptorHeap: DescriptorHeap,
-    supports16BitTypes: Bool
-  ) {
-    guard !supports16BitTypes else {
-      return
+  func encodeMemorySlots(descriptorHeap: DescriptorHeap) {
+    func slotRange(regionID: Int) -> Range<Int> {
+      let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+      let startSlotID = regionID * max32BitSlotCount
+      var endSlotID = startSlotID + max32BitSlotCount
+      endSlotID = min(endSlotID, memorySlotCount)
+      return startSlotID..<endSlotID
     }
+    
+    let regionCount = SparseVoxelResources.regionCount(
+      memorySlotCount: memorySlotCount)
+    for regionID in 0..<regionCount {
+      let range = slotRange(regionID: regionID)
 
-    let bufferByteCount = memorySlotCount * MemorySlot.reference16.size
-    guard bufferByteCount <= 4_000_000_000 else {
-      fatalError("Will have a GPU suspended crash at runtime.")
+      var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
+      uavDesc.Format = DXGI_FORMAT_R16_UINT
+      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
+      uavDesc.Buffer.FirstElement = 0
+      uavDesc.Buffer.NumElements = UInt32(range.count * 20480)
+      uavDesc.Buffer.StructureByteStride = 0
+      uavDesc.Buffer.CounterOffsetInBytes = 0
+      uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
+      
+      let buffer = sparse.references16[regionID]
+      let handleID = descriptorHeap.createUAV(
+        resource: buffer.d3d12Resource,
+        uavDesc: uavDesc)
+      if regionID == 0 {
+        sparse.references16HandleID = handleID
+      }
     }
-    
-    var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
-    uavDesc.Format = DXGI_FORMAT_R16_UINT
-    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
-    uavDesc.Buffer.FirstElement = 0
-    uavDesc.Buffer.NumElements = UInt32(bufferByteCount / 2)
-    uavDesc.Buffer.StructureByteStride = 0
-    uavDesc.Buffer.CounterOffsetInBytes = 0
-    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
-    
-    let handleID = descriptorHeap.createUAV(
-      resource: sparse.references16.d3d12Resource,
-      uavDesc: uavDesc)
-    sparse.references16HandleID = handleID
   }
 }
 #endif

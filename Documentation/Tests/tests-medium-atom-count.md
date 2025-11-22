@@ -1,5 +1,11 @@
 # Tests: Medium Atom Count
 
+Table of Contents:
+- [Acceleration Structure](#acceleration-structure)
+- [MM4 Energy Minimization](#mm4-energy-minimization)
+- [Critical Pixel Count](#critical-pixel-count)
+- [MD Simulation Video](#md-simulation-video)
+
 ## Acceleration Structure
 
 Simple test that the ray tracing acceleration structure works correctly, with no bugs in the DDA. Tests a 9,827-atom cube. Ambient occlusion is enabled and uses default settings. Alternates between the following camera distances at three-second intervals: 6.54 nm, 20 nm, 50 nm.

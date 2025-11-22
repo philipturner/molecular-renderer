@@ -1,6 +1,7 @@
 struct ImageResourcesDescriptor {
   var device: Device?
   var display: Display?
+  var memorySlotCount: Int?
   var upscaleFactor: Float?
   var worldDimension: Float?
 }
@@ -16,25 +17,11 @@ class ImageResources {
   init(descriptor: ImageResourcesDescriptor) {
     guard let device = descriptor.device,
           let display = descriptor.display,
-          let upscaleFactor = descriptor.upscaleFactor,
-          let worldDimension = descriptor.worldDimension else {
+          let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
-    
-    var shaderDesc = ShaderDescriptor()
-    shaderDesc.device = device
-    shaderDesc.name = "render"
-    #if os(macOS)
-    shaderDesc.maxTotalThreadsPerThreadgroup = 1024
-    #endif
-    shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
-    shaderDesc.source = RenderShader.createSource(
-      isOffline: display.isOffline,
-      upscaleFactor: upscaleFactor,
-      worldDimension: worldDimension,
-      supports16BitTypes: device.supports16BitTypes)
-    self.renderShader = Shader(descriptor: shaderDesc)
-    
+    self.renderShader = Self.createRenderShader(descriptor: descriptor)
+
     var renderTargetDesc = RenderTargetDescriptor()
     renderTargetDesc.device = device
     renderTargetDesc.display = display
@@ -53,6 +40,37 @@ class ImageResources {
     
     self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
     self.previousCameraArgs = nil
+  }
+
+  private static func createRenderShader(
+    descriptor: ImageResourcesDescriptor
+  ) -> Shader {
+    guard let device = descriptor.device,
+          let display = descriptor.display,
+          let memorySlotCount = descriptor.memorySlotCount,
+          let upscaleFactor = descriptor.upscaleFactor,
+          let worldDimension = descriptor.worldDimension else {
+      fatalError("Descriptor was incomplete.")
+    }
+
+    var renderShaderDesc = RenderShaderDescriptor()
+    renderShaderDesc.isOffline = display.isOffline
+    renderShaderDesc.memorySlotCount = memorySlotCount
+    renderShaderDesc.supports16BitTypes = device.supports16BitTypes
+    renderShaderDesc.upscaleFactor = upscaleFactor
+    renderShaderDesc.worldDimension = worldDimension
+    let renderShaderSource = RenderShader.createSource(
+      descriptor: renderShaderDesc)
+    
+    var shaderDesc = ShaderDescriptor()
+    shaderDesc.device = device
+    shaderDesc.name = "render"
+    #if os(macOS)
+    shaderDesc.maxTotalThreadsPerThreadgroup = 1024
+    #endif
+    shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
+    shaderDesc.source = renderShaderSource
+    return Shader(descriptor: shaderDesc)
   }
   
   private static func createCameraArgsBuffer(

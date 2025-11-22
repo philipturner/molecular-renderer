@@ -1,38 +1,40 @@
 struct ResetIdle {
   // [numthreads(128, 1, 1)]
   // dispatch threads SIMD3(movedCount, 1, 1)
-  static func resetMotionVectors() -> String {
+  static func resetMotionVectors(
+    supports16BitTypes: Bool
+  ) -> String {
     // atoms.*
     func functionSignature() -> String {
       #if os(macOS)
       """
       kernel void resetMotionVectors(
         \(CrashBuffer.functionArguments),
-        \(AtomResources.functionArguments),
+        \(AtomResources.functionArguments(supports16BitTypes)),
         uint globalID [[thread_position_in_grid]])
       """
       #else
       """
       \(CrashBuffer.functionArguments)
-      \(AtomResources.functionArguments)
+      \(AtomResources.functionArguments(supports16BitTypes))
       
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
-        \(AtomResources.rootSignatureArguments)
+        \(AtomResources.rootSignatureArguments(supports16BitTypes))
       )]
       void resetMotionVectors(
         uint globalID : SV_DispatchThreadID)
       """
       #endif
     }
-    
-    func writeMotionVector() -> String {
-      #if os(macOS)
-      "motionVectors[atomID] = half4(motionVector);"
-      #else
-      "motionVectors[atomID] = motionVector;"
-      #endif
+
+    func castHalf4(_ input: String) -> String {
+      if supports16BitTypes {
+        return "half4(\(input))"
+      } else {
+        return input
+      }
     }
     
     return """
@@ -54,7 +56,7 @@ struct ResetIdle {
       
       uint atomID = transactionIDs[removedCount + globalID];
       float4 motionVector = 0;
-      \(writeMotionVector())
+      motionVectors[atomID] = \(castHalf4("motionVector"));
     }
     """
   }

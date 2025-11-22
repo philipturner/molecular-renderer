@@ -12,7 +12,10 @@ extension RemoveProcess {
   // if atoms remain, write to dense.rebuiltMarks
   // otherwise
   //   reset entry in dense.assignedSlotIDs and sparse.assignedVoxelCoords
-  static func createSource3(worldDimension: Float) -> String {
+  static func createSource3(
+    memorySlotCount: Int,
+    worldDimension: Float
+  ) -> String {
     // atoms.addressOccupiedMarks
     // voxels.dense.assignedSlotIDs
     // voxels.dense.rebuiltMarks
@@ -72,9 +75,55 @@ extension RemoveProcess {
       ""
       #endif
     }
-
+    
     func waveID() -> String {
       "localID / \(Reduction.waveGetLaneCount())"
+    }
+    
+    func initializeAddress32() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+        """
+      } else {
+        return """
+        device uint *destination32 = references32 +
+        ulong(slotID) * \(MemorySlot.reference32.size / 4);
+        """
+      }
+    }
+    
+    func getAtomID() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        atomID = references32[listAddress32 + i];
+        """
+      } else {
+        return """
+        atomID = destination32[i];
+        """
+      }
+    }
+    
+    func setAtomID() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        references32[listAddress32 + localOffset] = atomID;
+        """
+      } else {
+        return """
+        destination32[localOffset] = atomID;
+        """
+      }
     }
     
     return """
@@ -95,7 +144,7 @@ extension RemoveProcess {
       
       uint slotID = assignedSlotIDs[voxelID];
       uint headerAddress = slotID * \(MemorySlot.header.size / 4);
-      uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+      \(initializeAddress32())
       
       // check the addressOccupiedMark of each atom in voxel
       uint beforeAtomCount = headers[headerAddress];
@@ -108,7 +157,7 @@ extension RemoveProcess {
         uint atomID = \(UInt32.max);
         bool shouldKeep = false;
         if (inLoopBounds) {
-          atomID = references32[listAddress + i];
+          \(getAtomID())
           if (addressOccupiedMarks[atomID] == 1) {
             shouldKeep = true;
           }
@@ -131,7 +180,7 @@ extension RemoveProcess {
         \(Reduction.groupLocalBarrier())
         
         if (shouldKeep) {
-          references32[listAddress + localOffset] = atomID;
+          \(setAtomID())
         }
       }
       if (localID == 0) {

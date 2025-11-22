@@ -1,5 +1,10 @@
 # Tests: High Atom Count
 
+Table of Contents:
+- [Rotating Beam](#rotating-beam)
+- [Long Distances](#long-distances)
+- [Large Scenes](#large-scenes)
+
 ## Rotating Beam
 
 Objective is to reach as many atoms as possible, until the Metal Performance HUD shows the FPS dropping below the display's native refresh rate. Windows users can detect the drop by observing stuttering in the animation. When you are just at the limit of atom count, it may take a few seconds for the FPS to stabilize at the target value.
@@ -58,8 +63,6 @@ The structure is a hydrogen-passivated, Si(100)-(2×1) lattice generated with [`
 
 ## Large Scenes
 
-> Note: There is currently a bug with extremely large atom counts. 32-bit integers in shader code overflow, making memory accesses invalid. The atoms closest to the user are overwritten last in time, thus making the bug harder to detect (dense packing). Inefficient packing has such poor visual quality, you wouldn't even check for the bug. I found it when reaching ~400M atoms on M3 Ultra with dense packing. The bug appears at somewhere between 100&ndash;200M atoms on that machine. The bug contaminates the new benchmarks with the 7900 XTX, and might even contaminate the existing M1 Max data.
-
 Objective is to reach as many atoms as possible, until your GPU runs out of memory.
 
 A large number of 107k atom cubes, each with a random orientation. All packed in a grid, with a spacing to ensure they don't overlap. This hits the pain points of partial filling that waste memory, therefore being a realistic example of achievable atom count.
@@ -73,7 +76,7 @@ A large number of 107k atom cubes, each with a random orientation. All packed in
 | RTX 4090        |  24 GB | 225M  | n/a   | n/a   |
 | M1 Max          |  32 GB | 300M  | 153M  | 109M  |
 | RTX 5090        |  32 GB | 300M  | n/a   | n/a   |
-| M3 Ultra        |  96 GB | 900M  | n/a   | n/a   |
+| M3 Ultra        |  96 GB | 900M  | 606M  | 440M  |
 | M2 Ultra        | 192 GB | 1800M | n/a   | n/a   |
 
 Another limiter to atom count might be moiré patterns. CAD workflows at the million atom scale should strive to maximize window size and minimize camera distance. By packing the nanoparts less closely, this test follows a bad practice and increases the camera distance. Therefore, we provide an option to pack the nanoparts densely and see how this affects both performance and quality.

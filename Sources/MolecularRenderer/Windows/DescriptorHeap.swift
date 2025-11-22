@@ -98,8 +98,9 @@ extension CommandList {
     gpuHandle.ptr += UInt64(handleID * descriptorHeap.incrementSize)
     
     // Bind to the specified index in the root signature.
-    try! d3d12CommandList
-      .SetComputeRootDescriptorTable(UInt32(index), gpuHandle)
+    try! d3d12CommandList.SetComputeRootDescriptorTable(
+      UInt32(index), // RootParameterIndex
+      gpuHandle) // BaseDescriptor
   }
 }
 #endif

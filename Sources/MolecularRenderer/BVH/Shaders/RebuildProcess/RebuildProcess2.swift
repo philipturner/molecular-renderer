@@ -32,35 +32,17 @@ extension RebuildProcess {
   //   store two offsets relative to the slot's region for 16-bit references
   //   compress these two 16-bit offsets into a 32-bit word
   static func createSource2(
-    worldDimension: Float,
+    memorySlotCount: Int,
     vendor: Vendor,
-    supports16BitTypes: Bool
-    ) -> String {
+    worldDimension: Float
+  ) -> String {
     // atoms.atoms
     // voxels.dense.assignedSlotIDs
     // voxels.sparse.rebuiltVoxelCoords
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
-      #if os(Windows)
-      func references16ArgumentType() -> String {
-        if supports16BitTypes {
-          return "RWStructuredBuffer<uint16_t>"
-        } else {
-          return "RWBuffer<uint>"
-        }
-      }
-
-      func references16RootSignatureArgument() -> String {
-        if supports16BitTypes {
-          return "UAV(u6)"
-        } else {
-          return "DescriptorTable(UAV(u6, numDescriptors = 1))"
-        }
-      }
-      #endif
-
       #if os(macOS)
-      return """
+      """
       kernel void rebuildProcess2(
         \(CrashBuffer.functionArguments),
         device float4 *atoms [[buffer(1)]],
@@ -73,14 +55,14 @@ extension RebuildProcess {
         uint localID [[thread_position_in_threadgroup]])
       """
       #else
-      return """
+      """
       \(CrashBuffer.functionArguments)
       RWStructuredBuffer<float4> atoms : register(u1);
       RWStructuredBuffer<uint> assignedSlotIDs : register(u2);
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
       RWStructuredBuffer<uint> headers : register(u4);
       RWStructuredBuffer<uint> references32 : register(u5);
-      \(references16ArgumentType()) references16 : register(u6);
+      \(SparseVoxelResources.ref16FunctionArgument(memorySlotCount))
       groupshared uint threadgroupMemory[517];
       
       [numthreads(128, 1, 1)]
@@ -91,7 +73,7 @@ extension RebuildProcess {
         "UAV(u3),"
         "UAV(u4),"
         "UAV(u5),"
-        "\(references16RootSignatureArgument()),"
+        "\(SparseVoxelResources.ref16RootSignatureArgument(memorySlotCount)),"
       )]
       void rebuildProcess2(
         uint groupID : SV_GroupID,
@@ -145,16 +127,91 @@ extension RebuildProcess {
       #if os(macOS)
       return "ushort(\(input))"
       #else
-      if supports16BitTypes {
-        return "uint16_t(\(input))"
-      } else {
-        return input
-      }
+      return input
       #endif
     }
-
+    
     func waveID() -> String {
       "localID / \(Reduction.waveGetLaneCount())"
+    }
+    
+    func initializeAddress32() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+        """
+      } else {
+        return """
+        device uint *destination32 = references32 +
+        ulong(slotID) * \(MemorySlot.reference32.size / 4);
+        """
+      }
+    }
+    
+    func initializeAddress16() -> String {
+      let overflows16 = SparseVoxelResources.overflows16(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows16 {
+        return """
+        uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
+        """
+      } else {
+        #if os(macOS)
+        return """
+        device ushort *destination16 = references16 +
+        ulong(slotID) * \(MemorySlot.reference16.size / 2);
+        """
+        #else
+        let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+        
+        return """
+        uint regionID = slotID / \(max32BitSlotCount);
+        uint listAddress16 = (slotID - regionID * \(max32BitSlotCount)) *
+        \(MemorySlot.reference16.size / 2);
+        RWBuffer<uint> destination16 = references16[regionID];
+        """
+        #endif
+      }
+    }
+    
+    func getAtomID() -> String {
+      let overflows32 = SparseVoxelResources.overflows32(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows32 {
+        return """
+        uint atomID = references32[listAddress32 + i];
+        """
+      } else {
+        return """
+        uint atomID = destination32[i];
+        """
+      }
+    }
+    
+    func writeAddress16() -> String {
+      let overflows16 = SparseVoxelResources.overflows16(
+        memorySlotCount: memorySlotCount)
+      
+      if !overflows16 {
+        return """
+        references16[listAddress16 + offset] = \(castUShort("i"));
+        """
+      } else {
+        #if os(macOS)
+        return """
+        destination16[offset] = \(castUShort("i"));
+        """
+        #else
+        return """
+        destination16[listAddress16 + offset] = \(castUShort("i"));
+        """
+        #endif
+      }
     }
 
     return """
@@ -179,7 +236,7 @@ extension RebuildProcess {
       
       uint slotID = assignedSlotIDs[voxelID];
       uint headerAddress = slotID * \(MemorySlot.header.size / 4);
-      uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
+      \(initializeAddress32())
       uint atomCount = headers[headerAddress];
       
       \(Shader.unroll)
@@ -194,7 +251,7 @@ extension RebuildProcess {
       // =======================================================================
       
       for (uint i = localID; i < atomCount; i += 128) {
-        uint atomID = references32[listAddress + i];
+        \(getAtomID())
         float4 atom = atoms[atomID];
         \(computeLoopBounds())
         
@@ -276,10 +333,10 @@ extension RebuildProcess {
       // ===                            Phase III                            ===
       // =======================================================================
       
-      uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
+      \(initializeAddress16())
       
       for (uint i = localID; i < atomCount; i += 128) {
-        uint atomID = references32[listAddress + i];
+        \(getAtomID())
         float4 atom = atoms[atomID];
         \(computeLoopBounds())
         
@@ -300,7 +357,7 @@ extension RebuildProcess {
                 uint offset;
                 \(atomicFetchAdd())
                 
-                references16[listAddress16 + offset] = \(castUShort("i"));
+                \(writeAddress16())
               }
             }
           }
@@ -348,19 +405,8 @@ extension BVHBuilder {
         voxels.sparse.headers, index: 4)
       commandList.setBuffer(
         voxels.sparse.references32, index: 5)
-      
-      #if os(macOS)
-      commandList.setBuffer(
-        voxels.sparse.references16, index: 6)
-      #else
-      if let handleID = voxels.sparse.references16HandleID {
-        commandList.setDescriptor(
-          handleID: handleID, index: 6)
-      } else {
-        commandList.setBuffer(
-          voxels.sparse.references16, index: 6)
-      }
-      #endif
+      voxels.sparse.bindReferences16(
+        commandList: commandList, index: 6)
       
       let offset = GeneralCounters.offset(.rebuiltVoxelCount)
       commandList.dispatchIndirect(

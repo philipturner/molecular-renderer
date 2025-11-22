@@ -14,7 +14,7 @@ enum MemorySlot {
   var size: Int {
     switch self {
     case .header:
-      return 8 + 512 * 4
+      return (2 + 512) * 4
     case .reference32:
       return 3072 * 4
     case .reference16:
@@ -22,6 +22,42 @@ enum MemorySlot {
     }
   }
   
+  // The first slot ID where 64-bit integers must be
+  // used to index into this buffer.
+  var max32BitSlotCount: Int {
+    switch self {
+    case .header:
+      return 4_000_000_000 / (2 + 512)
+    case .reference32:
+      return 4_000_000_000 / 3072
+    case .reference16:
+      #if os(macOS)
+      return 4_000_000_000 / 20480
+      #else
+      return 2_000_000_000 / 20480
+      #endif
+    }
+  }
+  
+  // Response to the overflow problem:
+  // Branch that only activates when voxelAllocationSize is
+  // large enough to cause an overflow for references16 (5.5-11.0 GB).
+  //
+  // Windows:
+  // Bind multiple versions of references16 into the shader. We must use
+  // a descriptor table with multiple entries, and properly address
+  // the NonUniformResourceIndex problem. With 32 GB of RAM, 6 versions
+  // of references16 would be bound.
+  //
+  // macOS:
+  // Modify RemoveProcess3, AddProcess3, RebuildProcess2, Render to
+  // use some form of 64-bit arithmetic. When possible, store pointers
+  // in shader registers with the 64-bit offset already applied.
+  // 
+  // The solution will scale to 430-460 GB of RAM, as we won't account
+  // for 32-bit overflows of '.header'. This will pose some scaling
+  // issues if we implement the more memory-efficient BVH structure.
+  
   // Offset (in bytes) of the small headers within a header slot.
-  static var smallHeadersOffset: Int { 8 }
+  static var smallHeadersOffset: Int { 2 * 4 }
 }

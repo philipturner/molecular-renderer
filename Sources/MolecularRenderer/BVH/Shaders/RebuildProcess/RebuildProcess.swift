@@ -3,10 +3,15 @@ class RebuildProcess {
   let process2: Shader
   let process3: Shader
   
-  init(device: Device, worldDimension: Float) {
+  init(descriptor: BVHShadersDescriptor) {
+    guard let device = descriptor.device,
+          let memorySlotCount = descriptor.memorySlotCount,
+          let worldDimension = descriptor.worldDimension else {
+      fatalError("Descriptor was incomplete.")
+    }
+    
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
-
     shaderDesc.name = "rebuildProcess1"
     shaderDesc.threadsPerGroup = SIMD3(4, 4, 4)
     shaderDesc.source = Self.createSource1(
@@ -16,9 +21,9 @@ class RebuildProcess {
     shaderDesc.name = "rebuildProcess2"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = Self.createSource2(
-      worldDimension: worldDimension,
+      memorySlotCount: memorySlotCount,
       vendor: device.vendor,
-      supports16BitTypes: device.supports16BitTypes)
+      worldDimension: worldDimension)
     self.process2 = Shader(descriptor: shaderDesc)
 
     shaderDesc.name = "rebuildProcess3"

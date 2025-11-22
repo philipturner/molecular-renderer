@@ -113,6 +113,14 @@ extension Application {
     guard image.scaleFactor == 1 else {
       fatalError("Received image with incorrect scale factor.")
     }
+    standardUpscale()
+    
+    var output = Image()
+    output.scaleFactor = imageResources.renderTarget.upscaleFactor
+    return output
+  }
+
+  private func standardUpscale() {
     guard let upscaler = imageResources.upscaler else {
       fatalError("Upscaler was not present.")
     }
@@ -246,9 +254,5 @@ extension Application {
         48)
     }
     #endif
-    
-    var output = Image()
-    output.scaleFactor = imageResources.renderTarget.upscaleFactor
-    return output
   }
 }

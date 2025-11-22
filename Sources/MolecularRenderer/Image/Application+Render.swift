@@ -155,20 +155,16 @@ extension Application {
           .nativeBuffers[frameID % 3]
         commandList.setBuffer(
           cameraArgsBuffer, index: RenderShader.cameraArgs)
+
+        // Bind the per-address buffers.
         commandList.setBuffer(
-          bvhBuilder.atoms.atoms, index: RenderShader.atoms)
-        
-        // Bind the motion vectors.
-        #if os(macOS)
-        commandList.setBuffer(
-          bvhBuilder.atoms.motionVectors,
+          bvhBuilder.atoms.atoms,
+          index: RenderShader.atoms)
+        bvhBuilder.atoms.bindMotionVectors(
+          commandList: commandList,
           index: RenderShader.motionVectors)
-        #else
-        commandList.setDescriptor(
-          handleID: bvhBuilder.atoms.motionVectorsHandleID,
-          index: RenderShader.motionVectors)
-        #endif
         
+        // Bind the voxel data.
         commandList.setBuffer(
           bvhBuilder.voxels.group.occupiedMarks8,
           index: RenderShader.voxelGroup8OccupiedMarks)
@@ -184,22 +180,9 @@ extension Application {
         commandList.setBuffer(
           bvhBuilder.voxels.sparse.references32,
           index: RenderShader.references32)
-        
-        #if os(macOS)
-        commandList.setBuffer(
-          bvhBuilder.voxels.sparse.references16,
+        bvhBuilder.voxels.sparse.bindReferences16(
+          commandList: commandList,
           index: RenderShader.references16)
-        #else
-        if let handleID = bvhBuilder.voxels.sparse.references16HandleID {
-          commandList.setDescriptor(
-            handleID: handleID,
-            index: RenderShader.references16)
-        } else {
-          commandList.setBuffer(
-            bvhBuilder.voxels.sparse.references16,
-            index: RenderShader.references16)
-        }
-        #endif
         
         // Bind the color texture.
         if !display.isOffline {

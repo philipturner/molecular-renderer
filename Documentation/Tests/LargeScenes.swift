@@ -35,6 +35,9 @@ let worldDimension: Float = 384
 let fovAngleDegrees: Float = 110
 let screenDimension: Int = 1440
 
+// Mode that searches for a bug with 32-bit overflows in shader code.
+let bugDiagnosisMode: Bool = false
+
 // MARK: - Compile Structure
 
 let latticeSize: Float = 23
@@ -200,15 +203,16 @@ func createRandomRotation() -> RotationBasis {
   let random1 = createRandomDirection()
   let random2 = createRandomDirection()
   
-  var cross12 = cross(random1, random2)
+  let cross12 = cross(random1, random2)
   let cross12Length = (cross12 * cross12).sum().squareRoot()
-  if cross12Length < 0.001 || cross12Length > 1 {
-    fatalError("Could not take cross product.")
+  
+  // Fix: most failures come from cross12Length = 1.0000001
+  if cross12Length < 0.001 || cross12Length > 1.001 {
+    fatalError("Could not take cross product: \(cross12Length)")
   }
-  cross12 /= cross12Length
   
   let xAxis = random1
-  let yAxis = cross12
+  let yAxis = cross12 / cross12Length
   let zAxis = cross(xAxis, yAxis)
   
   return (xAxis, yAxis, zAxis)
@@ -497,17 +501,27 @@ func load(frameID: Int) {
     }
   }
   
+  let partCount = scene.partPositions.count
+  @Sendable
+  func reversePartID(_ partID: Int) -> Int {
+    if bugDiagnosisMode {
+      return partCount - 1 - partID
+    } else {
+      return partID
+    }
+  }
+  
   let start = Date()
   if loadingUsesMultithreading {
     DispatchQueue.concurrentPerform(
       iterations: partRange.count
     ) { taskID in
       let partID = partRange.startIndex + taskID
-      load(partID: partID)
+      load(partID: reversePartID(partID))
     }
   } else {
     for partID in partRange {
-      load(partID: partID)
+      load(partID: reversePartID(partID))
     }
   }
   let end = Date()
@@ -536,7 +550,8 @@ func modifyCamera() {
   // 0.1 Hz rotation rate
   // Starts out at 30° to capture more of the action.
   let time = createTime()
-  let angleDegrees = 0.1 * time * 360 + 30
+  let rotationRate: Float = bugDiagnosisMode ? 0.01 : 0.1
+  let angleDegrees = rotationRate * time * 360 + 30
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * -angleDegrees,
     axis: SIMD3(0, 1, 0))

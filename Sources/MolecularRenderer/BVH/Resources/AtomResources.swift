@@ -19,7 +19,7 @@ class AtomResources {
   let relativeOffsets1: Buffer
   let relativeOffsets2: Buffer
   #if os(Windows)
-  var motionVectorsHandleID: Int = -1
+  var motionVectorsHandleID: Int?
   var addressOccupiedMarksHandleID: Int = -1
   var relativeOffsets1HandleID: Int = -1
   var relativeOffsets2HandleID: Int = -1
@@ -28,7 +28,7 @@ class AtomResources {
   // Per atom in transaction
   let transactionIDs: RingBuffer
   let transactionAtoms: RingBuffer
-  
+
   init(descriptor: AtomResourcesDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
           let device = descriptor.device else {
@@ -82,7 +82,21 @@ class AtomResources {
 
 #if os(Windows)
 extension AtomResources {
-  func encodeMotionVectors(descriptorHeap: DescriptorHeap) {
+  func encodeMotionVectors(
+    descriptorHeap: DescriptorHeap,
+    supports16BitTypes: Bool
+  ) {
+    guard !supports16BitTypes else {
+      return
+    }
+
+    // We have never encountered this error, but buffers may become large enough
+    // to reach the 4 GB range at 500M atoms. So we proactively do this.
+    let bufferByteCount = addressSpaceSize * 8
+    guard bufferByteCount <= 4_000_000_000 else {
+      fatalError("Will have a GPU suspended crash at runtime.")
+    }
+
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT
     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
@@ -138,9 +152,11 @@ extension AtomResources {
 #endif
 
 extension AtomResources {
-  static var functionArguments: String {
+  static func functionArguments(
+    _ supports16BitTypes: Bool
+  ) -> String {
     #if os(macOS)
-    """
+    return """
     constant TransactionArgs &transactionArgs [[buffer(1)]],
     device uint *transactionIDs [[buffer(2)]],
     device float4 *transactionAtoms [[buffer(3)]],
@@ -151,12 +167,20 @@ extension AtomResources {
     device ushort4 *relativeOffsets2 [[buffer(8)]]
     """
     #else
-    """
+    func motionVectorsArgumentType() -> String {
+      if supports16BitTypes {
+        return "RWStructuredBuffer<half4>"
+      } else {
+        return "RWBuffer<float4>"
+      }
+    }
+
+    return """
     ConstantBuffer<TransactionArgs> transactionArgs : register(b1);
     RWStructuredBuffer<uint> transactionIDs : register(u2);
     RWStructuredBuffer<float4> transactionAtoms : register(u3);
     RWStructuredBuffer<float4> atoms : register(u4);
-    RWBuffer<float4> motionVectors : register(u5);
+    \(motionVectorsArgumentType()) motionVectors : register(u5);
     RWBuffer<uint> addressOccupiedMarks : register(u6);
     RWBuffer<uint4> relativeOffsets1 : register(u7);
     RWBuffer<uint4> relativeOffsets2 : register(u8);
@@ -165,19 +189,45 @@ extension AtomResources {
   }
   
   #if os(Windows)
-  static var rootSignatureArguments: String {
-    """
+  static func rootSignatureArguments(
+    _ supports16BitTypes: Bool
+  ) -> String {
+    func motionVectorsRootSignatureArgument() -> String {
+      if supports16BitTypes {
+        return "UAV(u5)"
+      } else {
+        return "DescriptorTable(UAV(u5, numDescriptors = 1))"
+      }
+    }
+
+    return """
     "RootConstants(b1, num32BitConstants = 3),"
     "UAV(u2),"
     "UAV(u3),"
     "UAV(u4),"
-    "DescriptorTable(UAV(u5, numDescriptors = 1)),"
+    "\(motionVectorsRootSignatureArgument()),"
     "DescriptorTable(UAV(u6, numDescriptors = 1)),"
     "DescriptorTable(UAV(u7, numDescriptors = 1)),"
     "DescriptorTable(UAV(u8, numDescriptors = 1)),"
     """
   }
   #endif
+
+  func bindMotionVectors(
+    commandList: CommandList,
+    index: Int
+  ) {
+    #if os(macOS)
+    commandList.setBuffer(motionVectors, index: index)
+    #else
+    if let handleID = motionVectorsHandleID {
+      commandList.setDescriptor(
+        handleID: handleID, index: index)
+    } else {
+      commandList.setBuffer(motionVectors, index: index)
+    }
+    #endif
+  }
   
   func setBufferBindings(
     commandList: CommandList,
@@ -195,14 +245,13 @@ extension AtomResources {
     
     // Bind the per-address buffers.
     commandList.setBuffer(atoms, index: 4)
+    bindMotionVectors(
+      commandList: commandList, index: 5)
     #if os(macOS)
-    commandList.setBuffer(motionVectors, index: 5)
     commandList.setBuffer(addressOccupiedMarks, index: 6)
     commandList.setBuffer(relativeOffsets1, index: 7)
     commandList.setBuffer(relativeOffsets2, index: 8)
     #else
-    commandList.setDescriptor(
-      handleID: motionVectorsHandleID, index: 5)
     commandList.setDescriptor(
       handleID: addressOccupiedMarksHandleID, index: 6)
     commandList.setDescriptor(

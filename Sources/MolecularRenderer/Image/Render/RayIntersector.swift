@@ -51,7 +51,7 @@ private func createIntersectAtom() -> String {
   """
 }
 
-private func createTestCell() -> String {
+private func createTestCell(memorySlotCount: Int) -> String {
   func resultArgument() -> String {
     #if os(macOS)
     "thread IntersectionResult &result"
@@ -60,37 +60,142 @@ private func createTestCell() -> String {
     #endif
   }
   
+  func createBody() -> String {
+    let overflows16 = SparseVoxelResources.overflows16(
+      memorySlotCount: memorySlotCount)
+    
+    if !overflows16  {
+      return """
+      uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+      uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
+      
+      // Set the loop bounds register.
+      uint referenceCursor = smallHeader & 0xFFFF;
+      uint referenceEnd = smallHeader >> 16;
+      referenceCursor += listAddress16;
+      referenceEnd += listAddress16;
+      
+      // Prevent infinite loops from corrupted BVH data.
+      referenceEnd = min(referenceEnd, referenceCursor + 128);
+      
+      // Test every atom in the voxel.
+      while (referenceCursor < referenceEnd) {
+        uint reference16 = references16[referenceCursor];
+        uint atomID = references32[listAddress32 + reference16];
+        float4 atom = atoms[atomID];
+        
+        intersectAtom(result,
+                      query,
+                      atom,
+                      atomID);
+        
+        referenceCursor += 1;
+      }
+      """
+    } else {
+      #if os(macOS)
+      func initializeAddress32() -> String {
+        let overflows32 = SparseVoxelResources.overflows32(
+          memorySlotCount: memorySlotCount)
+        
+        if !overflows32 {
+          return """
+          uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+          """
+        } else {
+          return """
+          device uint *destination32 = references32 +
+          ulong(slotID) * \(MemorySlot.reference32.size / 4);
+          """
+        }
+      }
+      
+      func getAtomID() -> String {
+        let overflows32 = SparseVoxelResources.overflows32(
+          memorySlotCount: memorySlotCount)
+        
+        if !overflows32 {
+          return """
+          uint atomID = references32[listAddress32 + reference16];
+          """
+        } else {
+          return """
+          uint atomID = destination32[reference16];
+          """
+        }
+      }
+      
+      return """
+      \(initializeAddress32())
+      device ushort *destination16 = references16 +
+      ulong(slotID) * \(MemorySlot.reference16.size / 2);
+      
+      // Set the loop bounds register.
+      uint referenceCursor = smallHeader & 0xFFFF;
+      uint referenceEnd = smallHeader >> 16;
+      
+      // Prevent infinite loops from corrupted BVH data.
+      referenceEnd = min(referenceEnd, referenceCursor + 128);
+      
+      // Test every atom in the voxel.
+      while (referenceCursor < referenceEnd) {
+        uint reference16 = destination16[referenceCursor];
+        \(getAtomID())
+        float4 atom = atoms[atomID];
+        
+        intersectAtom(result,
+                      query,
+                      atom,
+                      atomID);
+        
+        referenceCursor += 1;
+      }
+      """
+      #else
+      let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+      
+      return """
+      uint listAddress32 = slotID * \(MemorySlot.reference32.size / 4);
+      uint regionID = slotID / \(max32BitSlotCount);
+      uint listAddress16 = (slotID - regionID * \(max32BitSlotCount)) *
+      \(MemorySlot.reference16.size / 2);
+      RWBuffer<uint> destination16 =
+      references16[NonUniformResourceIndex(regionID)];
+      
+      // Set the loop bounds register.
+      uint referenceCursor = smallHeader & 0xFFFF;
+      uint referenceEnd = smallHeader >> 16;
+      referenceCursor += listAddress16;
+      referenceEnd += listAddress16;
+      
+      // Prevent infinite loops from corrupted BVH data.
+      referenceEnd = min(referenceEnd, referenceCursor + 128);
+      
+      // Test every atom in the voxel.
+      while (referenceCursor < referenceEnd) {
+        uint reference16 = destination16[referenceCursor];
+        uint atomID = references32[listAddress32 + reference16];
+        float4 atom = atoms[atomID];
+        
+        intersectAtom(result,
+                      query,
+                      atom,
+                      atomID);
+        
+        referenceCursor += 1;
+      }
+      """
+      #endif
+    }
+  }
+  
   return """
   void testCell(\(resultArgument()),
                 IntersectionQuery query,
                 uint slotID,
                 uint smallHeader)
   {
-    uint listAddress = slotID * \(MemorySlot.reference32.size / 4);
-    uint listAddress16 = slotID * \(MemorySlot.reference16.size / 2);
-    
-    // Set the loop bounds register.
-    uint referenceCursor = smallHeader & 0xFFFF;
-    uint referenceEnd = smallHeader >> 16;
-    referenceCursor += listAddress16;
-    referenceEnd += listAddress16;
-    
-    // Prevent infinite loops from corrupted BVH data.
-    referenceEnd = min(referenceEnd, referenceCursor + 128);
-    
-    // Test every atom in the voxel.
-    while (referenceCursor < referenceEnd) {
-      uint reference16 = references16[referenceCursor];
-      uint atomID = references32[listAddress + reference16];
-      float4 atom = atoms[atomID];
-      
-      intersectAtom(result,
-                    query,
-                    atom,
-                    atomID);
-      
-      referenceCursor += 1;
-    }
+    \(createBody())
   }
   """
 }
@@ -451,24 +556,14 @@ private func createIntersectAO(
 }
 
 func createRayIntersector(
-  worldDimension: Float,
-  supports16BitTypes: Bool
+  memorySlotCount: Int,
+  worldDimension: Float
 ) -> String {
   // atoms.atoms
   // voxels.group.occupiedMarks
   // voxels.dense.assignedSlotIDs
   // voxels.sparse.memorySlots [32, 16]
   func bvhBuffers() -> String {
-    #if os(Windows)
-    func references16ArgumentType() -> String {
-      if supports16BitTypes {
-        return "RWStructuredBuffer<uint16_t>"
-      } else {
-        return "RWBuffer<uint>"
-      }
-    }
-    #endif
-
     #if os(macOS)
     return """
     device float4 *atoms;
@@ -481,6 +576,17 @@ func createRayIntersector(
     threadgroup uint2 *memoryTape;
     """
     #else
+    func ref16Argument() -> String {
+      let regionCount = SparseVoxelResources.regionCount(
+        memorySlotCount: memorySlotCount)
+      
+      if regionCount <= 1 {
+        return "RWBuffer<uint> references16;"
+      } else {
+        return "RWBuffer<uint> references16[\(regionCount)];"
+      }
+    }
+
     return """
     RWStructuredBuffer<float4> atoms;
     RWStructuredBuffer<uint> voxelGroup8OccupiedMarks;
@@ -488,7 +594,7 @@ func createRayIntersector(
     RWStructuredBuffer<uint> assignedSlotIDs;
     RWStructuredBuffer<uint> headers;
     RWStructuredBuffer<uint> references32;
-    \(references16ArgumentType()) references16;
+    \(ref16Argument())
     """
     #endif
   }
@@ -538,7 +644,7 @@ func createRayIntersector(
       return headers[smallHeaderBase + uint(address)];
     }
     
-    \(createTestCell())
+    \(createTestCell(memorySlotCount: memorySlotCount))
     
     \(createFillMemoryTape(worldDimension: worldDimension))
     

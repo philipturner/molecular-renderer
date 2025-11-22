@@ -1,5 +1,6 @@
 struct BVHShadersDescriptor {
   var device: Device?
+  var memorySlotCount: Int?
   var worldDimension: Float?
 }
 
@@ -19,19 +20,12 @@ class BVHShaders {
       fatalError("Descriptor was incomplete.")
     }
     
-    self.remove = RemoveProcess(
-      device: device,
-      worldDimension: worldDimension)
-    self.add = AddProcess(
-      device: device,
-      worldDimension: worldDimension)
-    self.rebuild = RebuildProcess(
-      device: device,
-      worldDimension: worldDimension)
+    self.remove = RemoveProcess(descriptor: descriptor)
+    self.add = AddProcess(descriptor: descriptor)
+    self.rebuild = RebuildProcess(descriptor: descriptor)
     
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
-    
     shaderDesc.name = "clearBuffer"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = ClearBuffer.createSource()
@@ -45,7 +39,8 @@ class BVHShaders {
     
     shaderDesc.name = "resetMotionVectors"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
-    shaderDesc.source = ResetIdle.resetMotionVectors()
+    shaderDesc.source = ResetIdle.resetMotionVectors(
+      supports16BitTypes: device.supports16BitTypes)
     self.resetMotionVectors = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "resetVoxelMarks"
