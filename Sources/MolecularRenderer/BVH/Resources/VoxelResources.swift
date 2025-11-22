@@ -207,19 +207,39 @@ class SparseVoxelResources {
       size: memorySlotCount * MemorySlot.reference16.size)
   }
 
-  // Re-mapping the buffer slot to 100 because in HLSL, buffer labels
-  // don't correspond to RootParameterIndex.
   #if os(Windows)
+  // The number of ~4 GB regions the references16 buffer is divided into.
+  static func regionCount(memorySlotCount: Int) -> Int {
+    let max32BitSlotCount = MemorySlot.reference16.max32BitSlotCount
+
+    var output = memorySlotCount
+    output += max32BitSlotCount - 1
+    output /= max32BitSlotCount
+    return output
+  }
+
   static func ref16FunctionArgument(
     _ memorySlotCount: Int
   ) -> String {
-    return "RWBuffer<uint> references16 : register(u100);"
+    let regionCount = Self.regionCount(
+      memorySlotCount: memorySlotCount)
+    if regionCount == 1 {
+      return "RWBuffer<uint> references16 : register(u100);"
+    } else {
+      return """
+      RWBuffer<uint> references16[\(regionCount)] : register(u100);"
+      """
+    }
   }
   
+  // Re-mapping the buffer slot to 100 because in HLSL, buffer labels
+  // don't correspond to RootParameterIndex.
   static func ref16RootSignatureArgument(
     _ memorySlotCount: Int
   ) -> String {
-    return "DescriptorTable(UAV(u100, numDescriptors = 1))"
+    let regionCount = Self.regionCount(
+      memorySlotCount: memorySlotCount)
+    return "DescriptorTable(UAV(u100, numDescriptors = \(regionCount)))"
   }
   #endif
 
