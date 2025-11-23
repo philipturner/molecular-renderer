@@ -236,7 +236,7 @@ func createPartPositions(
   spacing: Float,
   partCount: Int
 ) -> [SIMD3<Float>] {
-  // Takes an approximate square root, biasing all calculations to round down.
+  // Takes an approximate cube root, biasing all calculations to round down.
   func cubeRoot(_ x: Int) -> Int {
     var output = Float(x)
     output = pow(output, Float(1) / 3)
