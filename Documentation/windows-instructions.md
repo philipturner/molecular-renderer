@@ -2,7 +2,7 @@
 
 > This document does not accurately explain all of the prerequisites. Please view the tutorial (TODO: link).
 >
-> Since the tutorial was filmed, the first WinGet command changed from v22000 to v22621. Use the new command at your own risk.
+> Since the tutorial was filmed, the first WinGet command [changed from v22000 to v22621](https://github.com/swiftlang/swift-org-website/pull/1248). Use the new command at your own risk.
 
 Prerequisites: [Swift (WinGet Installation)](https://www.swift.org/install/windows), WinSDK v22621, [VS Code](https://code.visualstudio.com/download), [Swift Extension](https://www.swift.org/documentation/articles/getting-started-with-vscode-swift.html)
 
