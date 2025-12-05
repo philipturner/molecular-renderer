@@ -1,12 +1,16 @@
 # Windows Instructions
 
-> This document does not accurately explain all of the prerequisites. Please view the tutorial video (TODO: link).
+> This document does not accurately explain all of the prerequisites. Please view the tutorial (TODO: link).
+>
+> Since the tutorial was filmed, the first WinGet command changed from v22000 to v22621. Use the new command at your own risk.
 
-Prerequisites: [Swift (Manual Installation)](https://www.swift.org/install/windows/#alternative-install-options), [VS Code](https://code.visualstudio.com/download), [Swift Extension](https://www.swift.org/documentation/articles/getting-started-with-vscode-swift.html), [Git Bash](https://gitforwindows.org)
+Prerequisites: [Swift (WinGet Installation)](https://www.swift.org/install/windows), WinSDK v22621, [VS Code](https://code.visualstudio.com/download), [Swift Extension](https://www.swift.org/documentation/articles/getting-started-with-vscode-swift.html)
 
 Minimum OS version: Windows 10
 
 Minimum GPU architecture: [Maxwell 2.0 (NVIDIA)](https://en.wikipedia.org/wiki/Maxwell_(microarchitecture)), [RDNA 1.0 (AMD)](https://en.wikipedia.org/wiki/RDNA_(microarchitecture))
+
+> Recent commits added support for 64-bit wavefronts. GCN 5.0 and older AMD architectures may be supported now. Please try Molecular Renderer if you have GCN. Open an issue if there are errors.
 
 ## Setting Up IDE
 
