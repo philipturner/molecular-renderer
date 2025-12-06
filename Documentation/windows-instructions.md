@@ -1,10 +1,6 @@
 # Windows Instructions
 
-> This document does not accurately explain all of the prerequisites. Please view the tutorial (TODO: link).
->
-> Since the tutorial was filmed, the first WinGet command [changed from v22000 to v22621](https://github.com/swiftlang/swift-org-website/pull/1248). Use the new command at your own risk.
-
-Prerequisites: [Swift (WinGet Installation)](https://www.swift.org/install/windows), WinSDK v22621, [VS Code](https://code.visualstudio.com/download), [Swift Extension](https://www.swift.org/documentation/articles/getting-started-with-vscode-swift.html)
+Prerequisites: [Swift (WinGet Installation)](https://www.swift.org/install/windows), [VS Code](https://code.visualstudio.com/download), [Swift Extension](https://www.swift.org/documentation/articles/getting-started-with-vscode-swift.html)
 
 Minimum OS version: Windows 10
 
@@ -31,6 +27,8 @@ Open the source code in VS Code by double-clicking `Package.swift`. Navigate to 
 Go to <b>Terminal</b> > <b>New Terminal</b> in the top menu bar, then <b>TERMINAL</b> in the sub-window that appears at the bottom of the IDE. Run `./run.bat` in the interactive terminal. Run on every program startup.
 
 ## Issues
+
+Ensure developer mode is turned on in the Windows settings. Also, check the SDKs installed in <b>Control Panel</b> > <b>Programs</b> > <b>Programs and Features</b>. Ensure there is only a single SDK, named "22621".
 
 On the first ever program startup, compilation may take over a minute on older CPUs. To be precise, one compilation instance measured 180.44 seconds on the Intel Core i5-4460, compared to 11.63 seconds on the M1 Max CPU. `-Xswiftc -Ounchecked` allows these build products to be reused on subsequent program runs.
 
