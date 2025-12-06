@@ -6,7 +6,7 @@ Minimum OS version: Windows 10
 
 Minimum GPU architecture: [Maxwell 2.0 (NVIDIA)](https://en.wikipedia.org/wiki/Maxwell_(microarchitecture)), [RDNA 1.0 (AMD)](https://en.wikipedia.org/wiki/RDNA_(microarchitecture))
 
-> Recent commits added support for 64-bit wavefronts. GCN 5.0 and older AMD architectures may be supported now. Please try Molecular Renderer if you have GCN. Open an issue if there are errors.
+> Recent commits added support for 64-bit wavefronts. GCN 5.0 and older AMD architectures may be supported now. Please try Molecular Renderer if you have GCN. Open an issue to report whether it works.
 
 ## Setting Up IDE
 
