@@ -82,8 +82,9 @@ extension Window {
         // window doesn't get cut off by the screen. Make sure the new
         // dimensions are still divisible by 2 or 3, if you're using upscaling.
         // - 1080x1080 * 0.8 -> 864x864
+        // - 1440x1080 * 0.8 -> 1152x864
+        // - 1080x1440 * 0.6 -> 648x864
         // - 1440x1440 * 0.6 -> 864x864
-        // - 1440x1080 * 0.6 -> 864x648
         fatalError("""
           Window dimensions approached or exceeded display resolution. Make the 
           window smaller in DisplayDescriptor.frameBufferSize.
