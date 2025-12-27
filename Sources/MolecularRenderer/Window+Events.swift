@@ -57,7 +57,7 @@ extension Window {
         fatalError("Could not retrieve run loop.")
       }
       runLoop.outputHandler()
-      
+
     case WM_SIZE:
       // Retrieve the expected size.
       guard let application = Application.singleton else {
@@ -73,8 +73,21 @@ extension Window {
       guard contentRect.left == 0,
             contentRect.top == 0,
             contentRect.right == frameBufferSize[0],
-            contentRect.bottom == frameBufferSize[1] else {
-        fatalError("Attempted to resize the window.")
+            contentRect.bottom == frameBufferSize[1] else {\
+        // Example: 1080x1080 window on 1920x1080 screen exceeds display
+        // dimensions because 19-pixel bar on the top makes the actual window
+        // 1080x1099.
+        //
+        // Solution: shrink all dimensions by a small constant factor, so the
+        // window doesn't get cut off by the screen. Make sure the new
+        // dimensions are still divisible by 2 or 3, if you're using upscaling.
+        // - 1080x1080 * 0.8 -> 864x864
+        // - 1440x1440 * 0.6 -> 864x864
+        // - 1440x1080 * 0.6 -> 864x648
+        fatalError("""
+          Window dimensions approached or exceeded display resolution. Make the 
+          window smaller in DisplayDescriptor.frameBufferSize.
+          """)
       }
       
     case WM_KEYDOWN:

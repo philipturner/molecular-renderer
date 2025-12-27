@@ -244,6 +244,15 @@ func createApplication() -> Application {
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
+
+  // What? We forgot to enable upscaling while originally creating this test?
+  // It's better to leave the original code as-is, but it might cause FPS
+  // problems on weaker GPUs. Ideally, we would use an upscale factor of 3 and
+  // change the code in 'application.run' to call 'application.upscale'.
+  //
+  // Since the majority of the pixels never intersect an atom, the compute cost
+  // for ray tracing is quite low. That's probably why the test didn't cause
+  // performance issues.
   applicationDesc.upscaleFactor = 1
   
   applicationDesc.addressSpaceSize = 4_000_000
