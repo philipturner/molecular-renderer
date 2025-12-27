@@ -73,7 +73,7 @@ extension Window {
       guard contentRect.left == 0,
             contentRect.top == 0,
             contentRect.right == frameBufferSize[0],
-            contentRect.bottom == frameBufferSize[1] else {\
+            contentRect.bottom == frameBufferSize[1] else {
         // Example: 1080x1080 window on 1920x1080 screen exceeds display
         // dimensions because 19-pixel bar on the top makes the actual window
         // 1080x1099.
