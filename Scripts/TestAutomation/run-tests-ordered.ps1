@@ -2,6 +2,7 @@ param(
     [switch]$Low,
     [switch]$Medium,
     [switch]$High,
+    [switch]$Video,
     [switch]$All,
     [switch]$NoCleanup,
     [int]$StartFrom = 1
@@ -17,20 +18,15 @@ Set-Location $projectRoot
 $lowAtomTests = @(
     "Upscaling",
     "Upscaling-WithOutput",
-    "Upscaling-WithVideo",
     "OpenMMPlugin",
     "MM4",
-    "MM4-WithVideo",
     "xTB"
     # Note: Propargyl Alcohol Tripod and Stannatrane Tripod require additional files
 )
 
 $mediumAtomTests = @(
     "AccelerationStructure",
-    "CriticalPixelCount",
-    "MDSimulationVideo",
-    "MM4-Video",
-    "Upscaling-Video"
+    "CriticalPixelCount"
     # Note: MM4 Energy Minimization requires additional files
 )
 
@@ -38,6 +34,14 @@ $highAtomTests = @(
     "RotatingBeam",
     "LongDistances",
     "LargeScenes"
+)
+
+$videoTests = @(
+    "Upscaling-WithVideo",
+    "MDSimulationVideo",
+    "RotatingBeam-WithVideo",
+    "LongDistances-WithVideo",
+    "LargeScenes-WithVideo"
 )
 
 function Run-Test {
@@ -53,111 +57,13 @@ function Run-Test {
         return $false
     }
 
-    # Check if this is a console-only test (doesn't launch renderer)
-    $isConsoleOnly = $false
-    switch ($TestName) {
-        "OpenMMPlugin" { $isConsoleOnly = $true }
-        "xTB" { $isConsoleOnly = $true }
-        default { $isConsoleOnly = $false }
-    }
-
-    if ($isConsoleOnly) {
-        Write-Host "Console-only test detected - will run automatically" -ForegroundColor Cyan
-    } else {
-        Write-Host "GUI test detected - may not show window in automated environment" -ForegroundColor Yellow
-    }
-
-    # Backup original main.swift if it exists and not already a backup
-    $mainSwift = "Sources/Workspace/main.swift"
-    $backupFile = "Sources/Workspace/main.swift.backup"
-
-    if ((Test-Path $mainSwift) -and -not (Test-Path $backupFile)) {
-        Write-Host "Backing up original main.swift..." -ForegroundColor Gray
-        Copy-Item $mainSwift $backupFile
-    }
-
-    # Copy test file to main.swift
-    Copy-Item $testFile $mainSwift -Force
-
     try {
-        # Find Swift executable
-        $swiftPath = where.exe swift 2>$null
-        if (-not $swiftPath) {
-            # Try common Swift installation locations
-            $possiblePaths = @(
-                "C:\Users\$env:USERNAME\AppData\Local\Programs\Swift\Toolchains\*\usr\bin\swift.exe",
-                "C:\Library\Developer\Toolchains\*\usr\bin\swift.exe"
-            )
-            foreach ($path in $possiblePaths) {
-                $resolved = Resolve-Path $path -ErrorAction SilentlyContinue
-                if ($resolved) {
-                    $swiftPath = $resolved.Path
-                    break
-                }
-            }
-        }
-        if (-not $swiftPath) {
-            Write-Host "Error: Swift executable not found in PATH or default locations." -ForegroundColor Red
-            return $false
-        }
-
-        # Create a temporary script that sets environment and runs Swift
-        $tempScript = @"
-#!/bin/bash
-cd "$scriptDir"
-export OPENMM_PLUGIN_DIR="$scriptDir"
-export OMP_STACKSIZE="2G"
-export MTL_HUD_ENABLED=1
-SWIFT_PATH="$swiftPath"
-"`$SWIFT_PATH" run -Xswiftc -Ounchecked
-"@
-
-        $tempScriptPath = [System.IO.Path]::GetTempFileName() + ".sh"
-        $tempScript | Out-File -FilePath $tempScriptPath -Encoding ASCII
-
-        if ($isConsoleOnly) {
-            # Console-only tests: run and capture output
-            Write-Host "Running console test (no GUI)..." -ForegroundColor Green
-            $process = Start-Process -FilePath "C:\Program Files\Git\bin\bash.exe" -ArgumentList $tempScriptPath -NoNewWindow -Wait -PassThru
-            if ($process.ExitCode -eq 0) {
-                Write-Host "Console test completed successfully." -ForegroundColor Green
-                $result = $true
-            } else {
-                Write-Host "Console test failed with exit code $($process.ExitCode)." -ForegroundColor Red
-                $result = $false
-            }
-        } else {
-            # GUI tests: run in foreground so window appears
-            Write-Host "Starting GUI test. A window should appear..." -ForegroundColor Green
-            Write-Host "Close the application window when done, or press Ctrl+C here to stop." -ForegroundColor Yellow
-
-            $process = Start-Process -FilePath "C:\Program Files\Git\bin\bash.exe" -ArgumentList $tempScriptPath -Wait -PassThru
-
-            if ($process.ExitCode -eq 0) {
-                Write-Host "GUI test completed (window closed)." -ForegroundColor Green
-                $result = $true
-            } else {
-                Write-Host "GUI test failed with exit code $($process.ExitCode)." -ForegroundColor Red
-                $result = $false
-            }
-        }
-
-        # Clean up temp script
-        Remove-Item $tempScriptPath -ErrorAction SilentlyContinue
-        return $result
-    }
-    catch {
+        # Delegate to the single-test runner so main.swift swapping is defined in ONE place.
+        & "$PSScriptRoot/run-test.ps1" -TestName $TestName -NoCleanup:$NoCleanup
+        return ($LASTEXITCODE -eq 0)
+    } catch {
         Write-Host "Test execution failed or was interrupted." -ForegroundColor Red
         return $false
-    }
-    finally {
-        # Restore original main.swift unless -NoCleanup is specified
-        if (-not $NoCleanup) {
-            if (Test-Path $backupFile) {
-                Write-Host "Restoring original main.swift..." -ForegroundColor Gray
-                Move-Item $backupFile $mainSwift -Force
-            }
-        }
     }
 }
 
@@ -169,6 +75,7 @@ function Show-Usage {
     Write-Host "  .\run-tests-ordered.ps1 -Low       # Run low atom count tests (10-100 atoms)"
     Write-Host "  .\run-tests-ordered.ps1 -Medium    # Run medium atom count tests (10k-100k atoms)"
     Write-Host "  .\run-tests-ordered.ps1 -High      # Run high atom count tests (1M-100M atoms)"
+    Write-Host "  .\run-tests-ordered.ps1 -Video     # Run video output tests (saves .gif files)"
     Write-Host "  .\run-tests-ordered.ps1 -All       # Run all tests in order"
     Write-Host ""
     Write-Host "Options:" -ForegroundColor Yellow
@@ -192,6 +99,11 @@ function Show-Usage {
         Write-Host "  $($i+1). $($highAtomTests[$i])" -ForegroundColor White
     }
     Write-Host ""
+    Write-Host "Video Output Tests (.gif):" -ForegroundColor Magenta
+    for ($i = 0; $i -lt $videoTests.Count; $i++) {
+        Write-Host "  $($i+1). $($videoTests[$i])" -ForegroundColor White
+    }
+    Write-Host ""
     Write-Host "Note: Some tests require additional files from GitHub Gists." -ForegroundColor Yellow
     Write-Host "      These are marked in the documentation but not automated." -ForegroundColor Yellow
 }
@@ -209,8 +121,11 @@ if ($Low) {
 } elseif ($High) {
     $testsToRun = $highAtomTests
     $categoryName = "High Atom Count"
+} elseif ($Video) {
+    $testsToRun = $videoTests
+    $categoryName = "Video Output Tests"
 } elseif ($All) {
-    $testsToRun = $lowAtomTests + $mediumAtomTests + $highAtomTests
+    $testsToRun = $lowAtomTests + $mediumAtomTests + $highAtomTests + $videoTests
     $categoryName = "All Tests"
 } else {
     Show-Usage
@@ -268,10 +183,11 @@ if ($completedTests -gt 0) {
     Write-Host "[SUCCESS] All tests built successfully!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Check for saved outputs in .build folder:" -ForegroundColor Cyan
-    Write-Host "  - MDSimulationVideo test saves: Art/diamond-beams-collision-md.gif" -ForegroundColor White
-    Write-Host "  - Upscaling-Video saves: Art/upscaling-molecular-animation.gif" -ForegroundColor White
-    Write-Host "  - MM4-Video saves: Art/mm4-molecular-dynamics.gif" -ForegroundColor White
-    Write-Host "  - Upscaling-WithOutput saves: .build/upscaling_frame_*.ppm" -ForegroundColor White
+    Write-Host "  - MDSimulationVideo test saves: .build/video.gif" -ForegroundColor White
+    Write-Host "  - Upscaling-WithVideo saves: Art/molecular-upscaling-animation.gif" -ForegroundColor White
+    Write-Host "  - RotatingBeam-WithVideo saves: Art/rotating-beam.gif" -ForegroundColor White
+    Write-Host "  - LongDistances-WithVideo saves: Art/long-distances.gif" -ForegroundColor White
+    Write-Host "  - LargeScenes-WithVideo saves: Art/large-scenes.gif" -ForegroundColor White
     Write-Host "  - Some tripod tests save: .build/image.ppm" -ForegroundColor White
     Write-Host ""
     Write-Host "GUI tests (Upscaling, MM4) show interactive windows" -ForegroundColor Yellow
