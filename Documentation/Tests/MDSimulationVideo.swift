@@ -165,7 +165,7 @@ func placeBody2(base: MM4RigidBody) -> MM4RigidBody {
   output.rotate(quaternion: rotation2)
   output.centerOfMass += SIMD3<Double>(3, 0, -1.8)
   
-  // 100 ms in -X direction
+  // 100 m/s in -X direction
   output.linearMomentum = SIMD3<Double>(-0.1, 0, 0) * output.mass
   return output
 }
