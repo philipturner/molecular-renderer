@@ -53,10 +53,13 @@ struct AtomStyles {
     colors += Array(repeating: .zero, count: 50 - 36 - 1)
     
     // Tin: dull blue color.
-    colors.append(SIMD3(102, 128, 128))
+    colors.append(SIMD3(102, 128, 128)) // 50
+    colors.append(SIMD3(153, 66, 179)) // 51
+    colors.append(SIMD3(230, 89, 0)) // 52
+    colors.append(SIMD3(0, 128, 0)) // 53
     
-    // Antimony to platinum: not parameterized.
-    colors += Array(repeating: .zero, count: 79 - 50 - 1)
+    // Xenon to platinum: not parameterized.
+    colors += Array(repeating: .zero, count: 79 - 53 - 1)
     
     // Gold: yellow color.
     //
@@ -136,10 +139,13 @@ struct AtomStyles {
     // https://7id.xray.aps.anl.gov/calculators/crystal_lattice_parameters.html
     // 5.64613 (Ge) -> 6.48920 (Sn)
     // 1.938 (Ge) * 6.48920/5.64613 = 2.227 (Sn)
-    radii.append(2.227)
+    radii.append(2.227) // 50
+    radii.append(1.995) // 51
+    radii.append(1.890) // 52
+    radii.append(1.784) // 53
     
-    // Antimony to platinum: not parameterized.
-    radii += Array(repeating: 0, count: 79 - 50 - 1)
+    // Xenon to platinum: not parameterized.
+    radii += Array(repeating: 0, count: 79 - 53 - 1)
     
     // Gold: 2.4 Å radius.
     //
