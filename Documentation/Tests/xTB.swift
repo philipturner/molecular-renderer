@@ -14,7 +14,7 @@ let calculator = xTB_Calculator(descriptor: calculatorDesc)
 
 // Update the positions. When using `.tightBinding`, the positions can be
 // specified after initializing the calculator.
-calculator.molecule.positions = system.map(\.position)
+calculator.molecule.positions = system.map { SIMD3($0.position) }
 
 // Query the energy.
 do {
@@ -39,7 +39,7 @@ let candidateBondLengths: [Float] = [
 var candidateEnergies: [Double] = []
 for bondLength in candidateBondLengths {
   let position = SIMD3<Float>(bondLength, 0, 0)
-  calculator.molecule.positions[1] = position
+  calculator.molecule.positions[1] = SIMD3(position)
   
   let energy = calculator.energy
   candidateEnergies.append(energy)
@@ -91,7 +91,7 @@ for i in 1..<candidateBondLengths.count {
   
   // Evaluate the force analytically.
   let position = SIMD3<Float>(midPoint, 0, 0)
-  calculator.molecule.positions[1] = position
+  calculator.molecule.positions[1] = SIMD3(position)
   let force0 = calculator.molecule.forces[0]
   let force1 = calculator.molecule.forces[1]
   
@@ -112,8 +112,8 @@ for i in 1..<candidateBondLengths.count {
   
   let midPointRepr = String(format: "%.3f", midPoint)
   let energyGradientRepr = format(force: energyGradient)
-  let force0Repr = format(force: force0.x)
-  let force1Repr = format(force: force1.x)
+  let force0Repr = format(force: Float(force0.x))
+  let force1Repr = format(force: Float(force1.x))
   
   print(
     "\(midPointRepr) nm -",
