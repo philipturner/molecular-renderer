@@ -10,10 +10,10 @@ cd .build
 
 :: Download each binary dependency from the Internet.
 powershell -c "Invoke-WebRequest -Uri 'https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2505.1/dxc_2025_07_14.zip' -OutFile 'dxc_2025_07_14.zip'"
-powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/raw/main/Kits/FidelityFX/signedbin/amd_fidelityfx_upscaler_dx12.dll' -OutFile 'amd_fidelityfx_upscaler_dx12.dll'"
-powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/raw/main/Kits/FidelityFX/signedbin/amd_fidelityfx_upscaler_dx12.lib' -OutFile 'amd_fidelityfx_upscaler_dx12.lib'"
-powershell -c "Invoke-WebRequest -Uri 'https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.1/openmm-windows.zip' -OutFile 'openmm-windows.zip'"
-powershell -c "Invoke-WebRequest -Uri 'https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.1/xtb-windows.zip' -OutFile 'xtb-windows.zip'"
+powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/raw/f4c1da8e92f3fe563b5c28c44e6267ce6b6b8eb2/Kits/FidelityFX/signedbin/amd_fidelityfx_upscaler_dx12.dll' -OutFile 'amd_fidelityfx_upscaler_dx12.dll'"
+powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/raw/f4c1da8e92f3fe563b5c28c44e6267ce6b6b8eb2/Kits/FidelityFX/signedbin/amd_fidelityfx_upscaler_dx12.lib' -OutFile 'amd_fidelityfx_upscaler_dx12.lib'"
+powershell -c "Invoke-WebRequest -Uri 'https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.2/openmm-windows.zip' -OutFile 'openmm-windows.zip'"
+powershell -c "Invoke-WebRequest -Uri 'https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.2/xtb-windows.zip' -OutFile 'xtb-windows.zip'"
 
 :: Decompress each ZIP file into a hierarchy of folders.
 powershell -c "Import-Module Microsoft.Powershell.Archive"
