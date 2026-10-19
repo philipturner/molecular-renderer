@@ -86,7 +86,7 @@ packageDependencies.append(.package(
 
 packageDependencies.append(.package(
   url: "https://github.com/philipturner/swift-xtb",
-  branch: "main"))
+  branch: "copy-results"))
 
 // MARK: - Windows Targets
 

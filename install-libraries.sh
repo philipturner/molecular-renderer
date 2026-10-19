@@ -4,10 +4,10 @@ mkdir .build
 
 cd .build
 
-curl -L -o "openmm-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.1/openmm-macos.zip"
+curl -L -o "openmm-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.2/openmm-macos.zip"
 unzip -o openmm-macos.zip
 
-curl -L -o "xtb-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.1/xtb-macos.zip"
+curl -L -o "xtb-macos.zip" "https://github.com/philipturner/molecular-renderer-simulator-binaries/releases/download/v1.0.2/xtb-macos.zip"
 unzip -o xtb-macos.zip
 
 cd ../ # balance 'cd .build'
@@ -32,7 +32,11 @@ cp ".build/xtb-macos/libquadmath.0.dylib" libquadmath.0.dylib
 
 ## Fix the self-link of each library.
 
-# Technically, "-id" command is not needed for "libxtb.dylib". However, it
+# The "-id" command is required for "libOpenMM.dylib". The Workspace executable
+# records this name when it links OpenMM. A bare file name is resolved relative
+# to the current directory, so 'run.sh' must start from the package folder.
+#
+# Technically, "-id" command is not needed for the other libraries. However, it
 # prevents an issue where macOS flags libxtb as a virus, when copying the binary
 # from an external folder instead of generating the folder's contents via unzip.
 
@@ -47,26 +51,15 @@ install_name_tool -id "libgfortran.5.dylib" libgfortran.5.dylib
 install_name_tool -id "libgomp.1.dylib" libgomp.1.dylib
 install_name_tool -id "libquadmath.0.dylib" libquadmath.0.dylib
 
-## Fix the symbolic links between libraries.
+## Fix the search path of the OpenMM plugin.
 
-install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMM.dylib
-install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMMOpenCL.dylib
-install_name_tool -change "@rpath/libOpenCL.1.dylib" "$(pwd)/libOpenCL.1.dylib" libOpenMMOpenCL.dylib
-install_name_tool -change "@rpath/libOpenMM.dylib" "$(pwd)/libOpenMM.dylib" libOpenMMOpenCL.dylib
-
-export GCC="/opt/homebrew/opt/gcc/lib/gcc/current"
-install_name_tool -change "$GCC/libgfortran.5.dylib" "$(pwd)/libgfortran.5.dylib" libxtb.dylib
-install_name_tool -change "$GCC/libgomp.1.dylib" "$(pwd)/libgomp.1.dylib" libxtb.dylib
-install_name_tool -change "$GCC/libquadmath.0.dylib" "$(pwd)/libquadmath.0.dylib" libxtb.dylib
-
-# I can fix one of the faulty rpaths, but not both. Apparently, this is not
-# needed anyway. I also tried skipping the re-linking of @rpaths for the OpenMM
-# libraries. I cannot evaluate whether OpenCL backend detection was flaky.
-
-# error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: changing install names or rpaths can't be redone for: libgfortran.5.dylib (for architecture arm64) because larger updated load commands do not fit (the program must be relinked, and you may need to use -headerpad or -headerpad_max_install_names)
+# OpenMM normally keeps libOpenMMOpenCL in a "plugins" subfolder, so it searches
+# the parent folder for its dependencies. Here, the parent of the package
+# folder could contain other copies of libOpenMM. Search the package folder.
 #
-# install_name_tool -change "@rpath/libgcc_s.1.1.dylib" "$(pwd)/libgcc_s.1.1.dylib" libgfortran.5.dylib
-# install_name_tool -change "@rpath/libquadmath.0.dylib" "$(pwd)/libquadmath.0.dylib" libgfortran.5.dylib
+# Every other library already searches its own folder ("@loader_path").
+
+install_name_tool -rpath "@loader_path/../" "@loader_path/" libOpenMMOpenCL.dylib
 
 ## Repair the code signature.
 
